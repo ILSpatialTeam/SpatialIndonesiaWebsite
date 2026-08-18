@@ -473,6 +473,43 @@ class SolarSystem extends HTMLElement {
     this._panelCache = {};
     this.xrTargets = this.navBtns.slice();
     this.xrHome = { yaw: 0, y: 1.5, set: false };
+
+    // gaze reticle with a dwell progress ring, parented to the viewer
+    const gaze = new THREE.Group();
+    gaze.name = 'gazeReticle';
+    gaze.visible = false;
+    this.scene.add(gaze);
+    this.gaze = gaze;
+
+    const dot = new THREE.Mesh(
+      new THREE.CircleGeometry(0.0022, 16),
+      new THREE.MeshBasicMaterial({ color: PAPER, transparent: true, opacity: 0.9, depthTest: false })
+    );
+    dot.name = 'gazeDot';
+    dot.renderOrder = 999;
+    gaze.add(dot);
+
+    const rim = new THREE.Mesh(
+      new THREE.RingGeometry(0.0092, 0.0104, 40),
+      new THREE.MeshBasicMaterial({ color: PAPER, transparent: true, opacity: 0.28, depthTest: false })
+    );
+    rim.name = 'gazeRim';
+    rim.renderOrder = 999;
+    gaze.add(rim);
+
+    const arc = new THREE.Mesh(
+      new THREE.RingGeometry(0.0092, 0.0126, 40, 1, Math.PI / 2, 0.0001),
+      new THREE.MeshBasicMaterial({ color: MINT, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide })
+    );
+    arc.name = 'gazeProgress';
+    arc.renderOrder = 1000;
+    gaze.add(arc);
+    this.gazeArc = arc;
+    this.gazeDot = dot;
+    this.gazeRim = rim;
+
+    this.dwell = { id: null, t: 0, need: 1.2, lockUntil: 0 };
+    this.hasController = false;
   }
 
   _setBtn(mesh, state, force) {
@@ -509,11 +546,60 @@ class SolarSystem extends HTMLElement {
       const tip = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 12), new THREE.MeshBasicMaterial({ color: ACCENT }));
       tip.name = 'tip';
       c.add(tip);
-      c.addEventListener('selectstart', () => this._xrSelect(c));
-      c.addEventListener('squeezestart', () => this.freeFlight());
+      c.addEventListener('selectstart', () => { this._markController(); this._xrSelect(c); });
+      c.addEventListener('squeezestart', () => { this._markController(); this.freeFlight(); });
+      c.addEventListener('connected', e => {
+        c.userData.connected = true;
+        c.userData.isHand = !!(e.data && e.data.hand);
+        const line = c.getObjectByName('ray');
+        if (line) line.visible = true;
+      });
+      c.addEventListener('disconnected', () => {
+        c.userData.connected = false;
+        const line = c.getObjectByName('ray');
+        if (line) line.visible = false;
+      });
       this.scene.add(c);
       this.controllers.push(c);
     }
+  }
+
+  _markController() {
+    this.hasController = true;
+    this._resetDwell();
+  }
+
+  _resetDwell() {
+    this.dwell.id = null;
+    this.dwell.t = 0;
+    this._setArc(0);
+  }
+
+  _setArc(f) {
+    const frac = clamp(f, 0, 1);
+    if (Math.abs((this._arcFrac || 0) - frac) < 0.012) return;
+    this._arcFrac = frac;
+    if (this.gazeArc.geometry) this.gazeArc.geometry.dispose();
+    this.gazeArc.geometry = new THREE.RingGeometry(0.0092, 0.0126, 40, 1, Math.PI / 2, -Math.max(0.0001, frac * Math.PI * 2));
+    this.gazeArc.material.color.set(frac > 0.985 ? ACCENT : MINT);
+  }
+
+  _gazeHit(cam) {
+    this.tmp.set(0, 0, 0).applyMatrix4(cam.matrixWorld);
+    this.tmp2.set(0, 0, -1).transformDirection(cam.matrixWorld).normalize();
+    this.ray.set(this.tmp, this.tmp2);
+    const ui = this.ray.intersectObjects(this.xrTargets, false)[0];
+    const planet = this.ray.intersectObjects(this.hits, false)[0];
+    if (ui && (!planet || ui.distance < planet.distance)) return { kind: 'ui', obj: ui.object, key: ui.object.name };
+    if (planet) return { kind: 'planet', id: planet.object.userData.planetId, key: 'planet-' + planet.object.userData.planetId };
+    return null;
+  }
+
+  _commitGaze(hit) {
+    if (hit.kind === 'planet') return this.travelTo(hit.id);
+    const u = hit.obj.userData;
+    if (u.kind === 'nav') this.travelTo(u.planetId);
+    else this.freeFlight();
   }
 
   _xrRay(source) {
@@ -645,6 +731,10 @@ class SolarSystem extends HTMLElement {
     await this.renderer.xr.setSession(session);
     this._bindXRControllers();
     this.xrRoot.visible = true;
+    this.gaze.visible = true;
+    this.hasController = false;
+    this._resetDwell();
+    this.dwell.lockUntil = performance.now() + 900;
     this.xrHome.set = false;
     this.planets.forEach(p => { p.tag.visible = true; });
     this.sunTag.visible = true;
@@ -657,6 +747,8 @@ class SolarSystem extends HTMLElement {
     this.world.position.set(0, 0, 0);
     this.xrRoot.visible = false;
     this.xrPanel.visible = false;
+    this.gaze.visible = false;
+    this._resetDwell();
     this.planets.forEach(p => { p.tag.visible = false; });
     this.sunTag.visible = false;
     this._resize();
@@ -668,22 +760,71 @@ class SolarSystem extends HTMLElement {
     if (el && el.textContent !== val) el.textContent = val;
   }
 
+  _reserved() {
+    const now = performance.now();
+    if (this._resCache && now - this._resAt < 260) return this._resCache;
+    const sel = '[data-ui="header"],[data-ui="flightplan"],[data-ui="readout"],[data-ui="xrline"],[data-ui="cursorpick"],[data-ui="hints"],[data-intro],[data-panel]';
+    const rects = [];
+    document.querySelectorAll(sel).forEach(el => {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.08) return;
+      const r = el.getBoundingClientRect();
+      if (r.width > 4 && r.height > 4) rects.push(r);
+    });
+    this._resCache = rects;
+    this._resAt = now;
+    return rects;
+  }
+
   _labels() {
     const w = this.clientWidth, h = this.clientHeight;
+    const host = this.getBoundingClientRect();
+    const reserved = this._reserved();
     const items = this.planets.concat([{ id: 'inti', group: this.sun }]);
-    items.forEach(p => {
+    const placed = [];
+
+    const rows = items.map(p => {
       const el = document.querySelector('[data-planet-label="' + p.id + '"]');
-      if (!el) return;
+      if (!el) return null;
       p.group.getWorldPosition(this.tmp);
       const d = this.tmp.distanceTo(this.camera.position);
       this.tmp.project(this.camera);
       const behind = this.tmp.z > 1;
       const x = (this.tmp.x * 0.5 + 0.5) * w, y = (-this.tmp.y * 0.5 + 0.5) * h;
-      const on = !behind && x > -60 && x < w + 60 && y > -40 && y < h + 40;
+      return { p, el, d, x, y, behind };
+    }).filter(Boolean);
+
+    // nearest first, so a closer label always wins a contested spot
+    rows.sort((a, b) => a.d - b.d);
+
+    rows.forEach(row => {
+      const { p, el, d, x, y, behind } = row;
       el.style.transform = 'translate(-50%, -50%) translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
-      el.style.opacity = on ? String(clamp(1.2 - d / 130, 0.25, 1)) : '0';
-      el.style.pointerEvents = on ? 'auto' : 'none';
       el.style.borderColor = this.active === p.id ? '#ff5c2b' : (this.hover === p.id ? '#6fe3b8' : 'rgba(237,232,220,.18)');
+
+      const onScreen = !behind && x > -60 && x < w + 60 && y > -40 && y < h + 40;
+      if (!onScreen) {
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+        return;
+      }
+
+      // label box in viewport coordinates, with a small breathing margin
+      const bw = (el.offsetWidth || 120) + 10, bh = (el.offsetHeight || 30) + 8;
+      const box = { left: host.left + x - bw / 2, right: host.left + x + bw / 2, top: host.top + y - bh / 2, bottom: host.top + y + bh / 2 };
+      const clash = r => box.left < r.right && r.left < box.right && box.top < r.bottom && r.top < box.bottom;
+
+      const pinned = this.active === p.id || this.hover === p.id;
+      const hidden = (!pinned && reserved.some(clash)) || placed.some(clash);
+      if (hidden) {
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+        return;
+      }
+
+      placed.push(box);
+      el.style.opacity = String(clamp(1.2 - d / 130, 0.25, 1));
+      el.style.pointerEvents = 'auto';
     });
   }
 
@@ -710,15 +851,50 @@ class SolarSystem extends HTMLElement {
     place(this.xrPanel, 0.66, 0.78, -0.02);
 
     // controller pointing
-    let hoverUI = null, hoverPlanet = null;
+    let hoverUI = null, hoverPlanet = null, ctrlActive = false;
     (this.controllers || []).forEach(c => {
+      if (c.userData.connected === false) return;
       const hit = this._xrRay(c);
       const line = c.getObjectByName('ray');
       if (line) line.scale.z = hit ? Math.max(0.05, hit.distance) : 1.6;
       if (!hit) return;
+      ctrlActive = true;
       if (hit.kind === 'ui') hoverUI = hit.obj;
       else hoverPlanet = hit.id;
     });
+
+    // gaze + dwell — the fallback when nothing is being pointed at
+    const now = performance.now();
+    const dt = clamp((now - (this._lastXR || now)) / 1000, 0, 0.06);
+    this._lastXR = now;
+    const gazeOn = !ctrlActive && now > this.dwell.lockUntil;
+    const gazeHit = gazeOn ? this._gazeHit(cam) : null;
+    if (gazeHit) {
+      if (gazeHit.key !== this.dwell.id) { this.dwell.id = gazeHit.key; this.dwell.t = 0; }
+      else this.dwell.t += dt;
+      const already = gazeHit.kind === 'planet' && gazeHit.id === this.active;
+      if (already) { this.dwell.t = 0; this._setArc(0); }
+      else {
+        this._setArc(this.dwell.t / this.dwell.need);
+        if (this.dwell.t >= this.dwell.need) {
+          this._commitGaze(gazeHit);
+          this._resetDwell();
+          this.dwell.lockUntil = now + 700;
+        }
+      }
+      if (gazeHit.kind === 'ui') hoverUI = hoverUI || gazeHit.obj;
+      else hoverPlanet = hoverPlanet || gazeHit.id;
+    } else {
+      if (this.dwell.id) this._resetDwell();
+    }
+    const idle = !gazeHit;
+    this.gazeDot.material.opacity = lerp(this.gazeDot.material.opacity, idle ? 0.55 : 1, 0.15);
+    this.gazeRim.material.opacity = lerp(this.gazeRim.material.opacity, idle ? 0.2 : 0.55, 0.15);
+    this.gazeArc.visible = !!gazeHit;
+
+    // reticle sits a fixed distance ahead of the viewer
+    this.gaze.position.copy(this.tmp.set(0, 0, -0.45).applyMatrix4(cam.matrixWorld));
+    this.gaze.quaternion.copy(cam.quaternion);
     this.navBtns.forEach(b => {
       if (b === hoverUI) this._setBtn(b, 'hover');
       else if (b.userData.kind === 'nav') this._setBtn(b, b.userData.planetId === this.active ? 'active' : 'idle');

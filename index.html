@@ -146,6 +146,7 @@
     <span>TARIK — arahkan pandangan</span>
     <span>KLIK PLANET — terbang ke tujuan</span>
     <span>SCROLL — atur jarak · ESC — orbit bebas</span>
+    <span style="color: #8e8899;">DI VR — trigger, pinch, atau tatap 1,2 detik</span>
   </div>
 
   <div data-ui="readout" style="position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 30; pointer-events: none;">
@@ -608,17 +609,27 @@ class Component extends DCLogic {
       ? { marginTop: '0', width: 'auto', flex: '0 0 auto', padding: '0 14px', minHeight: '44px', borderRadius: '999px', whiteSpace: 'nowrap', fontSize: '10.5px' }
       : { marginTop: '12px', width: '100%', padding: '9px', minHeight: '0', borderRadius: '6px', fontSize: '11.5px' });
 
-    st(q('[data-ui="hints"]'), { display: m ? 'none' : 'flex', bottom: '88px' });
-    st(q('[data-ui="readout"]'), { bottom: m ? '16px' : '34px' });
+    const vh = innerHeight;
+    const short = vh < 700;
+    const veryShort = vh < 600;
+    st(q('[data-ui="hints"]'), {
+      display: m || veryShort ? 'none' : 'flex',
+      bottom: '138px',
+      gap: short ? '5px' : '8px',
+      fontSize: short ? '10px' : '11px'
+    });
+    qa('[data-nav]').forEach(b => { if (!m) st(b, { padding: short ? '7px 12px' : '10px 12px' }); });
+    if (!m) st(q('[data-ui="freeflight"]'), { marginTop: short ? '8px' : '12px', padding: short ? '7px' : '9px' });
+    st(q('[data-ui="readout"]'), { bottom: m ? '16px' : '34px', marginLeft: m ? '0' : '133px' });
     st(q('[data-ui="readoutInner"]'), m ? { gap: '13px', padding: '8px 14px' } : { gap: '26px', padding: '12px 22px' });
     qa('[data-hud="speed"],[data-hud="distance"],[data-hud="target"]').forEach(s => st(s, { fontSize: m ? '13px' : '17px' }));
     st(q('[data-ui="xrline"]'), m
-      ? { bottom: '130px', right: '12px', left: '12px', maxWidth: 'none', textAlign: 'center', fontSize: '10.5px' }
-      : { bottom: '100px', right: '34px', left: 'auto', maxWidth: '230px', textAlign: 'right', fontSize: '11px' });
+      ? { bottom: '130px', right: '12px', left: '12px', width: 'auto', maxWidth: 'none', textAlign: 'center', fontSize: '10.5px' }
+      : { bottom: '34px', right: 'auto', left: '34px', width: '246px', maxWidth: 'none', textAlign: 'left', fontSize: '11px' });
 
     st(q('[data-intro]'), m
-      ? { width: 'calc(100% - 32px)', maxWidth: '440px', bottom: '172px' }
-      : { width: 'min(500px, 42vw)', maxWidth: 'none', bottom: '122px' });
+      ? { width: 'calc(100% - 32px)', maxWidth: '440px', bottom: '172px', left: '50%', marginLeft: '0' }
+      : { width: 'clamp(260px, calc(100vw - 640px), 500px)', maxWidth: 'none', bottom: short ? '110px' : '122px', left: '50%', marginLeft: '133px' });
     st(q('[data-ui="brand"]'), { fontSize: m ? '13px' : '15px' });
     st(q('[data-ui="brandtag"]'), { display: m ? 'none' : 'inline-block' });
     st(q('[data-ui="vrbtn"]'), m
@@ -627,12 +638,12 @@ class Component extends DCLogic {
     qa('[data-ui="readoutInner"] > div > span:first-child').forEach(s => st(s, { fontSize: m ? '8.5px' : '9.5px', whiteSpace: 'nowrap' }));
     const free = q('[data-ui="freeflight"]');
     if (free) free.textContent = m ? 'ORBIT BEBAS' : 'KEMBALI KE ORBIT BEBAS';
-    st(q('[data-intro] h1'), { fontSize: m ? '29px' : '' });
+    st(q('[data-intro] h1'), { fontSize: m ? '29px' : (short ? '34px' : '') });
     st(q('[data-intro] p'), { fontSize: m ? '13px' : '' });
 
     qa('[data-panel]').forEach(p => st(p, m
       ? { top: 'auto', left: '12px', right: '12px', bottom: '12px', width: 'auto', maxHeight: '70dvh', padding: '20px', borderRadius: '14px', animation: 'sheetIn .45s cubic-bezier(.2,.7,.2,1) both' }
-      : { top: '96px', left: 'auto', right: '34px', bottom: '34px', width: 'min(430px, 42vw)', maxHeight: 'none', padding: '30px', borderRadius: '10px', animation: 'panelIn .5s cubic-bezier(.2,.7,.2,1) both' }));
+      : { top: '96px', left: 'auto', right: '34px', bottom: '116px', width: 'min(430px, 42vw)', maxHeight: 'none', padding: '30px', borderRadius: '10px', animation: 'panelIn .5s cubic-bezier(.2,.7,.2,1) both' }));
     qa('[data-panel] h2').forEach(h => st(h, { fontSize: m ? '24px' : '' }));
 
     qa('[data-planet-label]').forEach(el => {
@@ -641,7 +652,7 @@ class Component extends DCLogic {
       if (sp.length === 2) st(sp[1], { fontSize: m ? '11px' : '13px' });
     });
 
-    st(q('[data-ui="cursorpick"]'), { display: this.fine && !m ? 'flex' : 'none' });
+    st(q('[data-ui="cursorpick"]'), { display: this.fine && !m ? 'flex' : 'none', bottom: '82px', left: '34px' });
     this.chrome(!this.openId || !m);
   }
 
@@ -700,7 +711,7 @@ class Component extends DCLogic {
       onEnterVR: async () => {
         try {
           await this.scene().enterVR();
-          this.xrLine('Sesi VR aktif — arahkan controller ke planet atau ke daftar menu di sisi kiri.');
+          this.xrLine('Sesi VR aktif — arahkan controller ke planet, atau pandang targetnya dan tahan sebentar.');
         } catch (err) {
           this.xrLine('Mode VR belum bisa dijalankan di perangkat ini. Coba dari headset dengan WebXR.');
         }
