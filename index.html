@@ -23,6 +23,9 @@
   @keyframes panelIn { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
   @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes ping { 0% { opacity: .8; transform: scale(.7); } 100% { opacity: 0; transform: scale(2.4); } }
+  @keyframes sheetIn { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulseRing { 0%, 100% { opacity: .5; transform: scale(1); } 50% { opacity: .9; transform: scale(1.12); } }
 </style>
 <script type="module" src="./solar.js"></script>
 </helmet>
@@ -70,36 +73,36 @@
     <span style="position: absolute; bottom: -1px; right: -1px; width: 22px; height: 22px; border-bottom: 1px solid #ff5c2b; border-right: 1px solid #ff5c2b;"></span>
   </div>
 
-  <div style="position: absolute; top: 50%; left: 50%; z-index: 24; margin: -13px 0 0 -13px; width: 26px; height: 26px; pointer-events: none; opacity: .5;">
+  <div data-ui="reticle" style="position: absolute; top: 50%; left: 50%; z-index: 24; margin: -13px 0 0 -13px; width: 26px; height: 26px; pointer-events: none; opacity: .5; transition: opacity .3s;">
     <span style="position: absolute; top: 12px; left: 0; width: 8px; height: 1px; background: #6fe3b8;"></span>
     <span style="position: absolute; top: 12px; right: 0; width: 8px; height: 1px; background: #6fe3b8;"></span>
     <span style="position: absolute; left: 12px; top: 0; width: 1px; height: 8px; background: #6fe3b8;"></span>
     <span style="position: absolute; left: 12px; bottom: 0; width: 1px; height: 8px; background: #6fe3b8;"></span>
   </div>
 
-  <header style="position: absolute; top: 32px; left: 34px; right: 34px; z-index: 30; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .3s both;">
+  <header data-ui="header" style="position: absolute; top: 32px; left: 34px; right: 34px; z-index: 30; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .3s both;">
     <div style="display: flex; align-items: center; gap: 11px;">
       <span style="display: block; width: 13px; height: 13px; border: 1.5px solid #ff5c2b; border-radius: 50%; box-shadow: 0 0 0 4px rgba(255,92,43,.16);"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px;">Spatial Indonesia</span>
-      <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8e8899;">SISTEM SPATIAL</span>
+      <span data-ui="brand" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap;">Spatial Indonesia</span>
+      <span data-ui="brandtag" style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8e8899; white-space: nowrap;">SISTEM SPATIAL</span>
     </div>
     <div style="display: flex; align-items: center; gap: 12px; pointer-events: auto;">
-      <div style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(237,232,220,.14); border-radius: 999px; background: rgba(11,9,16,.55); font-size: 11px; letter-spacing: .16em; color: #8e8899;">
+      <div data-ui="mode" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(237,232,220,.14); border-radius: 999px; background: rgba(11,9,16,.55); font-size: 11px; letter-spacing: .16em; color: #8e8899;">
         <span style="width: 5px; height: 5px; border-radius: 50%; background: #6fe3b8;"></span>
         <span data-hud="mode">ORBIT BEBAS</span>
       </div>
-      <button onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; border: none; border-radius: 999px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">
+      <button data-ui="vrbtn" onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; white-space: nowrap; border: none; border-radius: 999px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">
         <span style="width: 15px; height: 9px; border: 1.5px solid #0b0910; border-radius: 3px 3px 5px 5px;"></span>
         Masuk Mode VR
       </button>
     </div>
   </header>
 
-  <div style="position: absolute; top: 96px; left: 34px; z-index: 30; width: 246px; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .45s both;">
+  <div data-ui="flightplan" style="position: absolute; top: 96px; left: 34px; z-index: 30; width: 246px; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .45s both;">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #8e8899;">
-      <span style="width: 20px; height: 1px; background: #ff5c2b;"></span>Rencana penerbangan
+      <span data-ui="fpTitleRule" style="width: 20px; height: 1px; background: #ff5c2b;"></span>Rencana penerbangan
     </div>
-    <div onClick="{{ onGoto }}" style="display: flex; flex-direction: column; gap: 1px;">
+    <div data-ui="fpList" onClick="{{ onGoto }}" style="display: flex; flex-direction: column; gap: 1px;">
       <button data-goto="inti" data-nav="inti" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
         <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">00</span>
         <span>Inti</span>
@@ -136,17 +139,17 @@
         <span style="font-size: 10px; letter-spacing: .1em; color: #ff5c2b;">TERBUKA</span>
       </button>
     </div>
-    <button onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(237,232,220,.14); border-radius: 6px; background: transparent; color: #8e8899; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">KEMBALI KE ORBIT BEBAS</button>
+    <button data-ui="freeflight" onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(237,232,220,.14); border-radius: 6px; background: transparent; color: #8e8899; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">KEMBALI KE ORBIT BEBAS</button>
   </div>
 
-  <div style="position: absolute; bottom: 34px; left: 34px; z-index: 30; display: flex; flex-direction: column; gap: 8px; font-size: 11px; letter-spacing: .06em; color: #6c667a; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .6s both;">
+  <div data-ui="hints" style="position: absolute; bottom: 88px; left: 34px; z-index: 30; display: flex; flex-direction: column; gap: 8px; font-size: 11px; letter-spacing: .06em; color: #6c667a; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .6s both;">
     <span>TARIK — arahkan pandangan</span>
     <span>KLIK PLANET — terbang ke tujuan</span>
     <span>SCROLL — atur jarak · ESC — orbit bebas</span>
   </div>
 
-  <div style="position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 30; pointer-events: none;">
-    <div style="display: flex; align-items: center; gap: 26px; padding: 12px 22px; border: 1px solid rgba(237,232,220,.12); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(10px); animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .55s both;">
+  <div data-ui="readout" style="position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 30; pointer-events: none;">
+    <div data-ui="readoutInner" style="display: flex; align-items: center; gap: 26px; padding: 12px 22px; border: 1px solid rgba(237,232,220,.12); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(10px); animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .55s both;">
     <div style="display: flex; flex-direction: column; gap: 3px;">
       <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">KECEPATAN</span>
       <span data-hud="speed" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #6fe3b8;">000</span>
@@ -400,10 +403,46 @@
     </div>
   </div>
 
-  <div style="position: absolute; bottom: 100px; right: 34px; z-index: 30; max-width: 230px; font-size: 11px; line-height: 1.6; letter-spacing: .04em; text-align: right; color: #6c667a; pointer-events: none;">
+  <div data-ui="xrline" style="position: absolute; bottom: 100px; right: 34px; z-index: 30; max-width: 230px; font-size: 11px; line-height: 1.6; letter-spacing: .04em; text-align: right; color: #6c667a; pointer-events: none;">
     <span data-hud="xr">Cek dukungan headset...</span>
   </div>
 
+  <div data-ui="cursor" style="position: fixed; top: 0; left: 0; z-index: 70; pointer-events: none; opacity: 0; transition: opacity .35s; will-change: transform;">
+    <div data-cursor="target" style="position: absolute; left: 0; top: 0; width: 34px; height: 34px; transform: translate(-50%, -50%); transition: transform .18s;">
+      <span style="position: absolute; inset: 0; border: 1px solid rgba(111,227,184,.45); border-radius: 50%;"></span>
+      <span style="position: absolute; top: 16px; left: -4px; width: 9px; height: 1px; background: #6fe3b8;"></span>
+      <span style="position: absolute; top: 16px; right: -4px; width: 9px; height: 1px; background: #6fe3b8;"></span>
+      <span style="position: absolute; left: 16px; top: -4px; width: 1px; height: 9px; background: #6fe3b8;"></span>
+      <span style="position: absolute; left: 16px; bottom: -4px; width: 1px; height: 9px; background: #6fe3b8;"></span>
+      <span style="position: absolute; top: 16px; left: 16px; width: 2px; height: 2px; background: #ff5c2b;"></span>
+    </div>
+    <div data-cursor="blackhole" style="position: absolute; left: 0; top: 0; width: 104px; height: 104px; display: none; transform: translate(-50%, -50%); transition: transform .25s;">
+      <span style="position: absolute; inset: 0; border-radius: 50%; backdrop-filter: blur(9px) invert(8%) saturate(150%) hue-rotate(12deg); -webkit-backdrop-filter: blur(9px) invert(8%) saturate(150%); mask-image: radial-gradient(closest-side, #000 34%, rgba(0,0,0,.55) 58%, transparent 78%); -webkit-mask-image: radial-gradient(closest-side, #000 34%, rgba(0,0,0,.55) 58%, transparent 78%);"></span>
+      <span style="position: absolute; inset: 30px; border-radius: 50%; background: radial-gradient(circle, #05040a 52%, rgba(11,9,16,.5) 78%, transparent 100%); box-shadow: 0 0 22px rgba(255,92,43,.35);"></span>
+      <span style="position: absolute; inset: 22px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, rgba(255,92,43,.9) 28%, rgba(111,227,184,.7) 46%, transparent 72%); mask-image: radial-gradient(closest-side, transparent 58%, #000 62%); -webkit-mask-image: radial-gradient(closest-side, transparent 58%, #000 62%); animation: spin 3.4s linear infinite;"></span>
+      <span style="position: absolute; inset: 12px; border: 1px solid rgba(237,232,220,.14); border-radius: 50%; animation: pulseRing 2.6s ease-in-out infinite;"></span>
+    </div>
+    <div data-cursor="ship" style="position: absolute; left: 0; top: 0; width: 26px; height: 30px; display: none; transform: translate(-50%, -50%);">
+      <span style="position: absolute; left: 50%; top: 0; margin-left: -7px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 19px solid #ede8dc;"></span>
+      <span style="position: absolute; left: 50%; top: 17px; margin-left: -9px; width: 18px; height: 3px; background: rgba(237,232,220,.5);"></span>
+      <span data-ship-trail="1" style="position: absolute; left: 50%; top: 21px; margin-left: -3px; width: 6px; height: 12px; border-radius: 50%; background: linear-gradient(180deg, #ff5c2b, transparent); filter: blur(2px); opacity: 0;"></span>
+    </div>
+  </div>
+  <div data-ui="cursorpick" onClick="{{ onCursorPick }}" style="position: absolute; bottom: 30px; left: 34px; z-index: 31; display: none; align-items: center; gap: 8px;">
+    <span style="margin-right: 2px; font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">KURSOR</span>
+    <button data-cursorpick="target" title="Mode target" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(237,232,220,.16); border-radius: 8px; background: transparent; color: #8e8899; cursor: pointer;">
+      <span style="position: absolute; top: 50%; left: 50%; width: 13px; height: 13px; margin: -7px 0 0 -7px; border: 1px solid currentColor; border-radius: 50%;"></span>
+      <span style="position: absolute; top: 50%; left: 50%; width: 21px; height: 1px; margin: 0 0 0 -10px; background: currentColor;"></span>
+      <span style="position: absolute; top: 50%; left: 50%; width: 1px; height: 21px; margin: -10px 0 0 0; background: currentColor;"></span>
+    </button>
+    <button data-cursorpick="blackhole" title="Mode black hole" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(237,232,220,.16); border-radius: 8px; background: transparent; color: #8e8899; cursor: pointer;">
+      <span style="position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: currentColor;"></span>
+      <span style="position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border: 1px solid currentColor; border-radius: 50%; opacity: .5;"></span>
+    </button>
+    <button data-cursorpick="ship" title="Mode pesawat mini" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(237,232,220,.16); border-radius: 8px; background: transparent; color: #8e8899; cursor: pointer;">
+      <span style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; margin: -9px 0 0 -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid currentColor;"></span>
+    </button>
+  </div>
   <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #0b0910; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
     <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8e8899;">Menyalakan pesawat</div>
     <div style="width: 190px; height: 1px; background: #26222f; overflow: hidden;">
@@ -412,36 +451,72 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;cursorStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;target&quot;,&quot;blackhole&quot;,&quot;ship&quot;],&quot;default&quot;:&quot;target&quot;,&quot;tsType&quot;:&quot;'target' | 'blackhole' | 'ship'&quot;,&quot;section&quot;:&quot;Kursor&quot;}}">
 const NAMES = { inti: 'INTI', program: 'PROGRAM', karya: 'KARYA', event: 'EVENT', insight: 'INSIGHT', tim: 'TIM', gabung: 'GABUNG' };
+const MOBILE = 780;
+const mix = (a, b, t) => a + (b - a) * t;
 
 class Component extends DCLogic {
   state = { formMsg: '' };
   loaderRef = React.createRef();
 
+  q(s) { return document.querySelector(s); }
+  qa(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  st(el, o) { if (el) Object.assign(el.style, o); }
+
   componentDidMount() {
+    this.fine = matchMedia('(pointer: fine)').matches;
+    this.cursorMode = this.props.cursorStyle || 'target';
+    this.px = innerWidth / 2; this.py = innerHeight / 2;
+    this.cx = this.px; this.cy = this.py; this.ang = 0; this.hoverId = null;
+
     this._ready = () => { clearTimeout(this._fallback); setTimeout(() => this.hideLoader(), 400); };
     this._focus = e => this.showPanel(e.detail && e.detail.id);
     this._freeEv = () => this.showPanel(null);
+    this._hover = e => { this.hoverId = e.detail && e.detail.id; };
     this._support = e => {
-      const el = document.querySelector('[data-hud="xr"]');
-      if (el) el.textContent = e.detail && e.detail.ok
-        ? 'Headset terdeteksi — mode VR siap dipakai'
-        : 'Belum ada headset terdeteksi. Buka dari headset untuk mode VR penuh.';
+      const d = e.detail || {};
+      if (d.ok) return this.xrLine('Headset terdeteksi — mode VR siap dipakai');
+      if (d.reason === 'blocked') return this.xrLine('Mode VR terkunci di tampilan sematan ini. Buka halaman langsung di browser headset.');
+      this.xrLine('Belum ada headset terdeteksi. Buka dari headset untuk mode VR penuh.');
     };
+    this._xrEnd = () => this.xrLine('Sesi VR selesai. Kamu kembali ke tampilan layar.');
     document.addEventListener('scene-ready', this._ready);
     document.addEventListener('planet-focus', this._focus);
     document.addEventListener('planet-free', this._freeEv);
+    document.addEventListener('planet-hover', this._hover);
     document.addEventListener('xr-support', this._support);
+    document.addEventListener('xr-end', this._xrEnd);
+
+    this._onResize = () => { this.applyLayout(); this.setCursor(this.cursorMode); };
+    addEventListener('resize', this._onResize);
+    this.applyLayout();
+    this.setCursor(this.cursorMode);
+
+    if (this.fine) {
+      this._move = e => { this.px = e.clientX; this.py = e.clientY; };
+      addEventListener('pointermove', this._move, { passive: true });
+      this.loop();
+    }
     this._fallback = setTimeout(() => this.hideLoader(), 4000);
+  }
+
+  componentDidUpdate(prev) {
+    if (prev.cursorStyle !== this.props.cursorStyle && this.props.cursorStyle) this.setCursor(this.props.cursorStyle);
   }
 
   componentWillUnmount() {
     document.removeEventListener('scene-ready', this._ready);
     document.removeEventListener('planet-focus', this._focus);
     document.removeEventListener('planet-free', this._freeEv);
+    document.removeEventListener('planet-hover', this._hover);
     document.removeEventListener('xr-support', this._support);
+    document.removeEventListener('xr-end', this._xrEnd);
+    removeEventListener('resize', this._onResize);
+    if (this._move) removeEventListener('pointermove', this._move);
+    if (this._raf) cancelAnimationFrame(this._raf);
     clearTimeout(this._fallback);
+    document.body.style.cursor = '';
   }
 
   hideLoader() {
@@ -453,24 +528,155 @@ class Component extends DCLogic {
   }
 
   scene() { return document.querySelector('solar-system'); }
+  xrLine(t) { const el = this.q('[data-hud="xr"]'); if (el) el.textContent = t; }
+
+  /* ---------- cursor ---------- */
+
+  setCursor(mode) {
+    this.cursorMode = mode;
+    const on = this.fine && innerWidth >= MOBILE;
+    this.st(this.q('[data-ui="cursor"]'), { opacity: on ? '1' : '0' });
+    this.qa('[data-cursor]').forEach(el => this.st(el, { display: el.dataset.cursor === mode ? 'block' : 'none' }));
+    this.qa('[data-cursorpick]').forEach(b => {
+      const a = b.dataset.cursorpick === mode;
+      this.st(b, {
+        borderColor: a ? '#ff5c2b' : 'rgba(237,232,220,.16)',
+        background: a ? 'rgba(255,92,43,.14)' : 'transparent',
+        color: a ? '#ff5c2b' : '#8e8899'
+      });
+    });
+    this.st(this.q('[data-ui="reticle"]'), { opacity: on ? '0' : '.5' });
+    const sc = this.scene();
+    if (sc) sc.dataset.nativeCursor = on ? 'off' : 'on';
+    document.body.style.cursor = on ? 'none' : '';
+  }
+
+  loop() {
+    const wrap = this.q('[data-ui="cursor"]');
+    if (wrap) {
+      const nx = mix(this.cx, this.px, 0.3), ny = mix(this.cy, this.py, 0.3);
+      const dx = nx - this.cx, dy = ny - this.cy;
+      this.cx = nx; this.cy = ny;
+      wrap.style.transform = 'translate3d(' + nx.toFixed(1) + 'px,' + ny.toFixed(1) + 'px,0)';
+      const sp = Math.hypot(dx, dy);
+      const hot = !!this.hoverId;
+      if (this.cursorMode === 'ship') {
+        if (sp > 0.5) this.ang = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        const s = this.q('[data-cursor="ship"]');
+        if (s) s.style.transform = 'translate(-50%, -50%) rotate(' + this.ang.toFixed(1) + 'deg) scale(' + (1 + Math.min(sp, 16) / 26 + (hot ? 0.18 : 0)).toFixed(3) + ')';
+        const tr = this.q('[data-ship-trail]');
+        if (tr) tr.style.opacity = Math.min(1, sp / 7).toFixed(2);
+      } else if (this.cursorMode === 'blackhole') {
+        const b = this.q('[data-cursor="blackhole"]');
+        if (b) b.style.transform = 'translate(-50%, -50%) scale(' + (hot ? 1.32 : 1).toFixed(2) + ') rotate(' + (this.cx * 0.05).toFixed(1) + 'deg)';
+      } else {
+        const t = this.q('[data-cursor="target"]');
+        if (t) t.style.transform = 'translate(-50%, -50%) rotate(' + (hot ? 45 : 0) + 'deg) scale(' + (hot ? 1.34 : 1) + ')';
+      }
+    }
+    this._raf = requestAnimationFrame(() => this.loop());
+  }
+
+  /* ---------- responsive ---------- */
+
+  applyLayout() {
+    const m = innerWidth < MOBILE;
+    this.mobile = m;
+    const st = this.st.bind(this), q = this.q.bind(this), qa = this.qa.bind(this);
+
+    st(q('[data-ui="header"]'), m
+      ? { top: '12px', left: '12px', right: '12px', alignItems: 'center', gap: '10px' }
+      : { top: '32px', left: '34px', right: '34px', alignItems: 'flex-start', gap: '20px' });
+    st(q('[data-ui="mode"]'), { display: m ? 'none' : 'flex' });
+
+    st(q('[data-ui="flightplan"]'), m
+      ? { top: 'auto', bottom: '78px', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', animation: 'none' }
+      : { top: '96px', bottom: 'auto', left: '34px', right: 'auto', width: '246px', display: 'block', padding: '0' });
+    const rule = q('[data-ui="fpTitleRule"]');
+    if (rule && rule.parentElement) st(rule.parentElement, { display: m ? 'none' : 'flex' });
+    st(q('[data-ui="fpList"]'), m
+      ? { flexDirection: 'row', gap: '8px', overflowX: 'auto', paddingBottom: '2px', flex: '1 1 auto' }
+      : { flexDirection: 'column', gap: '1px', overflowX: 'visible', paddingBottom: '0' });
+    qa('[data-nav]').forEach(b => {
+      st(b, m
+        ? { display: 'flex', alignItems: 'center', gap: '7px', padding: '0 14px', minHeight: '44px', borderRadius: '999px', borderColor: b.dataset.nav === 'gabung' ? '#ff5c2b' : 'rgba(237,232,220,.14)', whiteSpace: 'nowrap', flex: '0 0 auto' }
+        : { display: 'grid', alignItems: 'center', gap: '10px', padding: '10px 12px', minHeight: '0', borderRadius: '6px' });
+      const spans = b.querySelectorAll('span');
+      if (spans.length === 3) st(spans[2], { display: m ? 'none' : 'block' });
+    });
+    st(q('[data-ui="freeflight"]'), m
+      ? { marginTop: '0', width: 'auto', flex: '0 0 auto', padding: '0 14px', minHeight: '44px', borderRadius: '999px', whiteSpace: 'nowrap', fontSize: '10.5px' }
+      : { marginTop: '12px', width: '100%', padding: '9px', minHeight: '0', borderRadius: '6px', fontSize: '11.5px' });
+
+    st(q('[data-ui="hints"]'), { display: m ? 'none' : 'flex', bottom: '88px' });
+    st(q('[data-ui="readout"]'), { bottom: m ? '16px' : '34px' });
+    st(q('[data-ui="readoutInner"]'), m ? { gap: '13px', padding: '8px 14px' } : { gap: '26px', padding: '12px 22px' });
+    qa('[data-hud="speed"],[data-hud="distance"],[data-hud="target"]').forEach(s => st(s, { fontSize: m ? '13px' : '17px' }));
+    st(q('[data-ui="xrline"]'), m
+      ? { bottom: '130px', right: '12px', left: '12px', maxWidth: 'none', textAlign: 'center', fontSize: '10.5px' }
+      : { bottom: '100px', right: '34px', left: 'auto', maxWidth: '230px', textAlign: 'right', fontSize: '11px' });
+
+    st(q('[data-intro]'), m
+      ? { width: 'calc(100% - 32px)', maxWidth: '440px', bottom: '172px' }
+      : { width: 'min(500px, 42vw)', maxWidth: 'none', bottom: '122px' });
+    st(q('[data-ui="brand"]'), { fontSize: m ? '13px' : '15px' });
+    st(q('[data-ui="brandtag"]'), { display: m ? 'none' : 'inline-block' });
+    st(q('[data-ui="vrbtn"]'), m
+      ? { padding: '0 14px', minHeight: '42px', fontSize: '12px', gap: '7px' }
+      : { padding: '10px 18px', minHeight: '0', fontSize: '13px', gap: '9px' });
+    qa('[data-ui="readoutInner"] > div > span:first-child').forEach(s => st(s, { fontSize: m ? '8.5px' : '9.5px', whiteSpace: 'nowrap' }));
+    const free = q('[data-ui="freeflight"]');
+    if (free) free.textContent = m ? 'ORBIT BEBAS' : 'KEMBALI KE ORBIT BEBAS';
+    st(q('[data-intro] h1'), { fontSize: m ? '29px' : '' });
+    st(q('[data-intro] p'), { fontSize: m ? '13px' : '' });
+
+    qa('[data-panel]').forEach(p => st(p, m
+      ? { top: 'auto', left: '12px', right: '12px', bottom: '12px', width: 'auto', maxHeight: '70dvh', padding: '20px', borderRadius: '14px', animation: 'sheetIn .45s cubic-bezier(.2,.7,.2,1) both' }
+      : { top: '96px', left: 'auto', right: '34px', bottom: '34px', width: 'min(430px, 42vw)', maxHeight: 'none', padding: '30px', borderRadius: '10px', animation: 'panelIn .5s cubic-bezier(.2,.7,.2,1) both' }));
+    qa('[data-panel] h2').forEach(h => st(h, { fontSize: m ? '24px' : '' }));
+
+    qa('[data-planet-label]').forEach(el => {
+      st(el, { padding: m ? '5px 10px' : '7px 13px' });
+      const sp = el.querySelectorAll('span');
+      if (sp.length === 2) st(sp[1], { fontSize: m ? '11px' : '13px' });
+    });
+
+    st(q('[data-ui="cursorpick"]'), { display: this.fine && !m ? 'flex' : 'none' });
+    this.chrome(!this.openId || !m);
+  }
+
+  chrome(show) {
+    if (!this.mobile) {
+      this.st(this.q('[data-ui="flightplan"]'), { display: 'flex' });
+      this.st(this.q('[data-ui="readout"]'), { display: 'block' });
+      this.st(this.q('[data-ui="xrline"]'), { display: 'block' });
+      this.st(this.q('[data-ui="flightplan"]'), { display: 'block' });
+      return;
+    }
+    const v = show ? '' : 'none';
+    this.st(this.q('[data-ui="flightplan"]'), { display: show ? 'flex' : 'none' });
+    this.st(this.q('[data-ui="readout"]'), { display: v || 'block' });
+    this.st(this.q('[data-ui="xrline"]'), { display: v || 'block' });
+  }
+
+  /* ---------- panels ---------- */
 
   showPanel(id) {
-    document.querySelectorAll('[data-panel]').forEach(p => {
-      const on = p.dataset.panel === id;
-      p.style.display = on ? 'flex' : 'none';
-    });
-    document.querySelectorAll('[data-nav]').forEach(b => {
+    this.openId = id || null;
+    this.qa('[data-panel]').forEach(p => { p.style.display = p.dataset.panel === id ? 'flex' : 'none'; });
+    this.qa('[data-nav]').forEach(b => {
       const on = b.dataset.nav === id;
-      b.style.borderColor = on ? '#ff5c2b' : 'transparent';
+      b.style.borderColor = on ? '#ff5c2b' : (this.mobile ? 'rgba(237,232,220,.14)' : 'transparent');
       b.style.background = on ? 'rgba(255,92,43,.12)' : (b.dataset.nav === 'gabung' ? 'rgba(255,92,43,.1)' : 'rgba(11,9,16,.45)');
     });
-    const t = document.querySelector('[data-hud="target"]');
+    const t = this.q('[data-hud="target"]');
     if (t) t.textContent = id ? NAMES[id] : '—';
-    const intro = document.querySelector('[data-intro]');
+    const intro = this.q('[data-intro]');
     if (intro) {
-      intro.firstElementChild.style.animation = 'none';
+      if (intro.firstElementChild) intro.firstElementChild.style.animation = 'none';
       intro.style.opacity = id ? '0' : '1';
     }
+    this.chrome(!id);
   }
 
   renderVals() {
@@ -487,13 +693,16 @@ class Component extends DCLogic {
         if (s && s.freeFlight) s.freeFlight();
         this.showPanel(null);
       },
+      onCursorPick: e => {
+        const b = e.target.closest && e.target.closest('[data-cursorpick]');
+        if (b) this.setCursor(b.dataset.cursorpick);
+      },
       onEnterVR: async () => {
-        const el = document.querySelector('[data-hud="xr"]');
         try {
           await this.scene().enterVR();
-          if (el) el.textContent = 'Sesi VR aktif — lihat sekeliling untuk menjelajah';
+          this.xrLine('Sesi VR aktif — arahkan controller ke planet atau ke daftar menu di sisi kiri.');
         } catch (err) {
-          if (el) el.textContent = 'Mode VR belum bisa dijalankan di perangkat ini. Coba dari headset dengan WebXR.';
+          this.xrLine('Mode VR belum bisa dijalankan di perangkat ini. Coba dari headset dengan WebXR.');
         }
       },
       onSubmit: e => {
@@ -503,7 +712,6 @@ class Component extends DCLogic {
     };
   }
 }
-
 </script>
 </body>
 </html>
