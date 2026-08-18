@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0b0910; }
+  body { font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #ff5c2b; text-decoration: none; }
+  a:hover { color: #ff8055; }
+  ::selection { background: #ff5c2b; color: #0b0910; }
+  @keyframes hudIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes panelIn { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes ping { 0% { opacity: .8; transform: scale(.7); } 100% { opacity: 0; transform: scale(2.4); } }
+</style>
+<script type="module" src="./solar.js"></script>
+</helmet>
+<div style="position: relative; width: 100%; height: 100dvh; background: #0b0910; color: #ede8dc; overflow: hidden; font-size: 14px;">
+
+  <x-import component-from-global-scope="solar-system" hint-size="100%,100%" style="position: absolute; inset: 0;"></x-import>
+
+  <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 40%, rgba(11,9,16,.72) 100%);"></div>
+
+  <div onClick="{{ onGoto }}" style="position: absolute; inset: 0; z-index: 20; pointer-events: none;">
+    <div data-planet-label="inti" data-goto="inti" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ff5c2b;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px; letter-spacing: .02em;">Inti — Visi &amp; Misi</span>
+    </div>
+    <div data-planet-label="program" data-goto="program" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #6fe3b8;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Program</span>
+    </div>
+    <div data-planet-label="karya" data-goto="karya" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ff5c2b;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Karya</span>
+    </div>
+    <div data-planet-label="event" data-goto="event" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ede8dc;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Event</span>
+    </div>
+    <div data-planet-label="insight" data-goto="insight" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #6fe3b8;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Insight</span>
+    </div>
+    <div data-planet-label="tim" data-goto="tim" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ede8dc;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Tim</span>
+    </div>
+    <div data-planet-label="gabung" data-goto="gabung" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ff5c2b;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Gabung</span>
+    </div>
+  </div>
+
+  <div style="position: absolute; inset: 16px; z-index: 25; pointer-events: none; border: 1px solid rgba(237,232,220,.07);">
+    <span style="position: absolute; top: -1px; left: -1px; width: 22px; height: 22px; border-top: 1px solid #ff5c2b; border-left: 1px solid #ff5c2b;"></span>
+    <span style="position: absolute; top: -1px; right: -1px; width: 22px; height: 22px; border-top: 1px solid #ff5c2b; border-right: 1px solid #ff5c2b;"></span>
+    <span style="position: absolute; bottom: -1px; left: -1px; width: 22px; height: 22px; border-bottom: 1px solid #ff5c2b; border-left: 1px solid #ff5c2b;"></span>
+    <span style="position: absolute; bottom: -1px; right: -1px; width: 22px; height: 22px; border-bottom: 1px solid #ff5c2b; border-right: 1px solid #ff5c2b;"></span>
+  </div>
+
+  <div style="position: absolute; top: 50%; left: 50%; z-index: 24; margin: -13px 0 0 -13px; width: 26px; height: 26px; pointer-events: none; opacity: .5;">
+    <span style="position: absolute; top: 12px; left: 0; width: 8px; height: 1px; background: #6fe3b8;"></span>
+    <span style="position: absolute; top: 12px; right: 0; width: 8px; height: 1px; background: #6fe3b8;"></span>
+    <span style="position: absolute; left: 12px; top: 0; width: 1px; height: 8px; background: #6fe3b8;"></span>
+    <span style="position: absolute; left: 12px; bottom: 0; width: 1px; height: 8px; background: #6fe3b8;"></span>
+  </div>
+
+  <header style="position: absolute; top: 32px; left: 34px; right: 34px; z-index: 30; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .3s both;">
+    <div style="display: flex; align-items: center; gap: 11px;">
+      <span style="display: block; width: 13px; height: 13px; border: 1.5px solid #ff5c2b; border-radius: 50%; box-shadow: 0 0 0 4px rgba(255,92,43,.16);"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px;">Spatial Indonesia</span>
+      <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8e8899;">SISTEM SPATIAL</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; pointer-events: auto;">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(237,232,220,.14); border-radius: 999px; background: rgba(11,9,16,.55); font-size: 11px; letter-spacing: .16em; color: #8e8899;">
+        <span style="width: 5px; height: 5px; border-radius: 50%; background: #6fe3b8;"></span>
+        <span data-hud="mode">ORBIT BEBAS</span>
+      </div>
+      <button onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; border: none; border-radius: 999px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">
+        <span style="width: 15px; height: 9px; border: 1.5px solid #0b0910; border-radius: 3px 3px 5px 5px;"></span>
+        Masuk Mode VR
+      </button>
+    </div>
+  </header>
+
+  <div style="position: absolute; top: 96px; left: 34px; z-index: 30; width: 246px; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .45s both;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #8e8899;">
+      <span style="width: 20px; height: 1px; background: #ff5c2b;"></span>Rencana penerbangan
+    </div>
+    <div onClick="{{ onGoto }}" style="display: flex; flex-direction: column; gap: 1px;">
+      <button data-goto="inti" data-nav="inti" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">00</span>
+        <span>Inti</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">VISI</span>
+      </button>
+      <button data-goto="program" data-nav="program" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">01</span>
+        <span>Program</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">4 KEGIATAN</span>
+      </button>
+      <button data-goto="karya" data-nav="karya" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">02</span>
+        <span>Karya</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">SHOWCASE</span>
+      </button>
+      <button data-goto="event" data-nav="event" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">03</span>
+        <span>Event</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">JADWAL</span>
+      </button>
+      <button data-goto="insight" data-nav="insight" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">04</span>
+        <span>Insight</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">CATATAN</span>
+      </button>
+      <button data-goto="tim" data-nav="tim" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">05</span>
+        <span>Tim</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">RELAWAN</span>
+      </button>
+      <button data-goto="gabung" data-nav="gabung" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(255,92,43,.1); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: #ff5c2b;">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">06</span>
+        <span>Gabung</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #ff5c2b;">TERBUKA</span>
+      </button>
+    </div>
+    <button onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(237,232,220,.14); border-radius: 6px; background: transparent; color: #8e8899; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">KEMBALI KE ORBIT BEBAS</button>
+  </div>
+
+  <div style="position: absolute; bottom: 34px; left: 34px; z-index: 30; display: flex; flex-direction: column; gap: 8px; font-size: 11px; letter-spacing: .06em; color: #6c667a; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .6s both;">
+    <span>TARIK — arahkan pandangan</span>
+    <span>KLIK PLANET — terbang ke tujuan</span>
+    <span>SCROLL — atur jarak · ESC — orbit bebas</span>
+  </div>
+
+  <div style="position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 30; pointer-events: none;">
+    <div style="display: flex; align-items: center; gap: 26px; padding: 12px 22px; border: 1px solid rgba(237,232,220,.12); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(10px); animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .55s both;">
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">KECEPATAN</span>
+      <span data-hud="speed" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #6fe3b8;">000</span>
+    </div>
+    <span style="width: 1px; height: 26px; background: rgba(237,232,220,.12);"></span>
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">JARAK KE TUJUAN</span>
+      <span data-hud="distance" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #ede8dc;">—</span>
+    </div>
+    <span style="width: 1px; height: 26px; background: rgba(237,232,220,.12);"></span>
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">TUJUAN</span>
+      <span data-hud="target" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #ff5c2b;">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div data-intro="1" style="position: absolute; bottom: 122px; left: 50%; transform: translateX(-50%); z-index: 28; width: min(500px, 42vw); text-align: center; pointer-events: none; transition: opacity .5s;">
+    <div style="animation: hudIn 1s cubic-bezier(.2,.7,.2,1) .8s both;">
+    <h1 style="margin: 0 0 12px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(30px, 4.4vw, 54px); line-height: .98; letter-spacing: -.035em;">Jelajahi tata surya spatial</h1>
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #b6b0c0;">Tiap planet adalah bagian dari komunitas. Terbang ke sana untuk melihat isinya.</p>
+    </div>
+  </div>
+
+  <div data-panel="inti" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ff5c2b;">Planet 00 · Inti</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Opening Access of Emerging Spatial Technology</h2>
+    <p style="margin: 0 0 26px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Teknologi spatial seharusnya bisa diakses siapa pun, dari mana pun di Indonesia. Itu titik awal kami.</p>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #6fe3b8;">
+      <span style="width: 20px; height: 1px; background: #6fe3b8;"></span>Misi
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 1px;">
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">01</span>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Membuat teknologi spatial lebih accessible bagi semua.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">02</span>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Membangun kolaborasi untuk mendorong inovasi spatial.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">03</span>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Mengembangkan talenta teknologi spatial masa depan.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1); border-bottom: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">04</span>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Menciptakan teknologi spatial yang meaningful dan berdampak.</p>
+      </div>
+    </div>
+  </div>
+
+  <div data-panel="program" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #6fe3b8;">Planet 01 · Program</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Program &amp; kegiatan</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Semua terbuka untuk publik. Tidak perlu headset sendiri untuk mulai ikut.</p>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Bulanan</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">XR Meetup</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Ngumpul santai: demo karya, sesi tanya jawab, dan coba perangkat bareng.</p>
+      </div>
+      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Belajar</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">Workshop &amp; bootcamp</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Kelas praktik dari nol: WebXR, Unity, three.js, sampai desain interaksi spatial.</p>
+      </div>
+      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Kolaborasi</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">Open Build</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Bikin proyek bareng lintas disiplin, dari ide sampai rilis, dengan mentor komunitas.</p>
+      </div>
+      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Kampus</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">Kelas keliling</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Membawa pengenalan teknologi spatial ke kampus dan sekolah di berbagai kota.</p>
+      </div>
+    </div>
+  </div>
+
+  <div data-panel="karya" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ff5c2b;">Planet 02 · Karya</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Karya member</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Proyek VR, AR, dan XR yang dibangun oleh member komunitas.</p>
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <article style="border: 1px solid rgba(237,232,220,.1); border-radius: 8px; overflow: hidden;">
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(255,92,43,.16), rgba(111,227,184,.09)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c667a;">Visual proyek</div>
+        <div style="padding: 16px 18px;">
+          <div style="display: flex; gap: 7px; margin-bottom: 10px;">
+            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">VR</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">Edukasi</span>
+          </div>
+          <h3 style="margin: 0 0 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8e8899;">Deskripsi singkat dan nama member pembuatnya.</p>
+        </div>
+      </article>
+      <article style="border: 1px solid rgba(237,232,220,.1); border-radius: 8px; overflow: hidden;">
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(111,227,184,.16), rgba(255,92,43,.08)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c667a;">Visual proyek</div>
+        <div style="padding: 16px 18px;">
+          <div style="display: flex; gap: 7px; margin-bottom: 10px;">
+            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">AR</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">Budaya</span>
+          </div>
+          <h3 style="margin: 0 0 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8e8899;">Deskripsi singkat dan nama member pembuatnya.</p>
+        </div>
+      </article>
+      <article style="border: 1px solid rgba(237,232,220,.1); border-radius: 8px; overflow: hidden;">
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(237,232,220,.12), rgba(255,92,43,.1)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c667a;">Visual proyek</div>
+        <div style="padding: 16px 18px;">
+          <div style="display: flex; gap: 7px; margin-bottom: 10px;">
+            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">XR</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">Industri</span>
+          </div>
+          <h3 style="margin: 0 0 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8e8899;">Deskripsi singkat dan nama member pembuatnya.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div data-panel="event" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ede8dc;">Planet 03 · Event</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Event &amp; meetup</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Jadwal terdekat. Klik untuk daftar lewat planet Gabung.</p>
+    <div style="display: flex; flex-direction: column;">
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12px; color: #ff5c2b;">Bulan ini</span>
+        <span style="font-size: 17px; font-weight: 500;">XR Meetup — demo malam</span>
+        <span style="font-size: 12.5px; color: #8e8899;">Jakarta · Terbuka</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12px; color: #ff5c2b;">Segera</span>
+        <span style="font-size: 17px; font-weight: 500;">Workshop WebXR untuk pemula</span>
+        <span style="font-size: 12.5px; color: #8e8899;">Online · Kuota terbatas</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(237,232,220,.1); border-bottom: 1px solid rgba(237,232,220,.1);">
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12px; color: #ff5c2b;">Rencana</span>
+        <span style="font-size: 17px; font-weight: 500;">Open Build showcase day</span>
+        <span style="font-size: 12.5px; color: #8e8899;">Bandung · Menunggu tanggal</span>
+      </div>
+    </div>
+  </div>
+
+  <div data-panel="insight" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #6fe3b8;">Planet 04 · Insight</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Insight</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Catatan, tutorial, dan obrolan dari member komunitas.</p>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px; color: #ede8dc;" style-hover="border-color: #6fe3b8;">
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6fe3b8;">Tutorial</span>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8e8899;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+      </a>
+      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px; color: #ede8dc;" style-hover="border-color: #6fe3b8;">
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6fe3b8;">Cerita member</span>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8e8899;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+      </a>
+      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px; color: #ede8dc;" style-hover="border-color: #6fe3b8;">
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6fe3b8;">Industri</span>
+        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8e8899;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+      </a>
+    </div>
+  </div>
+
+  <div data-panel="tim" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ede8dc;">Planet 05 · Tim</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Tim inti</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Relawan yang menjaga ritme komunitas.</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div>
+          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div data-panel="gabung" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(255,92,43,.3); border-radius: 10px; background: rgba(11,9,16,.88); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ff5c2b;">Planet 06 · Gabung</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+    </div>
+    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; line-height: 1.02; letter-spacing: -.035em;">Ikut bangun ruangnya</h2>
+    <p style="margin: 0 0 22px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Kami senang kenalan dengan orang baru. Isi datanya, kami hubungi untuk kegiatan terdekat.</p>
+    <form onSubmit="{{ onSubmit }}" style="display: flex; flex-direction: column; gap: 14px;">
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8e8899;">Nama
+        <input type="text" placeholder="Nama lengkap" style="padding: 12px 13px; border: 1px solid rgba(237,232,220,.16); border-radius: 6px; background: rgba(237,232,220,.04); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #ff5c2b; outline: none;" />
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8e8899;">Email
+        <input type="email" placeholder="nama@email.com" style="padding: 12px 13px; border: 1px solid rgba(237,232,220,.16); border-radius: 6px; background: rgba(237,232,220,.04); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #ff5c2b; outline: none;" />
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8e8899;">Fokus
+        <select style="padding: 12px 13px; border: 1px solid rgba(237,232,220,.16); border-radius: 6px; background: rgba(237,232,220,.04); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #ff5c2b; outline: none;">
+          <option>Developer</option>
+          <option>Designer / 3D artist</option>
+          <option>Mahasiswa / pemula</option>
+          <option>Perusahaan / partner</option>
+          <option>Peneliti / pendidik</option>
+        </select>
+      </label>
+      <button type="submit" style="margin-top: 4px; padding: 14px; border: none; border-radius: 6px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">Kirim</button>
+      <div style="min-height: 17px; font-size: 12.5px; color: #6fe3b8;">{{ formMsg }}</div>
+    </form>
+    <div style="display: flex; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(237,232,220,.1); font-size: 12.5px;">
+      <a href="#gabung" style="color: #8e8899;">Instagram</a>
+      <a href="#gabung" style="color: #8e8899;">Discord</a>
+      <a href="#gabung" style="color: #8e8899;">LinkedIn</a>
+    </div>
+  </div>
+
+  <div style="position: absolute; bottom: 100px; right: 34px; z-index: 30; max-width: 230px; font-size: 11px; line-height: 1.6; letter-spacing: .04em; text-align: right; color: #6c667a; pointer-events: none;">
+    <span data-hud="xr">Cek dukungan headset...</span>
+  </div>
+
+  <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #0b0910; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
+    <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8e8899;">Menyalakan pesawat</div>
+    <div style="width: 190px; height: 1px; background: #26222f; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: #ff5c2b; transform-origin: left; animation: grow 1.6s cubic-bezier(.2,.7,.2,1) forwards;"></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+const NAMES = { inti: 'INTI', program: 'PROGRAM', karya: 'KARYA', event: 'EVENT', insight: 'INSIGHT', tim: 'TIM', gabung: 'GABUNG' };
+
+class Component extends DCLogic {
+  state = { formMsg: '' };
+  loaderRef = React.createRef();
+
+  componentDidMount() {
+    this._ready = () => { clearTimeout(this._fallback); setTimeout(() => this.hideLoader(), 400); };
+    this._focus = e => this.showPanel(e.detail && e.detail.id);
+    this._freeEv = () => this.showPanel(null);
+    this._support = e => {
+      const el = document.querySelector('[data-hud="xr"]');
+      if (el) el.textContent = e.detail && e.detail.ok
+        ? 'Headset terdeteksi — mode VR siap dipakai'
+        : 'Belum ada headset terdeteksi. Buka dari headset untuk mode VR penuh.';
+    };
+    document.addEventListener('scene-ready', this._ready);
+    document.addEventListener('planet-focus', this._focus);
+    document.addEventListener('planet-free', this._freeEv);
+    document.addEventListener('xr-support', this._support);
+    this._fallback = setTimeout(() => this.hideLoader(), 4000);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('scene-ready', this._ready);
+    document.removeEventListener('planet-focus', this._focus);
+    document.removeEventListener('planet-free', this._freeEv);
+    document.removeEventListener('xr-support', this._support);
+    clearTimeout(this._fallback);
+  }
+
+  hideLoader() {
+    const el = this.loaderRef.current;
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.visibility = 'hidden';
+    el.style.pointerEvents = 'none';
+  }
+
+  scene() { return document.querySelector('solar-system'); }
+
+  showPanel(id) {
+    document.querySelectorAll('[data-panel]').forEach(p => {
+      const on = p.dataset.panel === id;
+      p.style.display = on ? 'flex' : 'none';
+    });
+    document.querySelectorAll('[data-nav]').forEach(b => {
+      const on = b.dataset.nav === id;
+      b.style.borderColor = on ? '#ff5c2b' : 'transparent';
+      b.style.background = on ? 'rgba(255,92,43,.12)' : (b.dataset.nav === 'gabung' ? 'rgba(255,92,43,.1)' : 'rgba(11,9,16,.45)');
+    });
+    const t = document.querySelector('[data-hud="target"]');
+    if (t) t.textContent = id ? NAMES[id] : '—';
+    const intro = document.querySelector('[data-intro]');
+    if (intro) {
+      intro.firstElementChild.style.animation = 'none';
+      intro.style.opacity = id ? '0' : '1';
+    }
+  }
+
+  renderVals() {
+    return {
+      loaderRef: this.loaderRef,
+      formMsg: this.state.formMsg,
+      onGoto: e => {
+        const el = e.target.closest && e.target.closest('[data-goto]');
+        const s = this.scene();
+        if (el && s && s.travelTo) s.travelTo(el.dataset.goto);
+      },
+      onFree: () => {
+        const s = this.scene();
+        if (s && s.freeFlight) s.freeFlight();
+        this.showPanel(null);
+      },
+      onEnterVR: async () => {
+        const el = document.querySelector('[data-hud="xr"]');
+        try {
+          await this.scene().enterVR();
+          if (el) el.textContent = 'Sesi VR aktif — lihat sekeliling untuk menjelajah';
+        } catch (err) {
+          if (el) el.textContent = 'Mode VR belum bisa dijalankan di perangkat ini. Coba dari headset dengan WebXR.';
+        }
+      },
+      onSubmit: e => {
+        e.preventDefault();
+        this.setState({ formMsg: 'Terima kasih. Kami hubungi lewat email untuk kegiatan terdekat.' });
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>
