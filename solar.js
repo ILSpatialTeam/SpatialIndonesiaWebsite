@@ -1,6 +1,9 @@
 import * as THREE from 'https://unpkg.com/three@0.184.0/build/three.module.js';
 
 const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP = 0x2a1fc9;
+// point sprites are sized in world units and ignore the object's scale, so these
+// bases have to be re-multiplied by world.scale every frame (see _frameBody)
+const STAR_SIZE = 1.35, DUST_SIZE = 0.38;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -167,7 +170,7 @@ class SolarSystem extends HTMLElement {
       [1, 'rgba(169,155,242,0)']
     ]);
     const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-      color: PAPER, size: 1.35, map: particleMap, transparent: true, opacity: 0.85,
+      color: PAPER, size: STAR_SIZE, map: particleMap, transparent: true, opacity: 0.85,
       sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
     }));
     stars.name = 'stars';
@@ -183,7 +186,7 @@ class SolarSystem extends HTMLElement {
     const dustGeo = new THREE.BufferGeometry();
     dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPos, 3));
     const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-      color: MINT, size: 0.38, map: particleMap, transparent: true, opacity: 0.55,
+      color: MINT, size: DUST_SIZE, map: particleMap, transparent: true, opacity: 0.55,
       sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
     }));
     world.add(dust);
@@ -977,9 +980,15 @@ class SolarSystem extends HTMLElement {
     this.arOverlay = false;
     this.xrRoot.visible = false;
     this.gaze.visible = false;
+    // the ambient clouds belong to the starfield backdrop, not to a real room
     this.stars.visible = false;
+    this.dust.visible = false;
     this.scene.fog = null;
-    this.planets.forEach(p => { p.tag.visible = true; });
+    this.planets.forEach(p => {
+      p.tag.visible = true;
+      // 0.09 is tuned for a black sky and vanishes against a lit room
+      p.path.material.opacity = 0.55;
+    });
     this.sunTag.visible = true;
 
     session.addEventListener('end', () => {
@@ -1067,6 +1076,7 @@ class SolarSystem extends HTMLElement {
     if (this.hitSource && this.hitSource.cancel) { try { this.hitSource.cancel(); } catch (e) {} }
     this.hitSource = null;
     this.stars.visible = true;
+    this.dust.visible = true;
     this.scene.fog = this.baseFog;
     this.xrDock.scale.setScalar(1);
     this.xrPanel.scale.setScalar(1);
@@ -1272,10 +1282,19 @@ class SolarSystem extends HTMLElement {
     const pulse = 1 + Math.sin(t * 1.4) * 0.045 + Math.sin(t * 3.1) * 0.02;
     this.sunGlow.scale.set(15 * pulse, 15 * pulse, 1);
     this.sunHaze.scale.set(30 * (2 - pulse), 30 * (2 - pulse), 1);
-    this.sunGlow.material.opacity = 0.9 + Math.sin(t * 1.4) * 0.1;
+    // a corona tuned for a black sky reads as a white wash over a lit room
+    const gain = this.mode === 'ar' ? 0.4 : 1;
+    this.sunGlow.material.opacity = (0.9 + Math.sin(t * 1.4) * 0.1) * gain;
+    this.sunHaze.material.opacity = gain;
     this.sunCore.material.emissiveIntensity = 2.4 + Math.sin(t * 1.4) * 0.35;
     this.stars.material.opacity = 0.8 + Math.sin(t * 0.9) * 0.12 + Math.sin(t * 2.3) * 0.05;
     this.dust.material.opacity = 0.5 + Math.sin(t * 1.1 + 2) * 0.12;
+
+    // shrink the sprites along with the system, otherwise each point keeps its
+    // full-size footprint and the cloud blows out to a white smear in AR/VR
+    const ws = this.world.scale.x;
+    this.stars.material.size = STAR_SIZE * ws;
+    this.dust.material.size = DUST_SIZE * ws;
 
     if (this.renderer.xr.isPresenting) return this.mode === 'ar' ? this._arFrame(frame) : this._xrFrame();
 
