@@ -840,16 +840,13 @@ class SolarSystem extends HTMLElement {
   }
 
   _xrSelect(source) {
+    if (this.mode === 'ar') return; // AR is display-only
     const hit = this._xrRay(source);
     if (hit && hit.kind === 'ui') {
       const u = hit.obj.userData;
       if (u.kind === 'nav') return this.travelTo(u.planetId);
-      if (u.kind === 'move') { this.arPlaced = false; return this.dispatchEvent(new CustomEvent('ar-replace', { bubbles: true })); }
-      if (u.kind === 'near') { this.arDist = clamp(this.arDist - 0.25, 0.5, 3.5); return; }
-      if (u.kind === 'far') { this.arDist = clamp(this.arDist + 0.25, 0.5, 3.5); return; }
       return this.freeFlight();
     }
-    if (this.mode === 'ar' && !this.arPlaced) return this._placeAR();
     if (hit && hit.kind === 'planet') return this.travelTo(hit.id);
   }
 
@@ -957,17 +954,12 @@ class SolarSystem extends HTMLElement {
 
   async enterAR() {
     if (!navigator.xr) throw new Error('WebXR tidak tersedia');
-    const opts = { optionalFeatures: ['local-floor', 'anchors'] };
-    const session = await navigator.xr.requestSession('immersive-ar', opts);
+    const session = await navigator.xr.requestSession('immersive-ar', { optionalFeatures: ['local-floor'] });
     this.renderer.xr.setReferenceSpaceType('local');
     await this.renderer.xr.setSession(session);
 
     this.mode = 'ar';
-    this._bindXRControllers();
     this.arPlaced = false;
-    this.arHit = null;
-    this.hitStreak = 0;
-    this.arDist = 1.15;
     this.arError = null;
 
     // the WebGL layer must clear fully transparent so the camera feed shows through
@@ -975,33 +967,15 @@ class SolarSystem extends HTMLElement {
     this.scene.background = null;
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setClearAlpha(0);
-    if (!this.arReticle) {
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.085, 0.115, 44),
-        new THREE.MeshBasicMaterial({ color: MINT, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
-      );
-      ring.name = 'arReticle';
-      ring.rotation.x = -Math.PI / 2;
-      const dot = new THREE.Mesh(new THREE.CircleGeometry(0.012, 16), new THREE.MeshBasicMaterial({ color: ACCENT }));
-      dot.rotation.x = -Math.PI / 2;
-      dot.position.y = 0.001;
-      ring.add(dot);
-      ring.visible = false;
-      this.scene.add(ring);
-      this.arReticle = ring;
-    }
-    if (!this.arPrompt) {
-      const prompt = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._promptTexture('Arahkan ke permukaan datar, lalu ketuk'), transparent: true, depthWrite: false, depthTest: false }));
-      prompt.name = 'arPrompt';
-      prompt.scale.set(0.42, 0.105, 1);
-      prompt.renderOrder = 998;
-      prompt.visible = false;
-      this.scene.add(prompt);
-      this.arPrompt = prompt;
-    }
+
+    // display-only AR: park the system at a comfortable spot straight away
+    // ('local' space starts at the device pose, so -z is roughly ahead),
+    // then anchor it against the first tracked pose in _arFrame
+    this.world.scale.setScalar(0.011);
+    this.world.position.set(0, -0.25, -1.5);
 
     this.arOverlay = false;
-    this.xrRoot.visible = true;
+    this.xrRoot.visible = false;
     this.gaze.visible = false;
     this.stars.visible = false;
     this.scene.fog = null;
@@ -1009,17 +983,10 @@ class SolarSystem extends HTMLElement {
     this.sunTag.visible = true;
 
     session.addEventListener('end', () => {
-      this.dispatchEvent(new CustomEvent('xr-session-end', { detail: { mode: 'ar', placed: this.arPlaced, hitTest: !!this.hitSource }, bubbles: true }));
+      this.dispatchEvent(new CustomEvent('xr-session-end', { detail: { mode: 'ar', placed: this.arPlaced }, bubbles: true }));
       this._exitXR();
     });
-    // size the system straight away — lerping up from 1.0 filled the whole room for a moment
-    this.world.scale.setScalar(0.0062 * this.arDist);
-    this.arBtns.forEach(b => { b.visible = true; });
     this.dispatchEvent(new CustomEvent('ar-start', { detail: { overlay: false }, bubbles: true }));
-
-    // placement is manual: the system previews in front of the device until the user taps
-    this.hitSource = null;
-    this.dispatchEvent(new CustomEvent('ar-hittest', { detail: { ok: false }, bubbles: true }));
     return session;
   }
 
@@ -1039,87 +1006,24 @@ class SolarSystem extends HTMLElement {
   }
 
   _arFrame(frame) {
-    const camNow = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
-    if (!this.arPlaced) {
-      // ghost preview locked to where the device is pointing
-      camNow.getWorldPosition(this.tmp);
-      camNow.getWorldDirection(this.tmp2);
-      this.tmp.addScaledVector(this.tmp2, this.arDist);
-      this.world.position.lerp(this.tmp, 0.22);
-      this.arHit = this.world.position.clone();
-      if (this.arReticle) {
-        this.arReticle.visible = true;
-        this.arReticle.position.copy(this.world.position);
-        this.arReticle.rotation.set(-Math.PI / 2, 0, this.clock.getElapsedTime() * 0.4);
-        this.arReticle.scale.setScalar(this.arDist * 1.1);
-      }
-      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0062 * this.arDist, 0.18));
-    } else {
-      if (this.arReticle) this.arReticle.visible = false;
-      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0098 * this.arDist, 0.12));
-    }
-
-    let hoverUI = null, hoverPlanet = null;
-    (this.controllers || []).forEach(c => {
-      if (c.userData.connected === false) return;
-      const hit = this._xrRay(c);
-      const line = c.getObjectByName('ray');
-      if (line) line.visible = false;
-      if (!hit) return;
-      if (hit.kind === 'ui') hoverUI = hit.obj;
-      else hoverPlanet = hit.id;
-    });
-    this.navBtns.forEach(b => {
-      if (b === hoverUI) this._setBtn(b, 'hover');
-      else if (b.userData.kind === 'nav') this._setBtn(b, b.userData.planetId === this.active ? 'active' : 'idle');
-      else this._setBtn(b, 'idle');
-    });
-    this.hover = hoverPlanet;
-    this.planets.forEach(p => {
-      const target = this.active === p.id ? 1.5 : (this.hover === p.id ? 1.25 : 1);
-      p.mesh.scale.setScalar(lerp(p.mesh.scale.x, target, 0.12));
-      p.path.material.opacity = lerp(p.path.material.opacity, this.active === p.id || this.hover === p.id ? 0.42 : 0.09, 0.08);
-    });
-
-    if (!this.arOverlay) {
-      const cam = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
-      cam.getWorldPosition(this.tmp);
-      this.xrDock.scale.setScalar(0.62);
-      this.xrPanel.scale.setScalar(0.62);
-
-      if (this.arPlaced) {
-        const toSys = this.tmp2.copy(this.world.position).sub(this.tmp);
-        const a = Math.atan2(toSys.x, toSys.z);
-        this.xrDock.position.set(this.world.position.x - Math.cos(a) * 0.42, this.world.position.y + 0.3, this.world.position.z + Math.sin(a) * 0.42);
-        this.xrDock.rotation.set(0, a + Math.PI, 0);
-        this.xrPanel.position.set(this.world.position.x + Math.cos(a) * 0.44, this.world.position.y + 0.22, this.world.position.z - Math.sin(a) * 0.44);
-        this.xrPanel.rotation.set(0, a + Math.PI, 0);
-      } else {
-        // keep the dock in front of the viewer until the system is anchored
+    // display-only AR: no taps, no UI — anchor the system once against the
+    // first tracked pose, floating ahead of where the phone is looking
+    if (!this.arPlaced && frame) {
+      const ref = this.renderer.xr.getReferenceSpace();
+      const pose = ref ? frame.getViewerPose(ref) : null;
+      if (pose) {
+        const cam = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
+        cam.getWorldPosition(this.tmp);
         cam.getWorldDirection(this.tmp2);
-        const a = Math.atan2(-this.tmp2.x, -this.tmp2.z);
-        this.xrDock.position.set(this.tmp.x + Math.sin(a - 0.62) * 0.66, this.tmp.y - 0.02, this.tmp.z - Math.cos(a - 0.62) * 0.66);
-        this.xrDock.rotation.set(0, a - 0.62, 0);
-        this._panelVisible(false);
+        this.tmp2.y = 0;
+        if (this.tmp2.lengthSq() < 1e-4) this.tmp2.set(0, 0, -1);
+        this.tmp2.normalize();
+        this.world.position.copy(this.tmp).addScaledVector(this.tmp2, 1.5);
+        this.world.position.y = this.tmp.y - 0.25;
+        this.arPlaced = true;
+        this.dispatchEvent(new CustomEvent('ar-placed', { bubbles: true }));
       }
     }
-
-    // placement prompt: DOM when overlay is granted, 3D sprite otherwise
-    if (this.arPrompt) {
-      const need = !this.arPlaced && !this.arOverlay;
-      this.arPrompt.visible = need;
-      if (need) {
-        const want = this._promptKind === 'error' ? 'error' : (this.hitSource ? 'surface' : 'free');
-        if (this._promptKind !== want) {
-          this._promptKind = want;
-          if (this.arPrompt.material.map) this.arPrompt.material.map.dispose();
-          this.arPrompt.material.map = this._promptTexture('Arahkan lalu ketuk untuk menempatkan');
-          this.arPrompt.material.needsUpdate = true;
-        }
-        this.arPrompt.position.copy(this.tmp.set(0, 0.03, -0.72).applyMatrix4(camNow.matrixWorld));
-      }
-    }
-
     this.renderer.render(this.scene, this.camera);
   }
 

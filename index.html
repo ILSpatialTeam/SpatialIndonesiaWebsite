@@ -525,8 +525,8 @@ class Component extends DCLogic {
       this.st(this.q('[data-ui="header"]'), { display: 'flex' });
       this.st(this.q('[data-ui="readout"]'), { display: 'block' });
       this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
-      if (ok) this.xrLine('Perangkat mendukung AR — ketuk Mode AR untuk menempatkan tata surya di ruanganmu.');
-      else if (this.isPhone) this.xrLine('Ketuk Mode AR untuk mencoba menempatkan tata surya di ruanganmu.');
+      if (ok) this.xrLine('Perangkat mendukung AR — ketuk Mode AR untuk melihat tata surya di ruanganmu.');
+      else if (this.isPhone) this.xrLine('Ketuk Mode AR untuk mencoba melihat tata surya di ruanganmu.');
     };
     this._arStart = e => {
       this.arActive = true;
@@ -535,13 +535,13 @@ class Component extends DCLogic {
       this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
       this.transparent(true);
       this.arChrome();
-      this.xrLine('Sesi AR aktif — arahkan ponsel ke tempat yang kamu mau, lalu ketuk untuk menempatkan.');
+      this.xrLine('Sesi AR aktif — tata surya muncul di depan kameramu.');
     };
     this._xrErr = e => this.xrLine('Galat AR: ' + ((e.detail && e.detail.message) || 'tidak diketahui'));
     this._sessEnd = e => {
       const d = (e.detail || {});
       this.lastEnd = d;
-      if (d.mode === 'ar' && !d.placed) this.xrLine('Sesi AR berakhir sebelum penempatan. Pastikan izin kamera diberikan dan halaman dibuka di tab Chrome, bukan dalam aplikasi lain.');
+      if (d.mode === 'ar' && !d.placed) this.xrLine('Sesi AR berakhir sebelum tracking siap. Pastikan izin kamera diberikan dan halaman dibuka di tab Chrome, bukan dalam aplikasi lain.');
     };
     document.addEventListener('xr-error', this._xrErr);
     document.addEventListener('xr-session-end', this._sessEnd);
