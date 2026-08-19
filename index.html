@@ -29,9 +29,9 @@
 </style>
 <script type="module" src="./solar.js"></script>
 </helmet>
-<div style="position: relative; width: 100%; height: 100dvh; background: #0b0910; color: #ede8dc; overflow: hidden; font-size: 14px;">
+<div data-ui="arlayer" style="position: relative; width: 100%; height: 100dvh; background: #0b0910; color: #ede8dc; overflow: hidden; font-size: 14px;">
 
-  <x-import component-from-global-scope="solar-system" hint-size="100%,100%" style="position: absolute; inset: 0;"></x-import>
+  <x-import component-from-global-scope="solar-system" overlay-root="[data-ui=&quot;arlayer&quot;]" hint-size="100%,100%" style="position: absolute; inset: 0;"></x-import>
 
   <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 40%, rgba(11,9,16,.72) 100%);"></div>
 
@@ -91,6 +91,10 @@
         <span style="width: 5px; height: 5px; border-radius: 50%; background: #6fe3b8;"></span>
         <span data-hud="mode">ORBIT BEBAS</span>
       </div>
+      <button data-ui="arbtn" onClick="{{ onEnterAR }}" style="display: none; align-items: center; gap: 9px; padding: 10px 18px; border: 1px solid #6fe3b8; border-radius: 999px; background: rgba(111,227,184,.12); color: #6fe3b8; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;" style-hover="background: rgba(111,227,184,.2);">
+        <span style="width: 13px; height: 13px; border: 1.5px solid #6fe3b8; border-radius: 3px;"></span>
+        Mode AR
+      </button>
       <button data-ui="vrbtn" onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; white-space: nowrap; border: none; border-radius: 999px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">
         <span style="width: 15px; height: 9px; border: 1.5px solid #0b0910; border-radius: 3px 3px 5px 5px;"></span>
         Masuk Mode VR
@@ -418,10 +422,9 @@
       <span style="position: absolute; top: 16px; left: 16px; width: 2px; height: 2px; background: #ff5c2b;"></span>
     </div>
     <div data-cursor="blackhole" style="position: absolute; left: 0; top: 0; width: 104px; height: 104px; display: none; transform: translate(-50%, -50%); transition: transform .25s;">
-      <span style="position: absolute; inset: 0; border-radius: 50%; backdrop-filter: blur(9px) invert(8%) saturate(150%) hue-rotate(12deg); -webkit-backdrop-filter: blur(9px) invert(8%) saturate(150%); mask-image: radial-gradient(closest-side, #000 34%, rgba(0,0,0,.55) 58%, transparent 78%); -webkit-mask-image: radial-gradient(closest-side, #000 34%, rgba(0,0,0,.55) 58%, transparent 78%);"></span>
-      <span style="position: absolute; inset: 30px; border-radius: 50%; background: radial-gradient(circle, #05040a 52%, rgba(11,9,16,.5) 78%, transparent 100%); box-shadow: 0 0 22px rgba(255,92,43,.35);"></span>
-      <span style="position: absolute; inset: 22px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, rgba(255,92,43,.9) 28%, rgba(111,227,184,.7) 46%, transparent 72%); mask-image: radial-gradient(closest-side, transparent 58%, #000 62%); -webkit-mask-image: radial-gradient(closest-side, transparent 58%, #000 62%); animation: spin 3.4s linear infinite;"></span>
-      <span style="position: absolute; inset: 12px; border: 1px solid rgba(237,232,220,.14); border-radius: 50%; animation: pulseRing 2.6s ease-in-out infinite;"></span>
+      <span style="position: absolute; inset: 34px; border-radius: 50%; background: radial-gradient(circle, #05040a 60%, rgba(11,9,16,.35) 84%, transparent 100%);"></span>
+      <span data-bh-disc="1" style="position: absolute; inset: 26px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, rgba(255,92,43,.85) 26%, rgba(111,227,184,.6) 44%, transparent 68%); mask-image: radial-gradient(closest-side, transparent 62%, #000 66%); -webkit-mask-image: radial-gradient(closest-side, transparent 62%, #000 66%); animation: spin 2.8s linear infinite;"></span>
+      <span style="position: absolute; inset: 30px; border: 1px solid rgba(255,92,43,.5); border-radius: 50%;"></span>
     </div>
     <div data-cursor="ship" style="position: absolute; left: 0; top: 0; width: 26px; height: 30px; display: none; transform: translate(-50%, -50%);">
       <span style="position: absolute; left: 50%; top: 0; margin-left: -7px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 19px solid #ede8dc;"></span>
@@ -444,6 +447,14 @@
       <span style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; margin: -9px 0 0 -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid currentColor;"></span>
     </button>
   </div>
+  <div data-ui="arhint" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 36; display: none; flex-direction: column; align-items: center; gap: 14px; padding: 22px 26px; border: 1px solid rgba(111,227,184,.4); border-radius: 14px; background: rgba(11,9,16,.82); text-align: center; pointer-events: none;">
+    <span style="width: 30px; height: 30px; border: 1.5px solid #6fe3b8; border-radius: 50%;"></span>
+    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px;">Arahkan ke permukaan datar</span>
+    <span style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b6b0c0;">Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.</span>
+  </div>
+
+  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(237,232,220,.2); border-radius: 999px; background: rgba(11,9,16,.7); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">TEMPATKAN ULANG</button>
+
   <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #0b0910; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
     <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8e8899;">Menyalakan pesawat</div>
     <div style="width: 190px; height: 1px; background: #26222f; overflow: hidden;">
@@ -470,6 +481,7 @@ class Component extends DCLogic {
     this.cursorMode = this.props.cursorStyle || 'target';
     this.px = innerWidth / 2; this.py = innerHeight / 2;
     this.cx = this.px; this.cy = this.py; this.ang = 0; this.hoverId = null;
+    this.lensS = 0; this.arActive = false;
 
     this._ready = () => { clearTimeout(this._fallback); setTimeout(() => this.hideLoader(), 400); };
     this._focus = e => this.showPanel(e.detail && e.detail.id);
@@ -481,13 +493,54 @@ class Component extends DCLogic {
       if (d.reason === 'blocked') return this.xrLine('Mode VR terkunci di tampilan sematan ini. Buka halaman langsung di browser headset.');
       this.xrLine('Belum ada headset terdeteksi. Buka dari headset untuk mode VR penuh.');
     };
-    this._xrEnd = () => this.xrLine('Sesi VR selesai. Kamu kembali ke tampilan layar.');
+    this._xrEnd = () => {
+      const wasAR = this.arActive;
+      this.arActive = false;
+      this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
+      this.st(this.q('[data-ui="arreplace"]'), { display: 'none' });
+      this.st(this.q('[data-ui="vrbtn"]'), { display: 'flex' });
+      this.st(this.q('[data-ui="arbtn"]'), { display: this.arReady ? 'flex' : 'none' });
+      this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'flex' }));
+      this.st(this.q('[data-intro]'), { display: 'block' });
+      this.applyLayout();
+      this.setCursor(this.cursorMode);
+      this.showPanel(null);
+      this.xrLine(wasAR ? 'Sesi AR selesai. Kamu kembali ke tampilan layar.' : 'Sesi VR selesai. Kamu kembali ke tampilan layar.');
+    };
     document.addEventListener('scene-ready', this._ready);
     document.addEventListener('planet-focus', this._focus);
     document.addEventListener('planet-free', this._freeEv);
     document.addEventListener('planet-hover', this._hover);
     document.addEventListener('xr-support', this._support);
     document.addEventListener('xr-end', this._xrEnd);
+    this._arSupport = e => {
+      const ok = !!(e.detail && e.detail.ok);
+      this.arReady = ok;
+      this.st(this.q('[data-ui="arbtn"]'), { display: ok ? 'flex' : 'none' });
+      if (ok) this.xrLine('Perangkat mendukung AR — tempatkan tata surya di ruanganmu.');
+    };
+    this._arStart = e => {
+      this.arActive = true;
+      this.arPlaced = false;
+      this.arOverlay = !!(e.detail && e.detail.overlay);
+      this.st(this.q('[data-ui="arhint"]'), { display: this.arOverlay ? 'flex' : 'none' });
+      this.arChrome();
+      if (!this.arOverlay) this.xrLine('Sesi AR aktif — menu tampil sebagai panel 3D di dalam ruangan.');
+    };
+    this._arPlaced = () => {
+      this.arPlaced = true;
+      this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
+      this.st(this.q('[data-ui="arreplace"]'), { display: this.arActive && this.arOverlay ? 'block' : 'none' });
+    };
+    this._arReplace = () => {
+      this.arPlaced = false;
+      this.st(this.q('[data-ui="arhint"]'), { display: this.arOverlay ? 'flex' : 'none' });
+      this.st(this.q('[data-ui="arreplace"]'), { display: 'none' });
+    };
+    document.addEventListener('ar-support', this._arSupport);
+    document.addEventListener('ar-start', this._arStart);
+    document.addEventListener('ar-placed', this._arPlaced);
+    document.addEventListener('ar-replace', this._arReplace);
 
     this._onResize = () => { this.applyLayout(); this.setCursor(this.cursorMode); };
     addEventListener('resize', this._onResize);
@@ -513,6 +566,10 @@ class Component extends DCLogic {
     document.removeEventListener('planet-hover', this._hover);
     document.removeEventListener('xr-support', this._support);
     document.removeEventListener('xr-end', this._xrEnd);
+    document.removeEventListener('ar-support', this._arSupport);
+    document.removeEventListener('ar-start', this._arStart);
+    document.removeEventListener('ar-placed', this._arPlaced);
+    document.removeEventListener('ar-replace', this._arReplace);
     removeEventListener('resize', this._onResize);
     if (this._move) removeEventListener('pointermove', this._move);
     if (this._raf) cancelAnimationFrame(this._raf);
@@ -535,6 +592,9 @@ class Component extends DCLogic {
 
   setCursor(mode) {
     this.cursorMode = mode;
+    const sc0 = this.scene();
+    if (sc0 && sc0.setLens) sc0.setLens({ on: mode === 'blackhole' && this.fine && innerWidth >= MOBILE });
+    if (mode !== 'blackhole') this.lensS = 0;
     const on = this.fine && innerWidth >= MOBILE;
     this.st(this.q('[data-ui="cursor"]'), { opacity: on ? '1' : '0' });
     this.qa('[data-cursor]').forEach(el => this.st(el, { display: el.dataset.cursor === mode ? 'block' : 'none' }));
@@ -569,7 +629,19 @@ class Component extends DCLogic {
         if (tr) tr.style.opacity = Math.min(1, sp / 7).toFixed(2);
       } else if (this.cursorMode === 'blackhole') {
         const b = this.q('[data-cursor="blackhole"]');
-        if (b) b.style.transform = 'translate(-50%, -50%) scale(' + (hot ? 1.32 : 1).toFixed(2) + ') rotate(' + (this.cx * 0.05).toFixed(1) + 'deg)';
+        if (b) b.style.transform = 'translate(-50%, -50%) scale(' + (hot ? 1.32 : 1).toFixed(2) + ')';
+        const disc = this.q('[data-bh-disc]');
+        if (disc) disc.style.animationDuration = (2.8 / (1 + Math.min(sp, 22) / 9)).toFixed(2) + 's';
+        this.lensS = mix(this.lensS, 1 + Math.min(sp, 26) / 22 + (hot ? 0.5 : 0), 0.12);
+        const sc = this.scene();
+        if (sc && sc.setLens) sc.setLens({
+          on: true,
+          x: nx / innerWidth,
+          y: ny / innerHeight,
+          vx: (dx / innerWidth) * 26,
+          vy: (dy / innerHeight) * 26,
+          s: this.lensS
+        });
       } else {
         const t = this.q('[data-cursor="target"]');
         if (t) t.style.transform = 'translate(-50%, -50%) rotate(' + (hot ? 45 : 0) + 'deg) scale(' + (hot ? 1.34 : 1) + ')';
@@ -581,6 +653,7 @@ class Component extends DCLogic {
   /* ---------- responsive ---------- */
 
   applyLayout() {
+    if (this.arActive) return this.arChrome();
     const m = innerWidth < MOBILE;
     this.mobile = m;
     const st = this.st.bind(this), q = this.q.bind(this), qa = this.qa.bind(this);
@@ -656,6 +729,26 @@ class Component extends DCLogic {
     this.chrome(!this.openId || !m);
   }
 
+  arChrome() {
+    const hide = ['readout', 'hints', 'cursorpick', 'xrline', 'mode'];
+    hide.forEach(k => this.st(this.q('[data-ui="' + k + '"]'), { display: 'none' }));
+    this.st(this.q('[data-intro]'), { display: 'none' });
+    this.st(this.q('[data-ui="cursor"]'), { opacity: '0' });
+    this.st(this.q('[data-ui="reticle"]'), { opacity: '0' });
+    this.st(this.q('[data-ui="vrbtn"]'), { display: 'none' });
+    this.st(this.q('[data-ui="arbtn"]'), { display: 'none' });
+    const fp = this.q('[data-ui="flightplan"]');
+    this.st(fp, { top: 'auto', bottom: '20px', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px' });
+    this.st(this.q('[data-ui="fpList"]'), { flexDirection: 'row', gap: '8px', overflowX: 'auto', flex: '1 1 auto' });
+    this.qa('[data-nav]').forEach(b => {
+      this.st(b, { display: 'flex', alignItems: 'center', gap: '7px', padding: '0 14px', minHeight: '44px', borderRadius: '999px', whiteSpace: 'nowrap', flex: '0 0 auto' });
+      const sp = b.querySelectorAll('span');
+      if (sp.length === 3) this.st(sp[2], { display: 'none' });
+    });
+    this.qa('[data-panel]').forEach(p => this.st(p, { top: 'auto', left: '12px', right: '12px', bottom: '76px', width: 'auto', maxHeight: '52dvh', padding: '18px', borderRadius: '14px' }));
+    this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'none' }));
+  }
+
   chrome(show) {
     if (!this.mobile) {
       this.st(this.q('[data-ui="flightplan"]'), { display: 'flex' });
@@ -707,6 +800,17 @@ class Component extends DCLogic {
       onCursorPick: e => {
         const b = e.target.closest && e.target.closest('[data-cursorpick]');
         if (b) this.setCursor(b.dataset.cursorpick);
+      },
+      onEnterAR: async () => {
+        try {
+          await this.scene().enterAR();
+        } catch (err) {
+          this.xrLine('Mode AR belum bisa dijalankan di perangkat ini. Buka dari browser ponsel yang mendukung WebXR AR.');
+        }
+      },
+      onReplaceAR: () => {
+        const s = this.scene();
+        if (s && s.replaceAR) s.replaceAR();
       },
       onEnterVR: async () => {
         try {

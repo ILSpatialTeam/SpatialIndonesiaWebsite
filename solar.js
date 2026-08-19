@@ -150,6 +150,8 @@ class SolarSystem extends HTMLElement {
     const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: PAPER, size: 0.55, transparent: true, opacity: 0.75, sizeAttenuation: true }));
     stars.name = 'stars';
     world.add(stars);
+    this.stars = stars;
+    this.baseFog = scene.fog;
 
     const dustPos = [];
     for (let i = 0; i < 900; i++) {
@@ -264,6 +266,7 @@ class SolarSystem extends HTMLElement {
     this.speed = 0;
 
     this._buildXRUI();
+    this._buildLens();
     this._bindInput();
 
     this._resize = () => {
@@ -279,7 +282,7 @@ class SolarSystem extends HTMLElement {
     this._ro = new ResizeObserver(this._resize); this._ro.observe(this);
 
     this.clock = new THREE.Clock();
-    renderer.setAnimationLoop(() => this._frame());
+    renderer.setAnimationLoop((t, frame) => this._frame(frame));
 
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => this._refreshTextures());
@@ -289,10 +292,118 @@ class SolarSystem extends HTMLElement {
       navigator.xr.isSessionSupported('immersive-vr')
         .then(ok => announce(ok))
         .catch(err => announce(false, (err && err.name === 'SecurityError') ? 'blocked' : 'error'));
+      navigator.xr.isSessionSupported('immersive-ar')
+        .then(ok => this.dispatchEvent(new CustomEvent('ar-support', { detail: { ok: !!ok }, bubbles: true })))
+        .catch(() => this.dispatchEvent(new CustomEvent('ar-support', { detail: { ok: false }, bubbles: true })));
     } else {
       announce(false, 'unsupported');
+      this.dispatchEvent(new CustomEvent('ar-support', { detail: { ok: false }, bubbles: true }));
     }
     requestAnimationFrame(() => this.dispatchEvent(new CustomEvent('scene-ready', { bubbles: true })));
+  }
+
+  _buildLens() {
+    this.lens = { on: false, x: 0.5, y: 0.5, vx: 0, vy: 0, s: 0, mass: 1 };
+    const dpr = Math.min(devicePixelRatio, 2);
+    this.rt = new THREE.WebGLRenderTarget(2, 2, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+    this.rtDpr = dpr;
+
+    this.lensMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: {
+        tDiffuse: { value: this.rt.texture },
+        uCenter: { value: new THREE.Vector2(0.5, 0.5) },
+        uVel: { value: new THREE.Vector2(0, 0) },
+        uStrength: { value: 0 },
+        uAspect: { value: 1 },
+        uTime: { value: 0 }
+      },
+      vertexShader: [
+        'varying vec2 vUv;',
+        'void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }'
+      ].join('\n'),
+      fragmentShader: [
+        'precision highp float;',
+        'uniform sampler2D tDiffuse;',
+        'uniform vec2 uCenter;',
+        'uniform vec2 uVel;',
+        'uniform float uStrength;',
+        'uniform float uAspect;',
+        'uniform float uTime;',
+        'varying vec2 vUv;',
+        'void main() {',
+        '  vec2 d = vUv - uCenter;',
+        '  d.x *= uAspect;',
+        '  float r = max(length(d), 1e-4);',
+        '  float rs = 0.052 * uStrength;',
+        // Schwarzschild-ish deflection: falls off as 1/r^2, capped near the horizon
+        '  float pull = clamp((rs * rs) / (r * r), 0.0, 2.4);',
+        // frame dragging: space is twisted around the hole, and dragged along cursor motion
+        '  float swirl = pull * (1.75 + 0.35 * sin(uTime * 0.7));',
+        '  float ca = cos(swirl), sa = sin(swirl);',
+        '  vec2 dr = vec2(d.x * ca - d.y * sa, d.x * sa + d.y * ca);',
+        '  dr *= 1.0 - clamp(pull, 0.0, 0.93);',
+        '  dr += uVel * pull * 0.85;',
+        '  dr.x /= uAspect;',
+        '  vec2 suv = uCenter + dr;',
+        // light splits as it grazes the horizon
+        '  float ab = pull * 0.010;',
+        '  vec4 c;',
+        '  c.r = texture2D(tDiffuse, suv + vec2(ab, 0.0)).r;',
+        '  c.g = texture2D(tDiffuse, suv).g;',
+        '  c.b = texture2D(tDiffuse, suv - vec2(ab, 0.0)).b;',
+        '  c.a = texture2D(tDiffuse, suv).a;',
+        // shadow and photon ring
+        '  float sh = smoothstep(rs * 1.0, rs * 0.42, r);',
+        '  c.rgb *= 1.0 - sh;',
+        '  c.a = max(c.a, sh * 0.97);',
+        '  float ring = exp(-pow((r - rs * 1.1) / max(rs * 0.28, 1e-4), 2.0));',
+        '  vec3 glow = mix(vec3(1.0, 0.36, 0.17), vec3(0.44, 0.89, 0.72), 0.35 + 0.35 * sin(uTime * 0.8));',
+        '  c.rgb += glow * ring * 0.62 * uStrength;',
+        '  c.a = max(c.a, ring * 0.6 * uStrength);',
+        '  gl_FragColor = c;',
+        '}'
+      ].join('\n')
+    });
+
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.lensMat);
+    quad.frustumCulled = false;
+    quad.name = 'lensQuad';
+    this.lensScene = new THREE.Scene();
+    this.lensScene.add(quad);
+    this.lensCam = new THREE.Camera();
+  }
+
+  setLens(o) {
+    if (!this.lens) return;
+    Object.assign(this.lens, o);
+  }
+
+  _present() {
+    const L = this.lens;
+    if (!L || !L.on || L.s < 0.02 || this.renderer.xr.isPresenting) {
+      this.renderer.setRenderTarget(null);
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+    const w = Math.max(2, Math.floor(this.clientWidth * this.rtDpr));
+    const h = Math.max(2, Math.floor(this.clientHeight * this.rtDpr));
+    if (this.rt.width !== w || this.rt.height !== h) this.rt.setSize(w, h);
+
+    this.renderer.setRenderTarget(this.rt);
+    this.renderer.clear();
+    this.renderer.render(this.scene, this.camera);
+    this.renderer.setRenderTarget(null);
+
+    const u = this.lensMat.uniforms;
+    u.uCenter.value.set(L.x, 1 - L.y);
+    u.uVel.value.set(L.vx, -L.vy);
+    u.uStrength.value = L.s * L.mass;
+    u.uAspect.value = this.clientWidth / Math.max(1, this.clientHeight);
+    u.uTime.value = this.clock.getElapsedTime();
+    this.renderer.render(this.lensScene, this.lensCam);
   }
 
   disconnectedCallback() {
@@ -339,6 +450,27 @@ class SolarSystem extends HTMLElement {
     g.font = "500 52px 'Instrument Sans', system-ui, sans-serif";
     g.textBaseline = 'middle';
     g.fillText(label, 34, 68);
+    const t = new THREE.CanvasTexture(c);
+    t.anisotropy = 4;
+    return t;
+  }
+
+  _promptTexture(text) {
+    const c = makeCanvas(880, 220);
+    const g = c.getContext('2d');
+    g.fillStyle = 'rgba(11,9,16,.84)';
+    g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = 'rgba(111,227,184,.55)';
+    g.lineWidth = 5;
+    g.strokeRect(3, 3, c.width - 6, c.height - 6);
+    g.fillStyle = '#6fe3b8';
+    g.font = "500 30px 'Instrument Sans', system-ui, sans-serif";
+    g.textBaseline = 'top';
+    g.fillText('MODE AR', 44, 40);
+    g.fillStyle = '#ede8dc';
+    g.font = "600 44px 'Bricolage Grotesque', system-ui, sans-serif";
+    let y = 96;
+    wrap(g, text, c.width - 88).forEach(l => { g.fillText(l, 44, y); y += 52; });
     const t = new THREE.CanvasTexture(c);
     t.anisotropy = 4;
     return t;
@@ -614,6 +746,7 @@ class SolarSystem extends HTMLElement {
   }
 
   _xrSelect(source) {
+    if (this.mode === 'ar' && !this.arPlaced) return this._placeAR();
     const hit = this._xrRay(source);
     if (!hit) return;
     if (hit.kind === 'planet') return this.travelTo(hit.id);
@@ -710,7 +843,7 @@ class SolarSystem extends HTMLElement {
     if (!PANELS[id]) return;
     this.active = id;
     this.dockDist = id === 'inti' ? 6.2 : 7.2;
-    if (this.renderer.xr.isPresenting) this._setPanel(id);
+    if (this.renderer.xr.isPresenting) { this._setPanel(id); this.xrPanel.visible = true; }
     this.navBtns.forEach(b => {
       if (b.userData.kind === 'nav') this._setBtn(b, b.userData.planetId === id ? 'active' : 'idle');
     });
@@ -724,12 +857,164 @@ class SolarSystem extends HTMLElement {
     this.dispatchEvent(new CustomEvent('planet-free', { bubbles: true }));
   }
 
+  async enterAR() {
+    if (!navigator.xr) throw new Error('WebXR tidak tersedia');
+    const opts = { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'local-floor'] };
+    const sel = this.getAttribute('overlay-root') || this.getAttribute('overlayroot') || this.overlayRoot || '[data-ui="arlayer"]';
+    let root = null;
+    try { root = sel ? document.querySelector(sel) : null; } catch (e) { root = null; }
+    if (root) opts.domOverlay = { root };
+    const session = await navigator.xr.requestSession('immersive-ar', opts);
+    this.renderer.xr.setReferenceSpaceType('local');
+    await this.renderer.xr.setSession(session);
+
+    this.mode = 'ar';
+    this._bindXRControllers();
+    this.arPlaced = false;
+    this.arHit = null;
+    if (!this.arReticle) {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.085, 0.115, 44),
+        new THREE.MeshBasicMaterial({ color: MINT, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
+      );
+      ring.name = 'arReticle';
+      ring.rotation.x = -Math.PI / 2;
+      const dot = new THREE.Mesh(new THREE.CircleGeometry(0.012, 16), new THREE.MeshBasicMaterial({ color: ACCENT }));
+      dot.rotation.x = -Math.PI / 2;
+      dot.position.y = 0.001;
+      ring.add(dot);
+      ring.visible = false;
+      this.scene.add(ring);
+      this.arReticle = ring;
+    }
+    if (!this.arPrompt) {
+      const prompt = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._promptTexture('Arahkan ke permukaan datar, lalu ketuk'), transparent: true, depthWrite: false, depthTest: false }));
+      prompt.name = 'arPrompt';
+      prompt.scale.set(0.42, 0.105, 1);
+      prompt.renderOrder = 998;
+      prompt.visible = false;
+      this.scene.add(prompt);
+      this.arPrompt = prompt;
+    }
+
+    const granted = !!(session.domOverlayState && session.domOverlayState.type);
+    this.arOverlay = granted;
+    this.xrRoot.visible = !granted;
+    this.gaze.visible = false;
+    this.stars.visible = false;
+    this.scene.fog = null;
+    this.planets.forEach(p => { p.tag.visible = true; });
+    this.sunTag.visible = true;
+
+    const viewerSpace = await session.requestReferenceSpace('viewer');
+    this.hitSource = await session.requestHitTestSource({ space: viewerSpace });
+
+    session.addEventListener('end', () => this._exitXR());
+    this.dispatchEvent(new CustomEvent('ar-start', { detail: { overlay: granted, root: !!root }, bubbles: true }));
+    return session;
+  }
+
+  replaceAR() {
+    this.arPlaced = false;
+    this.freeFlight();
+    this.dispatchEvent(new CustomEvent('ar-replace', { bubbles: true }));
+  }
+
+  _placeAR() {
+    const p = this.arHit ? this.arHit.clone() : new THREE.Vector3(0, -0.25, -1.1);
+    this.world.position.copy(p);
+    this.world.scale.setScalar(0.0135);
+    this.arPlaced = true;
+    this.arReticle.visible = false;
+    this.dispatchEvent(new CustomEvent('ar-placed', { bubbles: true }));
+  }
+
+  _arFrame(frame) {
+    const ref = this.renderer.xr.getReferenceSpace();
+    if (!this.arPlaced) {
+      let found = false;
+      if (this.hitSource && frame && ref) {
+        const hits = frame.getHitTestResults(this.hitSource);
+        if (hits.length) {
+          const pose = hits[0].getPose(ref);
+          if (pose) {
+            this.arReticle.position.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+            this.arHit = this.arReticle.position.clone();
+            found = true;
+          }
+        }
+      }
+      this.arReticle.visible = found;
+      this.world.scale.setScalar(0.0001);
+    } else {
+      this.world.scale.setScalar(0.0135);
+    }
+
+    let hoverUI = null, hoverPlanet = null;
+    (this.controllers || []).forEach(c => {
+      if (c.userData.connected === false) return;
+      const hit = this._xrRay(c);
+      const line = c.getObjectByName('ray');
+      if (line) line.visible = false;
+      if (!hit) return;
+      if (hit.kind === 'ui') hoverUI = hit.obj;
+      else hoverPlanet = hit.id;
+    });
+    this.navBtns.forEach(b => {
+      if (b === hoverUI) this._setBtn(b, 'hover');
+      else if (b.userData.kind === 'nav') this._setBtn(b, b.userData.planetId === this.active ? 'active' : 'idle');
+      else this._setBtn(b, 'idle');
+    });
+    this.hover = hoverPlanet;
+    this.planets.forEach(p => {
+      const target = this.active === p.id ? 1.5 : (this.hover === p.id ? 1.25 : 1);
+      p.mesh.scale.setScalar(lerp(p.mesh.scale.x, target, 0.12));
+      p.path.material.opacity = lerp(p.path.material.opacity, this.active === p.id || this.hover === p.id ? 0.42 : 0.09, 0.08);
+    });
+
+    if (!this.arOverlay) {
+      const cam = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
+      cam.getWorldPosition(this.tmp);
+      this.xrDock.scale.setScalar(0.62);
+      this.xrPanel.scale.setScalar(0.62);
+
+      if (this.arPlaced) {
+        const toSys = this.tmp2.copy(this.world.position).sub(this.tmp);
+        const a = Math.atan2(toSys.x, toSys.z);
+        this.xrDock.position.set(this.world.position.x - Math.cos(a) * 0.42, this.world.position.y + 0.3, this.world.position.z + Math.sin(a) * 0.42);
+        this.xrDock.rotation.set(0, a + Math.PI, 0);
+        this.xrPanel.position.set(this.world.position.x + Math.cos(a) * 0.44, this.world.position.y + 0.22, this.world.position.z - Math.sin(a) * 0.44);
+        this.xrPanel.rotation.set(0, a + Math.PI, 0);
+      } else {
+        // keep the dock in front of the viewer until the system is anchored
+        cam.getWorldDirection(this.tmp2);
+        const a = Math.atan2(-this.tmp2.x, -this.tmp2.z);
+        this.xrDock.position.set(this.tmp.x + Math.sin(a - 0.62) * 0.66, this.tmp.y - 0.02, this.tmp.z - Math.cos(a - 0.62) * 0.66);
+        this.xrDock.rotation.set(0, a - 0.62, 0);
+        this.xrPanel.visible = false;
+      }
+    }
+
+    // placement prompt: DOM when overlay is granted, 3D sprite otherwise
+    if (this.arPrompt) {
+      const need = !this.arPlaced && !this.arOverlay;
+      this.arPrompt.visible = need;
+      if (need) {
+        const cam2 = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
+        this.arPrompt.position.copy(this.tmp.set(0, 0.03, -0.72).applyMatrix4(cam2.matrixWorld));
+      }
+    }
+
+    this.renderer.render(this.scene, this.camera);
+  }
+
   async enterVR() {
     if (!navigator.xr) throw new Error('WebXR tidak tersedia');
     const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'] });
     this.renderer.xr.setReferenceSpaceType('local-floor');
     await this.renderer.xr.setSession(session);
     this._bindXRControllers();
+    this.mode = 'vr';
     this.xrRoot.visible = true;
     this.gaze.visible = true;
     this.hasController = false;
@@ -749,6 +1034,17 @@ class SolarSystem extends HTMLElement {
     this.xrPanel.visible = false;
     this.gaze.visible = false;
     this._resetDwell();
+    this.mode = null;
+    this.arPlaced = false;
+    if (this.arReticle) this.arReticle.visible = false;
+    if (this.arPrompt) this.arPrompt.visible = false;
+    this.arOverlay = false;
+    if (this.hitSource && this.hitSource.cancel) { try { this.hitSource.cancel(); } catch (e) {} }
+    this.hitSource = null;
+    this.stars.visible = true;
+    this.scene.fog = this.baseFog;
+    this.xrDock.scale.setScalar(1);
+    this.xrPanel.scale.setScalar(1);
     this.planets.forEach(p => { p.tag.visible = false; });
     this.sunTag.visible = false;
     this._resize();
@@ -913,7 +1209,7 @@ class SolarSystem extends HTMLElement {
 
   /* ---------- main loop ---------- */
 
-  _frame() {
+  _frame(frame) {
     const t = this.clock.getElapsedTime();
 
     this.planets.forEach(p => {
@@ -926,7 +1222,7 @@ class SolarSystem extends HTMLElement {
     this.sunWire.rotation.y = -t * 0.07;
     this.sunWire.rotation.x = Math.sin(t * 0.2) * 0.12;
 
-    if (this.renderer.xr.isPresenting) return this._xrFrame();
+    if (this.renderer.xr.isPresenting) return this.mode === 'ar' ? this._arFrame(frame) : this._xrFrame();
 
     this.ray.setFromCamera(this.ndc, this.camera);
     const hit = this.ray.intersectObjects(this.hits, false)[0];
@@ -976,7 +1272,7 @@ class SolarSystem extends HTMLElement {
     this._hud('distance', (distToTarget * 1.4e3).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' km');
     this._hud('mode', this.active ? (distToTarget > focus.size * this.dockDist * 1.6 ? 'MENUJU TUJUAN' : 'MENGORBIT') : 'ORBIT BEBAS');
 
-    this.renderer.render(this.scene, this.camera);
+    this._present();
   }
 }
 
