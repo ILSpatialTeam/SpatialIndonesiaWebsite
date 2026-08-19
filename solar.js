@@ -859,11 +859,7 @@ class SolarSystem extends HTMLElement {
 
   async enterAR() {
     if (!navigator.xr) throw new Error('WebXR tidak tersedia');
-    const opts = { optionalFeatures: ['hit-test', 'dom-overlay', 'local-floor', 'anchors'] };
-    const sel = this.getAttribute('overlay-root') || this.getAttribute('overlayroot') || this.overlayRoot || '[data-ui="arlayer"]';
-    let root = null;
-    try { root = sel ? document.querySelector(sel) : null; } catch (e) { root = null; }
-    if (root) opts.domOverlay = { root };
+    const opts = { optionalFeatures: ['hit-test', 'local-floor', 'anchors'] };
     const session = await navigator.xr.requestSession('immersive-ar', opts);
     this.renderer.xr.setReferenceSpaceType('local');
     await this.renderer.xr.setSession(session);
@@ -872,6 +868,14 @@ class SolarSystem extends HTMLElement {
     this._bindXRControllers();
     this.arPlaced = false;
     this.arHit = null;
+    this.hitStreak = 0;
+    this.arError = null;
+
+    // the WebGL layer must clear fully transparent so the camera feed shows through
+    this._prevClearAlpha = this.renderer.getClearAlpha();
+    this.scene.background = null;
+    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setClearAlpha(0);
     if (!this.arReticle) {
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(0.085, 0.115, 44),
@@ -897,17 +901,21 @@ class SolarSystem extends HTMLElement {
       this.arPrompt = prompt;
     }
 
-    const granted = !!(session.domOverlayState && session.domOverlayState.type);
-    this.arOverlay = granted;
-    this.xrRoot.visible = !granted;
+    this.arOverlay = false;
+    this.xrRoot.visible = true;
     this.gaze.visible = false;
     this.stars.visible = false;
     this.scene.fog = null;
     this.planets.forEach(p => { p.tag.visible = true; });
     this.sunTag.visible = true;
 
-    session.addEventListener('end', () => this._exitXR());
-    this.dispatchEvent(new CustomEvent('ar-start', { detail: { overlay: granted, root: !!root }, bubbles: true }));
+    session.addEventListener('end', () => {
+      this.dispatchEvent(new CustomEvent('xr-session-end', { detail: { mode: 'ar', placed: this.arPlaced, hitTest: !!this.hitSource }, bubbles: true }));
+      this._exitXR();
+    });
+    // size the system straight away — lerping up from 1.0 filled the whole room for a moment
+    this.world.scale.setScalar(0.0085);
+    this.dispatchEvent(new CustomEvent('ar-start', { detail: { overlay: false }, bubbles: true }));
 
     // hit testing is a bonus: without it the system simply previews in front of the camera
     this.hitSource = null;
@@ -956,7 +964,12 @@ class SolarSystem extends HTMLElement {
         }
       }
       this.arReticle.visible = found;
-      // live preview: on the surface when detected, otherwise floating ahead of the device
+      this.hitStreak = found ? this.hitStreak + 1 : 0;
+      // a surface held steady for ~half a second anchors the system by itself
+      if (this.hitStreak > 26) {
+        this._placeAR();
+        return this.renderer.render(this.scene, this.camera);
+      }
       if (found) {
         this.world.position.lerp(this.arHit, 0.25);
       } else {
@@ -1021,7 +1034,7 @@ class SolarSystem extends HTMLElement {
       const need = !this.arPlaced && !this.arOverlay;
       this.arPrompt.visible = need;
       if (need) {
-        const want = this.hitSource ? 'surface' : 'free';
+        const want = this._promptKind === 'error' ? 'error' : (this.hitSource ? 'surface' : 'free');
         if (this._promptKind !== want) {
           this._promptKind = want;
           if (this.arPrompt.material.map) this.arPrompt.material.map.dispose();
@@ -1069,6 +1082,9 @@ class SolarSystem extends HTMLElement {
     if (this.arPrompt) this.arPrompt.visible = false;
     this._promptKind = null;
     this.world.position.set(0, 0, 0);
+    this.hitStreak = 0;
+    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setClearAlpha(this._prevClearAlpha != null ? this._prevClearAlpha : 0);
     this.arOverlay = false;
     if (this.hitSource && this.hitSource.cancel) { try { this.hitSource.cancel(); } catch (e) {} }
     this.hitSource = null;
@@ -1241,6 +1257,25 @@ class SolarSystem extends HTMLElement {
   /* ---------- main loop ---------- */
 
   _frame(frame) {
+    try {
+      this._frameBody(frame);
+    } catch (err) {
+      const msg = (err && err.message) ? err.message : String(err);
+      if (this.arError !== msg) {
+        this.arError = msg;
+        if (this.arPrompt) {
+          if (this.arPrompt.material.map) this.arPrompt.material.map.dispose();
+          this.arPrompt.material.map = this._promptTexture('Galat: ' + msg);
+          this.arPrompt.material.needsUpdate = true;
+          this.arPrompt.visible = true;
+          this._promptKind = 'error';
+        }
+        this.dispatchEvent(new CustomEvent('xr-error', { detail: { message: msg }, bubbles: true }));
+      }
+    }
+  }
+
+  _frameBody(frame) {
     const t = this.clock.getElapsedTime();
 
     this.planets.forEach(p => {

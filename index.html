@@ -33,7 +33,7 @@
 
   <x-import component-from-global-scope="solar-system" overlay-root="[data-ui=&quot;arlayer&quot;]" hint-size="100%,100%" style="position: absolute; inset: 0;"></x-import>
 
-  <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 40%, rgba(11,9,16,.72) 100%);"></div>
+  <div data-ui="vignette" style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 40%, rgba(11,9,16,.72) 100%);"></div>
 
   <div onClick="{{ onGoto }}" style="position: absolute; inset: 0; z-index: 20; pointer-events: none;">
     <div data-planet-label="inti" data-goto="inti" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
@@ -497,8 +497,11 @@ class Component extends DCLogic {
     this._xrEnd = () => {
       const wasAR = this.arActive;
       this.arActive = false;
+      this.transparent(false);
       this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
       this.st(this.q('[data-ui="arreplace"]'), { display: 'none' });
+      this.st(this.q('[data-ui="header"]'), { display: 'flex' });
+      this.st(this.q('[data-ui="readout"]'), { display: 'block' });
       this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
       this.st(this.q('[data-ui="arbtn"]'), { display: this.arReady || this.isPhone ? 'flex' : 'none' });
       this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'flex' }));
@@ -518,6 +521,8 @@ class Component extends DCLogic {
       const ok = !!(e.detail && e.detail.ok);
       this.arReady = ok;
       this.st(this.q('[data-ui="arbtn"]'), { display: ok || this.isPhone ? 'flex' : 'none' });
+      this.st(this.q('[data-ui="header"]'), { display: 'flex' });
+      this.st(this.q('[data-ui="readout"]'), { display: 'block' });
       this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
       if (ok) this.xrLine('Perangkat mendukung AR — ketuk Mode AR untuk menempatkan tata surya di ruanganmu.');
       else if (this.isPhone) this.xrLine('Ketuk Mode AR untuk mencoba menempatkan tata surya di ruanganmu.');
@@ -526,10 +531,19 @@ class Component extends DCLogic {
       this.arActive = true;
       this.arPlaced = false;
       this.arOverlay = !!(e.detail && e.detail.overlay);
-      this.st(this.q('[data-ui="arhint"]'), { display: this.arOverlay ? 'flex' : 'none' });
+      this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
+      this.transparent(true);
       this.arChrome();
-      if (!this.arOverlay) this.xrLine('Sesi AR aktif — menu tampil sebagai panel 3D di dalam ruangan.');
+      this.xrLine('Sesi AR aktif — arahkan ke permukaan datar, tata surya muncul sendiri.');
     };
+    this._xrErr = e => this.xrLine('Galat AR: ' + ((e.detail && e.detail.message) || 'tidak diketahui'));
+    this._sessEnd = e => {
+      const d = (e.detail || {});
+      this.lastEnd = d;
+      if (d.mode === 'ar' && !d.placed) this.xrLine('Sesi AR berakhir sebelum penempatan. Pastikan izin kamera diberikan dan halaman dibuka di tab Chrome, bukan dalam aplikasi lain.');
+    };
+    document.addEventListener('xr-error', this._xrErr);
+    document.addEventListener('xr-session-end', this._sessEnd);
     this._arPlaced = () => {
       this.arPlaced = true;
       this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
@@ -581,6 +595,8 @@ class Component extends DCLogic {
     document.removeEventListener('ar-support', this._arSupport);
     document.removeEventListener('ar-start', this._arStart);
     document.removeEventListener('ar-placed', this._arPlaced);
+    document.removeEventListener('xr-error', this._xrErr);
+    document.removeEventListener('xr-session-end', this._sessEnd);
     document.removeEventListener('ar-hittest', this._arHitTest);
     document.removeEventListener('ar-replace', this._arReplace);
     removeEventListener('resize', this._onResize);
@@ -763,23 +779,23 @@ class Component extends DCLogic {
     this.chrome(!this.openId || !m);
   }
 
+  transparent(on) {
+    const root = this.q('[data-ui="arlayer"]');
+    this.st(root, { background: on ? 'transparent' : '#0b0910' });
+    this.st(this.q('[data-ui="vignette"]'), { display: on ? 'none' : 'block' });
+    if (document.body) document.body.style.background = on ? 'transparent' : '#0b0910';
+    if (document.documentElement) document.documentElement.style.background = on ? 'transparent' : '#0b0910';
+  }
+
   arChrome() {
-    const hide = ['readout', 'hints', 'cursorpick', 'xrline', 'mode'];
+    const hide = ['readout', 'hints', 'cursorpick', 'xrline', 'mode', 'flightplan', 'arreplace', 'arhint', 'header'];
     hide.forEach(k => this.st(this.q('[data-ui="' + k + '"]'), { display: 'none' }));
     this.st(this.q('[data-intro]'), { display: 'none' });
     this.st(this.q('[data-ui="cursor"]'), { opacity: '0' });
     this.st(this.q('[data-ui="reticle"]'), { opacity: '0' });
     this.st(this.q('[data-ui="vrbtn"]'), { display: 'none' });
     this.st(this.q('[data-ui="arbtn"]'), { display: 'none' });
-    const fp = this.q('[data-ui="flightplan"]');
-    this.st(fp, { top: 'auto', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px' });
-    this.st(this.q('[data-ui="fpList"]'), { flexDirection: 'row', gap: '8px', overflowX: 'auto', flex: '1 1 auto' });
-    this.qa('[data-nav]').forEach(b => {
-      this.st(b, { display: 'flex', alignItems: 'center', gap: '7px', padding: '0 14px', minHeight: '44px', borderRadius: '999px', whiteSpace: 'nowrap', flex: '0 0 auto' });
-      const sp = b.querySelectorAll('span');
-      if (sp.length === 3) this.st(sp[2], { display: 'none' });
-    });
-    this.qa('[data-panel]').forEach(p => this.st(p, { top: 'auto', left: '10px', right: '10px', bottom: 'calc(72px + env(safe-area-inset-bottom))', width: 'auto', maxHeight: '50dvh', padding: '18px', borderRadius: '16px' }));
+    this.qa('[data-panel]').forEach(p => this.st(p, { display: 'none' }));
     this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'none' }));
   }
 
