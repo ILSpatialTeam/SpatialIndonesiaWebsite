@@ -602,6 +602,26 @@ class SolarSystem extends HTMLElement {
     panel.add(close);
     this.navBtns.push(close);
 
+    // AR-only controls, hidden during VR
+    this.arBtns = [];
+    [
+      { kind: 'move', label: 'PINDAHKAN' },
+      { kind: 'near', label: 'DEKATKAN' },
+      { kind: 'far', label: 'JAUHKAN' }
+    ].forEach((spec, i) => {
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.3, 0.057),
+        new THREE.MeshBasicMaterial({ map: this._buttonTexture(spec.label, 'idle'), transparent: true, side: THREE.DoubleSide })
+      );
+      mesh.name = 'arBtn-' + spec.kind;
+      mesh.position.set(0, -(NAV.length + 1.4 + i) * 0.066, 0);
+      mesh.userData = { kind: spec.kind, label: spec.label, state: 'idle' };
+      mesh.visible = false;
+      dock.add(mesh);
+      this.navBtns.push(mesh);
+      this.arBtns.push(mesh);
+    });
+
     this._panelCache = {};
     this.xrTargets = this.navBtns.slice();
     this.xrHome = { yaw: 0, y: 1.5, set: false };
@@ -658,7 +678,12 @@ class SolarSystem extends HTMLElement {
     if (!this._panelCache[id]) this._panelCache[id] = this._panelTexture(id);
     this.xrBoard.material.map = this._panelCache[id];
     this.xrBoard.material.needsUpdate = true;
-    this.xrPanel.visible = true;
+    this._panelVisible(true);
+  }
+
+  _panelVisible(on) {
+    this.xrPanel.visible = on;
+    this.xrPanel.children.forEach(c => { c.visible = on; });
   }
 
   _bindXRControllers() {
@@ -720,7 +745,7 @@ class SolarSystem extends HTMLElement {
     this.tmp.set(0, 0, 0).applyMatrix4(cam.matrixWorld);
     this.tmp2.set(0, 0, -1).transformDirection(cam.matrixWorld).normalize();
     this.ray.set(this.tmp, this.tmp2);
-    const ui = this.ray.intersectObjects(this.xrTargets, false)[0];
+    const ui = this.ray.intersectObjects(this._activeTargets(), false)[0];
     const planet = this.ray.intersectObjects(this.hits, false)[0];
     if (ui && (!planet || ui.distance < planet.distance)) return { kind: 'ui', obj: ui.object, key: ui.object.name };
     if (planet) return { kind: 'planet', id: planet.object.userData.planetId, key: 'planet-' + planet.object.userData.planetId };
@@ -734,11 +759,25 @@ class SolarSystem extends HTMLElement {
     else this.freeFlight();
   }
 
+  _activeTargets() {
+    const ar = this.mode === 'ar';
+    return this.xrTargets.filter(o => {
+      const k = o.userData && o.userData.kind;
+      if ((k === 'move' || k === 'near' || k === 'far') && !ar) return false;
+      let n = o;
+      while (n) {
+        if (n.visible === false) return false;
+        n = n.parent;
+      }
+      return true;
+    });
+  }
+
   _xrRay(source) {
     this.tmp.set(0, 0, 0).applyMatrix4(source.matrixWorld);
     this.tmp2.set(0, 0, -1).transformDirection(source.matrixWorld).normalize();
     this.ray.set(this.tmp, this.tmp2);
-    const ui = this.ray.intersectObjects(this.xrTargets, false)[0];
+    const ui = this.ray.intersectObjects(this._activeTargets(), false)[0];
     const planet = this.ray.intersectObjects(this.hits, false)[0];
     if (ui && (!planet || ui.distance < planet.distance)) return { kind: 'ui', obj: ui.object, distance: ui.distance };
     if (planet) return { kind: 'planet', id: planet.object.userData.planetId, distance: planet.distance };
@@ -746,13 +785,17 @@ class SolarSystem extends HTMLElement {
   }
 
   _xrSelect(source) {
-    if (this.mode === 'ar' && !this.arPlaced) return this._placeAR();
     const hit = this._xrRay(source);
-    if (!hit) return;
-    if (hit.kind === 'planet') return this.travelTo(hit.id);
-    const u = hit.obj.userData;
-    if (u.kind === 'nav') this.travelTo(u.planetId);
-    else this.freeFlight();
+    if (hit && hit.kind === 'ui') {
+      const u = hit.obj.userData;
+      if (u.kind === 'nav') return this.travelTo(u.planetId);
+      if (u.kind === 'move') { this.arPlaced = false; return this.dispatchEvent(new CustomEvent('ar-replace', { bubbles: true })); }
+      if (u.kind === 'near') { this.arDist = clamp(this.arDist - 0.25, 0.5, 3.5); return; }
+      if (u.kind === 'far') { this.arDist = clamp(this.arDist + 0.25, 0.5, 3.5); return; }
+      return this.freeFlight();
+    }
+    if (this.mode === 'ar' && !this.arPlaced) return this._placeAR();
+    if (hit && hit.kind === 'planet') return this.travelTo(hit.id);
   }
 
   /* ---------- input ---------- */
@@ -843,7 +886,7 @@ class SolarSystem extends HTMLElement {
     if (!PANELS[id]) return;
     this.active = id;
     this.dockDist = id === 'inti' ? 6.2 : 7.2;
-    if (this.renderer.xr.isPresenting) { this._setPanel(id); this.xrPanel.visible = true; }
+    if (this.renderer.xr.isPresenting) this._setPanel(id);
     this.navBtns.forEach(b => {
       if (b.userData.kind === 'nav') this._setBtn(b, b.userData.planetId === id ? 'active' : 'idle');
     });
@@ -852,14 +895,14 @@ class SolarSystem extends HTMLElement {
 
   freeFlight() {
     this.active = null;
-    this.xrPanel.visible = false;
+    this._panelVisible(false);
     this.navBtns.forEach(b => { if (b.userData.kind === 'nav') this._setBtn(b, 'idle'); });
     this.dispatchEvent(new CustomEvent('planet-free', { bubbles: true }));
   }
 
   async enterAR() {
     if (!navigator.xr) throw new Error('WebXR tidak tersedia');
-    const opts = { optionalFeatures: ['hit-test', 'local-floor', 'anchors'] };
+    const opts = { optionalFeatures: ['local-floor', 'anchors'] };
     const session = await navigator.xr.requestSession('immersive-ar', opts);
     this.renderer.xr.setReferenceSpaceType('local');
     await this.renderer.xr.setSession(session);
@@ -869,6 +912,7 @@ class SolarSystem extends HTMLElement {
     this.arPlaced = false;
     this.arHit = null;
     this.hitStreak = 0;
+    this.arDist = 1.15;
     this.arError = null;
 
     // the WebGL layer must clear fully transparent so the camera feed shows through
@@ -914,21 +958,13 @@ class SolarSystem extends HTMLElement {
       this._exitXR();
     });
     // size the system straight away — lerping up from 1.0 filled the whole room for a moment
-    this.world.scale.setScalar(0.0085);
+    this.world.scale.setScalar(0.0062 * this.arDist);
+    this.arBtns.forEach(b => { b.visible = true; });
     this.dispatchEvent(new CustomEvent('ar-start', { detail: { overlay: false }, bubbles: true }));
 
-    // hit testing is a bonus: without it the system simply previews in front of the camera
+    // placement is manual: the system previews in front of the device until the user taps
     this.hitSource = null;
-    try {
-      if (session.requestHitTestSource) {
-        const viewerSpace = await session.requestReferenceSpace('viewer');
-        const src = await session.requestHitTestSource({ space: viewerSpace });
-        if (src) this.hitSource = src;
-      }
-    } catch (e) {
-      this.hitSource = null;
-    }
-    this.dispatchEvent(new CustomEvent('ar-hittest', { detail: { ok: !!this.hitSource }, bubbles: true }));
+    this.dispatchEvent(new CustomEvent('ar-hittest', { detail: { ok: false }, bubbles: true }));
     return session;
   }
 
@@ -948,40 +984,24 @@ class SolarSystem extends HTMLElement {
   }
 
   _arFrame(frame) {
-    const ref = this.renderer.xr.getReferenceSpace();
     const camNow = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
     if (!this.arPlaced) {
-      let found = false;
-      if (this.hitSource && frame && ref) {
-        const hits = frame.getHitTestResults(this.hitSource);
-        if (hits.length) {
-          const pose = hits[0].getPose(ref);
-          if (pose) {
-            this.arReticle.position.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
-            this.arHit = this.arReticle.position.clone();
-            found = true;
-          }
-        }
+      // ghost preview locked to where the device is pointing
+      camNow.getWorldPosition(this.tmp);
+      camNow.getWorldDirection(this.tmp2);
+      this.tmp.addScaledVector(this.tmp2, this.arDist);
+      this.world.position.lerp(this.tmp, 0.22);
+      this.arHit = this.world.position.clone();
+      if (this.arReticle) {
+        this.arReticle.visible = true;
+        this.arReticle.position.copy(this.world.position);
+        this.arReticle.rotation.set(-Math.PI / 2, 0, this.clock.getElapsedTime() * 0.4);
+        this.arReticle.scale.setScalar(this.arDist * 1.1);
       }
-      this.arReticle.visible = found;
-      this.hitStreak = found ? this.hitStreak + 1 : 0;
-      // a surface held steady for ~half a second anchors the system by itself
-      if (this.hitStreak > 26) {
-        this._placeAR();
-        return this.renderer.render(this.scene, this.camera);
-      }
-      if (found) {
-        this.world.position.lerp(this.arHit, 0.25);
-      } else {
-        camNow.getWorldPosition(this.tmp);
-        camNow.getWorldDirection(this.tmp2);
-        this.tmp.addScaledVector(this.tmp2, 1.15);
-        this.world.position.lerp(this.tmp, 0.18);
-        this.arHit = this.world.position.clone();
-      }
-      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0085, 0.15));
+      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0062 * this.arDist, 0.18));
     } else {
-      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0135, 0.12));
+      if (this.arReticle) this.arReticle.visible = false;
+      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0098 * this.arDist, 0.12));
     }
 
     let hoverUI = null, hoverPlanet = null;
@@ -1025,7 +1045,7 @@ class SolarSystem extends HTMLElement {
         const a = Math.atan2(-this.tmp2.x, -this.tmp2.z);
         this.xrDock.position.set(this.tmp.x + Math.sin(a - 0.62) * 0.66, this.tmp.y - 0.02, this.tmp.z - Math.cos(a - 0.62) * 0.66);
         this.xrDock.rotation.set(0, a - 0.62, 0);
-        this.xrPanel.visible = false;
+        this._panelVisible(false);
       }
     }
 
@@ -1038,9 +1058,7 @@ class SolarSystem extends HTMLElement {
         if (this._promptKind !== want) {
           this._promptKind = want;
           if (this.arPrompt.material.map) this.arPrompt.material.map.dispose();
-          this.arPrompt.material.map = this._promptTexture(this.hitSource
-            ? 'Arahkan ke permukaan datar, lalu ketuk'
-            : 'Ketuk untuk menempatkan di depanmu');
+          this.arPrompt.material.map = this._promptTexture('Arahkan lalu ketuk untuk menempatkan');
           this.arPrompt.material.needsUpdate = true;
         }
         this.arPrompt.position.copy(this.tmp.set(0, 0.03, -0.72).applyMatrix4(camNow.matrixWorld));
@@ -1073,7 +1091,7 @@ class SolarSystem extends HTMLElement {
     this.world.scale.setScalar(1);
     this.world.position.set(0, 0, 0);
     this.xrRoot.visible = false;
-    this.xrPanel.visible = false;
+    this._panelVisible(false);
     this.gaze.visible = false;
     this._resetDwell();
     this.mode = null;
@@ -1083,6 +1101,7 @@ class SolarSystem extends HTMLElement {
     this._promptKind = null;
     this.world.position.set(0, 0, 0);
     this.hitStreak = 0;
+    if (this.arBtns) this.arBtns.forEach(b => { b.visible = false; });
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setClearAlpha(this._prevClearAlpha != null ? this._prevClearAlpha : 0);
     this.arOverlay = false;
@@ -1145,7 +1164,9 @@ class SolarSystem extends HTMLElement {
       el.style.transform = 'translate(-50%, -50%) translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
       el.style.borderColor = this.active === p.id ? '#ff5c2b' : (this.hover === p.id ? '#6fe3b8' : 'rgba(237,232,220,.18)');
 
-      const onScreen = !behind && x > -60 && x < w + 60 && y > -40 && y < h + 40;
+      const bwHalf = ((el.offsetWidth || 120) / 2) + 6;
+      const bhHalf = ((el.offsetHeight || 30) / 2) + 4;
+      const onScreen = !behind && x - bwHalf > 0 && x + bwHalf < w && y - bhHalf > 0 && y + bhHalf < h;
       if (!onScreen) {
         el.style.opacity = '0';
         el.style.pointerEvents = 'none';

@@ -534,7 +534,7 @@ class Component extends DCLogic {
       this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
       this.transparent(true);
       this.arChrome();
-      this.xrLine('Sesi AR aktif — arahkan ke permukaan datar, tata surya muncul sendiri.');
+      this.xrLine('Sesi AR aktif — arahkan ponsel ke tempat yang kamu mau, lalu ketuk untuk menempatkan.');
     };
     this._xrErr = e => this.xrLine('Galat AR: ' + ((e.detail && e.detail.message) || 'tidak diketahui'));
     this._sessEnd = e => {
@@ -560,10 +560,8 @@ class Component extends DCLogic {
     this._arHitTest = e => {
       const ok = !!(e.detail && e.detail.ok);
       const t = this.q('[data-ui="arhintTitle"]'), b = this.q('[data-ui="arhintBody"]');
-      if (t) t.textContent = ok ? 'Arahkan ke permukaan datar' : 'Ketuk untuk menempatkan';
-      if (b) b.textContent = ok
-        ? 'Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.'
-        : 'Perangkat ini tidak mendeteksi permukaan. Tata surya mengikuti arah kameramu — ketuk untuk mengunci posisinya.';
+      if (t) t.textContent = 'Ketuk untuk menempatkan';
+      if (b) b.textContent = 'Tata surya mengikuti arah ponselmu. Ketuk untuk mengunci posisinya, lalu ketuk planet untuk membuka menunya.';
     };
     document.addEventListener('ar-hittest', this._arHitTest);
     document.addEventListener('ar-replace', this._arReplace);
