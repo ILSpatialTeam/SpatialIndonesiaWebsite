@@ -467,7 +467,10 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;cursorStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;target&quot;,&quot;blackhole&quot;,&quot;ship&quot;],&quot;default&quot;:&quot;target&quot;,&quot;tsType&quot;:&quot;'target' | 'blackhole' | 'ship'&quot;,&quot;section&quot;:&quot;Kursor&quot;}}">
 const NAMES = { inti: 'INTI', program: 'PROGRAM', karya: 'KARYA', event: 'EVENT', insight: 'INSIGHT', tim: 'TIM', gabung: 'GABUNG' };
 const MOBILE = 780;
+// the black hole cursor brings its own soundtrack
+const MUSIC_SRC = './sounds/interstellar.mp3', MUSIC_VOL = 0.8;
 const mix = (a, b, t) => a + (b - a) * t;
+const clamp01 = v => Math.min(1, Math.max(0, v));
 
 class Component extends DCLogic {
   state = { formMsg: '' };
@@ -485,7 +488,13 @@ class Component extends DCLogic {
     this.cx = this.px; this.cy = this.py; this.ang = 0; this.hoverId = null;
     this.lensS = 0; this.arActive = false;
 
-    this._ready = () => { clearTimeout(this._fallback); setTimeout(() => this.hideLoader(), 400); };
+    this._ready = () => {
+      clearTimeout(this._fallback);
+      setTimeout(() => this.hideLoader(), 400);
+      // the scene element may boot after the first setCursor, so re-apply the
+      // cursor's scene-side effects (lens, comet) now that it can receive them
+      this.setCursor(this.cursorMode);
+    };
     this._focus = e => this.showPanel(e.detail && e.detail.id);
     this._freeEv = () => this.showPanel(null);
     this._hover = e => { this.hoverId = e.detail && e.detail.id; };
@@ -602,6 +611,7 @@ class Component extends DCLogic {
     if (this._move) removeEventListener('pointermove', this._move);
     if (this._raf) cancelAnimationFrame(this._raf);
     clearTimeout(this._fallback);
+    this.stopMusic();
     document.body.style.cursor = '';
   }
 
@@ -616,6 +626,78 @@ class Component extends DCLogic {
   scene() { return document.querySelector('solar-system'); }
   xrLine(t) { const el = this.q('[data-hud="xr"]'); if (el) el.textContent = t; }
 
+  /* ---------- ambience ---------- */
+
+  audio() {
+    if (!this._audio) {
+      const a = new Audio(MUSIC_SRC);
+      a.loop = true;
+      a.preload = 'auto';
+      a.volume = 0;
+      this._audio = a;
+    }
+    return this._audio;
+  }
+
+  // ramp the volume instead of cutting it, so switching cursors never pops
+  fadeMusic(to, done) {
+    const a = this.audio();
+    clearInterval(this._fadeIv);
+    const up = to > a.volume;
+    const step = up ? 0.04 : 0.05;
+    this._fadeIv = setInterval(() => {
+      const v = a.volume + (up ? step : -step);
+      if (up ? v >= to : v <= to) {
+        a.volume = clamp01(to);
+        clearInterval(this._fadeIv);
+        this._fadeIv = null;
+        if (done) done();
+        return;
+      }
+      a.volume = clamp01(v);
+    }, 30);
+  }
+
+  music(on) {
+    if (!on && !this._audio) return;
+    const a = this.audio();
+    this.wantMusic = !!on;
+    if (on) {
+      const p = a.play();
+      // autoplay is blocked until the page has been interacted with: if the black
+      // hole is the cursor the page loads with, wait for the first gesture
+      if (p && p.catch) p.catch(() => this.armMusic());
+      this.fadeMusic(MUSIC_VOL);
+    } else {
+      this.fadeMusic(0, () => { if (!this.wantMusic) a.pause(); });
+    }
+  }
+
+  armMusic() {
+    if (this._armMusic) return;
+    this._armMusic = () => {
+      this.disarmMusic();
+      if (this.wantMusic) this.music(true);
+    };
+    addEventListener('pointerdown', this._armMusic, true);
+    addEventListener('keydown', this._armMusic, true);
+  }
+
+  disarmMusic() {
+    if (!this._armMusic) return;
+    removeEventListener('pointerdown', this._armMusic, true);
+    removeEventListener('keydown', this._armMusic, true);
+    this._armMusic = null;
+  }
+
+  stopMusic() {
+    this.wantMusic = false;
+    this.disarmMusic();
+    clearInterval(this._fadeIv);
+    this._fadeIv = null;
+    if (this._audio) { this._audio.pause(); this._audio.volume = 0; }
+  }
+
   /* ---------- cursor ---------- */
 
   setCursor(mode) {
@@ -624,6 +706,9 @@ class Component extends DCLogic {
     if (sc0 && sc0.setLens) sc0.setLens({ on: mode === 'blackhole' && this.fine && innerWidth >= MOBILE });
     if (mode !== 'blackhole') this.lensS = 0;
     const on = this.fine && innerWidth >= MOBILE;
+    // the soundtrack belongs to the black hole, and the comet to the plain target
+    this.music(mode === 'blackhole' && on && !this.arActive);
+    if (sc0 && sc0.setComet) sc0.setComet({ enabled: mode === 'target' });
     this.st(this.q('[data-ui="cursor"]'), { opacity: on ? '1' : '0' });
     this.qa('[data-cursor]').forEach(el => this.st(el, { display: el.dataset.cursor === mode ? 'block' : 'none' }));
     this.qa('[data-cursorpick]').forEach(b => {
@@ -787,6 +872,7 @@ class Component extends DCLogic {
   }
 
   arChrome() {
+    this.music(false);
     const hide = ['readout', 'hints', 'cursorpick', 'xrline', 'mode', 'flightplan', 'arreplace', 'arhint', 'header'];
     hide.forEach(k => this.st(this.q('[data-ui="' + k + '"]'), { display: 'none' }));
     this.st(this.q('[data-intro]'), { display: 'none' });

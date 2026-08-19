@@ -4,6 +4,8 @@ const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP
 // point sprites are sized in world units and ignore the object's scale, so these
 // bases have to be re-multiplied by world.scale every frame (see _frameBody)
 const STAR_SIZE = 1.35, DUST_SIZE = 0.38;
+// comet trail: samples kept in the ring buffer, and the head's base sprite size
+const COMET_TRAIL = 96, COMET_SIZE = 2.4;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -325,6 +327,7 @@ class SolarSystem extends HTMLElement {
 
     this._buildXRUI();
     this._buildLens();
+    this._buildComet();
     this._bindInput();
 
     this._resize = () => {
@@ -935,11 +938,190 @@ class SolarSystem extends HTMLElement {
     if (hit) this.travelTo(hit.object.userData.planetId);
   }
 
+  /* ---------- comet ---------- */
+
+  // A light trail that flies from the planet you were on to the one you picked,
+  // so a jump reads as travel instead of a cut. It lives inside `world` so AR/VR
+  // scale it with everything else; point sprites ignore object scale, so uSize is
+  // re-multiplied by world.scale every frame (same trick as stars and dust).
+  _buildComet() {
+    const map = glowTexture(64, [
+      [0, 'rgba(255,255,255,1)'],
+      [0.18, 'rgba(243,242,248,.95)'],
+      [0.46, 'rgba(158,148,249,.4)'],
+      [1, 'rgba(106,90,224,0)']
+    ]);
+
+    const pos = new Float32Array(COMET_TRAIL * 3);
+    const life = new Float32Array(COMET_TRAIL);
+    // index 0 is the newest sample, so life doubles as "how far back in the tail"
+    for (let i = 0; i < COMET_TRAIL; i++) life[i] = 1 - i / COMET_TRAIL;
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aLife', new THREE.BufferAttribute(life, 1));
+    // only the samples already written get drawn, otherwise the empty tail of the
+    // buffer draws a clump of particles at the origin on the first launch
+    geo.setDrawRange(0, 0);
+
+    const mat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        tGlow: { value: map },
+        uSize: { value: COMET_SIZE },
+        uFade: { value: 0 }
+      },
+      vertexShader: [
+        'attribute float aLife;',
+        'uniform float uSize;',
+        'varying float vLife;',
+        'void main() {',
+        '  vLife = aLife;',
+        '  vec4 mv = modelViewMatrix * vec4(position, 1.0);',
+        '  gl_PointSize = uSize * (0.22 + aLife * 1.78) * (280.0 / max(-mv.z, 0.001));',
+        '  gl_Position = projectionMatrix * mv;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'precision highp float;',
+        'uniform sampler2D tGlow;',
+        'uniform float uFade;',
+        'varying float vLife;',
+        'void main() {',
+        '  float a = texture2D(tGlow, gl_PointCoord).a * vLife * uFade;',
+        // the tail cools from a white-hot head down to the brand violet
+        '  vec3 col = mix(vec3(0.42, 0.35, 0.88), vec3(1.0, 0.99, 1.0), vLife * vLife);',
+        '  gl_FragColor = vec4(col, 1.0) * a;',
+        '}'
+      ].join('\n')
+    });
+
+    const trail = new THREE.Points(geo, mat);
+    trail.name = 'cometTrail';
+    trail.frustumCulled = false;
+
+    const head = new THREE.Sprite(new THREE.SpriteMaterial({
+      map, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    head.scale.set(2.6, 2.6, 1);
+
+    const group = new THREE.Group();
+    group.name = 'comet';
+    group.visible = false;
+    group.add(trail, head);
+    this.world.add(group);
+
+    this.comet = {
+      group, trail, head, mat, pos,
+      enabled: true,
+      n: 0,        // samples written so far
+      t: 0,        // 0..1 along the flight path
+      dur: 2,
+      fade: 0,     // 1 in flight, ramps to 0 while the tail dissolves
+      from: new THREE.Vector3(),
+      to: new THREE.Vector3(),
+      ctrl: new THREE.Vector3(),
+      at: new THREE.Vector3(),
+      target: null
+    };
+  }
+
+  setComet(o) {
+    if (!this.comet) return;
+    Object.assign(this.comet, o);
+    if (!this.comet.enabled) {
+      this.comet.group.visible = false;
+      this.comet.fade = 0;
+    }
+  }
+
+  // live position + radius for a focus id, shared by the camera and the comet
+  _focusOf(id) {
+    if (id === 'inti') return { pos: this.sun.position, size: 3 };
+    const p = id ? this.planets.find(x => x.id === id) : null;
+    return p ? { pos: p.group.position, size: p.size } : null;
+  }
+
+  _cometHop(prevId, id) {
+    const c = this.comet;
+    if (!c || !c.enabled || this.renderer.xr.isPresenting) return;
+    const to = this._focusOf(id);
+    if (!to) return;
+    // leaving free flight, the light sets off from the core
+    const from = this._focusOf(prevId) || this._focusOf('inti');
+
+    c.from.copy(from.pos);
+    c.to.copy(to.pos);
+    c.target = to;
+
+    const dir = c.to.clone().sub(c.from);
+    const span = dir.length() || 1;
+    dir.normalize();
+    // bow the path sideways and up out of the orbital plane so it never hides
+    // behind an orbit line; longer hops arc wider
+    const side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
+    if (side.lengthSq() < 1e-4) side.set(1, 0, 0);
+    side.normalize();
+    c.ctrl.copy(c.from).add(c.to).multiplyScalar(0.5)
+      .addScaledVector(side, span * 0.16)
+      .addScaledVector(new THREE.Vector3(0, 1, 0), span * 0.12 + 1.5);
+
+    c.t = 0;
+    c.fade = 1;
+    c.n = 0;
+    // slow enough to follow by eye, and roughly paced with the camera move
+    c.dur = clamp(span / 9, 1.9, 3.6);
+    c.group.visible = true;
+  }
+
+  _updateComet(dt, t) {
+    const c = this.comet;
+    if (!c || !c.group.visible) return;
+    if (!c.enabled) { c.group.visible = false; return; }
+
+    if (c.t < 1) {
+      // the destination keeps orbiting mid-flight, so re-read it every frame
+      if (c.target) c.to.copy(c.target.pos);
+      c.t = Math.min(1, c.t + dt / c.dur);
+      const e = c.t * c.t * (3 - 2 * c.t);
+      const u = 1 - e;
+      c.at.set(0, 0, 0)
+        .addScaledVector(c.from, u * u)
+        .addScaledVector(c.ctrl, 2 * u * e)
+        .addScaledVector(c.to, e * e);
+    } else {
+      // arrived: hold the head on target while the tail dissolves into the planet
+      c.fade = Math.max(0, c.fade - dt / 0.9);
+      if (c.fade <= 0) { c.group.visible = false; return; }
+      if (c.target) c.at.copy(c.target.pos);
+    }
+
+    // newest sample goes in front, everything else shifts one slot down the tail
+    const p = c.pos;
+    if (c.n > 1) p.copyWithin(3, 0, (c.n - 1) * 3);
+    p[0] = c.at.x; p[1] = c.at.y; p[2] = c.at.z;
+    c.n = Math.min(COMET_TRAIL, c.n + 1);
+    c.trail.geometry.setDrawRange(0, c.n);
+    c.trail.geometry.attributes.position.needsUpdate = true;
+
+    const vis = c.fade * clamp(c.t / 0.07, 0, 1);
+    c.mat.uniforms.uSize.value = COMET_SIZE * this.world.scale.x;
+    c.mat.uniforms.uFade.value = vis;
+    c.head.position.copy(c.at);
+    c.head.material.opacity = vis * 0.9;
+    const pulse = 2.5 + Math.sin(t * 9) * 0.22;
+    c.head.scale.set(pulse, pulse, 1);
+  }
+
   /* ---------- navigation ---------- */
 
   travelTo(id) {
     if (!PANELS[id]) return;
+    const prev = this.active;
     this.active = id;
+    if (prev !== id) this._cometHop(prev, id);
     this.dockDist = id === 'inti' ? 6.2 : 7.2;
     if (this.renderer.xr.isPresenting) this._setPanel(id);
     this.navBtns.forEach(b => {
@@ -1267,6 +1449,9 @@ class SolarSystem extends HTMLElement {
 
   _frameBody(frame) {
     const t = this.clock.getElapsedTime();
+    // the clock's own delta is consumed by getElapsedTime, so track it here
+    const dt = clamp(t - (this._lastT === undefined ? t - 0.016 : this._lastT), 0, 0.05);
+    this._lastT = t;
 
     this.planets.forEach(p => {
       const a = t * p.speed + p.phase;
@@ -1296,7 +1481,12 @@ class SolarSystem extends HTMLElement {
     this.stars.material.size = STAR_SIZE * ws;
     this.dust.material.size = DUST_SIZE * ws;
 
-    if (this.renderer.xr.isPresenting) return this.mode === 'ar' ? this._arFrame(frame) : this._xrFrame();
+    if (this.renderer.xr.isPresenting) {
+      if (this.comet) this.comet.group.visible = false;
+      return this.mode === 'ar' ? this._arFrame(frame) : this._xrFrame();
+    }
+
+    this._updateComet(dt, t);
 
     this.ray.setFromCamera(this.ndc, this.camera);
     const hit = this.ray.intersectObjects(this.hits, false)[0];
@@ -1312,12 +1502,7 @@ class SolarSystem extends HTMLElement {
       p.path.material.opacity = lerp(p.path.material.opacity, this.active === p.id || this.hover === p.id ? 0.4 : 0.09, 0.08);
     });
 
-    let focus = null;
-    if (this.active === 'inti') focus = { pos: this.sun.position, size: 3 };
-    else if (this.active) {
-      const p = this.planets.find(x => x.id === this.active);
-      if (p) focus = { pos: p.group.position, size: p.size };
-    }
+    const focus = this.active ? this._focusOf(this.active) : null;
 
     if (focus) {
       const radial = this.tmp.copy(focus.pos);
