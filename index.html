@@ -81,23 +81,23 @@
   </div>
 
   <header data-ui="header" style="position: absolute; top: 32px; left: 34px; right: 34px; z-index: 30; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .3s both;">
-    <div style="display: flex; align-items: center; gap: 11px;">
-      <span style="display: block; width: 13px; height: 13px; border: 1.5px solid #ff5c2b; border-radius: 50%; box-shadow: 0 0 0 4px rgba(255,92,43,.16);"></span>
+    <div data-ui="brandgroup" style="display: flex; align-items: center; gap: 11px; min-width: 0;">
+      <span style="display: block; width: 13px; height: 13px; border: 1.5px solid #ff5c2b; border-radius: 50%; box-shadow: 0 0 0 4px rgba(255,92,43,.16); flex: 0 0 auto;"></span>
       <span data-ui="brand" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap;">Spatial Indonesia</span>
       <span data-ui="brandtag" style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8e8899; white-space: nowrap;">SISTEM SPATIAL</span>
     </div>
-    <div style="display: flex; align-items: center; gap: 12px; pointer-events: auto;">
+    <div data-ui="actiongroup" style="display: flex; align-items: center; gap: 12px; pointer-events: auto; flex: 0 0 auto;">
       <div data-ui="mode" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(237,232,220,.14); border-radius: 999px; background: rgba(11,9,16,.55); font-size: 11px; letter-spacing: .16em; color: #8e8899;">
         <span style="width: 5px; height: 5px; border-radius: 50%; background: #6fe3b8;"></span>
         <span data-hud="mode">ORBIT BEBAS</span>
       </div>
       <button data-ui="arbtn" onClick="{{ onEnterAR }}" style="display: none; align-items: center; gap: 9px; padding: 10px 18px; border: 1px solid #6fe3b8; border-radius: 999px; background: rgba(111,227,184,.12); color: #6fe3b8; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;" style-hover="background: rgba(111,227,184,.2);">
         <span style="width: 13px; height: 13px; border: 1.5px solid #6fe3b8; border-radius: 3px;"></span>
-        Mode AR
+        <span data-ui="arlabel">Mode AR</span>
       </button>
       <button data-ui="vrbtn" onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; white-space: nowrap; border: none; border-radius: 999px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">
         <span style="width: 15px; height: 9px; border: 1.5px solid #0b0910; border-radius: 3px 3px 5px 5px;"></span>
-        Masuk Mode VR
+        <span data-ui="vrlabel">Masuk Mode VR</span>
       </button>
     </div>
   </header>
@@ -447,13 +447,13 @@
       <span style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; margin: -9px 0 0 -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid currentColor;"></span>
     </button>
   </div>
-  <div data-ui="arhint" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 36; display: none; flex-direction: column; align-items: center; gap: 14px; padding: 22px 26px; border: 1px solid rgba(111,227,184,.4); border-radius: 14px; background: rgba(11,9,16,.82); text-align: center; pointer-events: none;">
+  <div data-ui="arhint" style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); z-index: 36; display: none; flex-direction: column; align-items: center; gap: 14px; padding: 22px 26px; border: 1px solid rgba(111,227,184,.4); border-radius: 14px; background: rgba(11,9,16,.82); text-align: center; pointer-events: none;">
     <span style="width: 30px; height: 30px; border: 1.5px solid #6fe3b8; border-radius: 50%;"></span>
-    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px;">Arahkan ke permukaan datar</span>
-    <span style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b6b0c0;">Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.</span>
+    <span data-ui="arhintTitle" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px;">Arahkan ke permukaan datar</span>
+    <span data-ui="arhintBody" style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b6b0c0;">Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.</span>
   </div>
 
-  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(237,232,220,.2); border-radius: 999px; background: rgba(11,9,16,.7); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">TEMPATKAN ULANG</button>
+  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: calc(72px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(237,232,220,.2); border-radius: 999px; background: rgba(11,9,16,.7); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">TEMPATKAN ULANG</button>
 
   <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #0b0910; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
     <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8e8899;">Menyalakan pesawat</div>
@@ -478,6 +478,7 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this.fine = matchMedia('(pointer: fine)').matches;
+    this.isPhone = matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 1024;
     this.cursorMode = this.props.cursorStyle || 'target';
     this.px = innerWidth / 2; this.py = innerHeight / 2;
     this.cx = this.px; this.cy = this.py; this.ang = 0; this.hoverId = null;
@@ -498,8 +499,8 @@ class Component extends DCLogic {
       this.arActive = false;
       this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
       this.st(this.q('[data-ui="arreplace"]'), { display: 'none' });
-      this.st(this.q('[data-ui="vrbtn"]'), { display: 'flex' });
-      this.st(this.q('[data-ui="arbtn"]'), { display: this.arReady ? 'flex' : 'none' });
+      this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
+      this.st(this.q('[data-ui="arbtn"]'), { display: this.arReady || this.isPhone ? 'flex' : 'none' });
       this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'flex' }));
       this.st(this.q('[data-intro]'), { display: 'block' });
       this.applyLayout();
@@ -516,8 +517,10 @@ class Component extends DCLogic {
     this._arSupport = e => {
       const ok = !!(e.detail && e.detail.ok);
       this.arReady = ok;
-      this.st(this.q('[data-ui="arbtn"]'), { display: ok ? 'flex' : 'none' });
-      if (ok) this.xrLine('Perangkat mendukung AR — tempatkan tata surya di ruanganmu.');
+      this.st(this.q('[data-ui="arbtn"]'), { display: ok || this.isPhone ? 'flex' : 'none' });
+      this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
+      if (ok) this.xrLine('Perangkat mendukung AR — ketuk Mode AR untuk menempatkan tata surya di ruanganmu.');
+      else if (this.isPhone) this.xrLine('Ketuk Mode AR untuk mencoba menempatkan tata surya di ruanganmu.');
     };
     this._arStart = e => {
       this.arActive = true;
@@ -540,6 +543,15 @@ class Component extends DCLogic {
     document.addEventListener('ar-support', this._arSupport);
     document.addEventListener('ar-start', this._arStart);
     document.addEventListener('ar-placed', this._arPlaced);
+    this._arHitTest = e => {
+      const ok = !!(e.detail && e.detail.ok);
+      const t = this.q('[data-ui="arhintTitle"]'), b = this.q('[data-ui="arhintBody"]');
+      if (t) t.textContent = ok ? 'Arahkan ke permukaan datar' : 'Ketuk untuk menempatkan';
+      if (b) b.textContent = ok
+        ? 'Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.'
+        : 'Perangkat ini tidak mendeteksi permukaan. Tata surya mengikuti arah kameramu — ketuk untuk mengunci posisinya.';
+    };
+    document.addEventListener('ar-hittest', this._arHitTest);
     document.addEventListener('ar-replace', this._arReplace);
 
     this._onResize = () => { this.applyLayout(); this.setCursor(this.cursorMode); };
@@ -569,6 +581,7 @@ class Component extends DCLogic {
     document.removeEventListener('ar-support', this._arSupport);
     document.removeEventListener('ar-start', this._arStart);
     document.removeEventListener('ar-placed', this._arPlaced);
+    document.removeEventListener('ar-hittest', this._arHitTest);
     document.removeEventListener('ar-replace', this._arReplace);
     removeEventListener('resize', this._onResize);
     if (this._move) removeEventListener('pointermove', this._move);
@@ -659,12 +672,26 @@ class Component extends DCLogic {
     const st = this.st.bind(this), q = this.q.bind(this), qa = this.qa.bind(this);
 
     st(q('[data-ui="header"]'), m
-      ? { top: '12px', left: '12px', right: '12px', alignItems: 'center', gap: '10px' }
-      : { top: '32px', left: '34px', right: '34px', alignItems: 'flex-start', gap: '20px' });
+      ? {
+          top: 'calc(10px + env(safe-area-inset-top))', left: '10px', right: '10px',
+          alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '14px',
+          background: 'rgba(11,9,16,.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(237,232,220,.1)', pointerEvents: 'none'
+        }
+      : {
+          top: '32px', left: '34px', right: '34px', alignItems: 'flex-start', gap: '20px',
+          padding: '0', borderRadius: '0', background: 'transparent', backdropFilter: 'none',
+          WebkitBackdropFilter: 'none', border: 'none', pointerEvents: 'none'
+        });
+    st(q('[data-ui="brandgroup"]'), { flex: m ? '1 1 auto' : '0 0 auto', minWidth: '0', gap: m ? '9px' : '11px' });
+    st(q('[data-ui="brand"]'), { overflow: 'hidden', textOverflow: 'ellipsis', minWidth: '0' });
+    st(q('[data-ui="actiongroup"]'), { gap: m ? '8px' : '12px' });
+    const vl = q('[data-ui="vrlabel"]');
+    if (vl) vl.textContent = m ? 'Mode VR' : 'Masuk Mode VR';
     st(q('[data-ui="mode"]'), { display: m ? 'none' : 'flex' });
 
     st(q('[data-ui="flightplan"]'), m
-      ? { top: 'auto', bottom: '78px', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', animation: 'none' }
+      ? { top: 'auto', bottom: 'calc(74px + env(safe-area-inset-bottom))', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px', animation: 'none' }
       : { top: '96px', bottom: 'auto', left: '34px', right: 'auto', width: '246px', display: 'block', padding: '0' });
     const rule = q('[data-ui="fpTitleRule"]');
     if (rule && rule.parentElement) st(rule.parentElement, { display: m ? 'none' : 'flex' });
@@ -693,21 +720,28 @@ class Component extends DCLogic {
     });
     qa('[data-nav]').forEach(b => { if (!m) st(b, { padding: short ? '7px 12px' : '10px 12px' }); });
     if (!m) st(q('[data-ui="freeflight"]'), { marginTop: short ? '8px' : '12px', padding: short ? '7px' : '9px' });
-    st(q('[data-ui="readout"]'), { bottom: m ? '16px' : '34px', marginLeft: m ? '0' : '133px' });
+    st(q('[data-ui="readout"]'), { bottom: m ? 'calc(14px + env(safe-area-inset-bottom))' : '34px', marginLeft: m ? '0' : '133px' });
     st(q('[data-ui="readoutInner"]'), m ? { gap: '13px', padding: '8px 14px' } : { gap: '26px', padding: '12px 22px' });
     qa('[data-hud="speed"],[data-hud="distance"],[data-hud="target"]').forEach(s => st(s, { fontSize: m ? '13px' : '17px' }));
     st(q('[data-ui="xrline"]'), m
-      ? { bottom: '130px', right: '12px', left: '12px', width: 'auto', maxWidth: 'none', textAlign: 'center', fontSize: '10.5px' }
+      ? { bottom: 'calc(126px + env(safe-area-inset-bottom))', right: '12px', left: '12px', width: 'auto', maxWidth: 'none', textAlign: 'center', fontSize: '10.5px' }
       : { bottom: '34px', right: 'auto', left: '34px', width: '246px', maxWidth: 'none', textAlign: 'left', fontSize: '11px' });
 
     st(q('[data-intro]'), m
-      ? { width: 'calc(100% - 32px)', maxWidth: '440px', bottom: '172px', left: '50%', marginLeft: '0' }
+      ? { width: 'calc(100% - 28px)', maxWidth: '440px', bottom: 'calc(168px + env(safe-area-inset-bottom))', left: '50%', marginLeft: '0' }
       : { width: 'clamp(260px, calc(100vw - 640px), 500px)', maxWidth: 'none', bottom: short ? '110px' : '122px', left: '50%', marginLeft: '133px' });
     st(q('[data-ui="brand"]'), { fontSize: m ? '13px' : '15px' });
     st(q('[data-ui="brandtag"]'), { display: m ? 'none' : 'inline-block' });
     st(q('[data-ui="vrbtn"]'), m
       ? { padding: '0 14px', minHeight: '42px', fontSize: '12px', gap: '7px' }
       : { padding: '10px 18px', minHeight: '0', fontSize: '13px', gap: '9px' });
+    st(q('[data-ui="arbtn"]'), m
+      ? { padding: '0 14px', minHeight: '42px', fontSize: '12px', gap: '7px' }
+      : { padding: '10px 18px', minHeight: '0', fontSize: '13px', gap: '9px' });
+    if (this.isPhone) {
+      st(q('[data-ui="vrbtn"]'), { display: 'none' });
+      st(q('[data-ui="arbtn"]'), { display: 'flex' });
+    }
     qa('[data-ui="readoutInner"] > div > span:first-child').forEach(s => st(s, { fontSize: m ? '8.5px' : '9.5px', whiteSpace: 'nowrap' }));
     const free = q('[data-ui="freeflight"]');
     if (free) free.textContent = m ? 'ORBIT BEBAS' : 'KEMBALI KE ORBIT BEBAS';
@@ -715,7 +749,7 @@ class Component extends DCLogic {
     st(q('[data-intro] p'), { fontSize: m ? '13px' : '' });
 
     qa('[data-panel]').forEach(p => st(p, m
-      ? { top: 'auto', left: '12px', right: '12px', bottom: '12px', width: 'auto', maxHeight: '70dvh', padding: '20px', borderRadius: '14px', animation: 'sheetIn .45s cubic-bezier(.2,.7,.2,1) both' }
+      ? { top: 'auto', left: '10px', right: '10px', bottom: 'calc(10px + env(safe-area-inset-bottom))', width: 'auto', maxHeight: '68dvh', padding: '20px', borderRadius: '16px', animation: 'sheetIn .45s cubic-bezier(.2,.7,.2,1) both' }
       : { top: '96px', left: 'auto', right: '34px', bottom: '116px', width: 'min(430px, 42vw)', maxHeight: 'none', padding: '30px', borderRadius: '10px', animation: 'panelIn .5s cubic-bezier(.2,.7,.2,1) both' }));
     qa('[data-panel] h2').forEach(h => st(h, { fontSize: m ? '24px' : '' }));
 
@@ -738,14 +772,14 @@ class Component extends DCLogic {
     this.st(this.q('[data-ui="vrbtn"]'), { display: 'none' });
     this.st(this.q('[data-ui="arbtn"]'), { display: 'none' });
     const fp = this.q('[data-ui="flightplan"]');
-    this.st(fp, { top: 'auto', bottom: '20px', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px' });
+    this.st(fp, { top: 'auto', bottom: 'calc(16px + env(safe-area-inset-bottom))', left: '0', right: '0', width: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px' });
     this.st(this.q('[data-ui="fpList"]'), { flexDirection: 'row', gap: '8px', overflowX: 'auto', flex: '1 1 auto' });
     this.qa('[data-nav]').forEach(b => {
       this.st(b, { display: 'flex', alignItems: 'center', gap: '7px', padding: '0 14px', minHeight: '44px', borderRadius: '999px', whiteSpace: 'nowrap', flex: '0 0 auto' });
       const sp = b.querySelectorAll('span');
       if (sp.length === 3) this.st(sp[2], { display: 'none' });
     });
-    this.qa('[data-panel]').forEach(p => this.st(p, { top: 'auto', left: '12px', right: '12px', bottom: '76px', width: 'auto', maxHeight: '52dvh', padding: '18px', borderRadius: '14px' }));
+    this.qa('[data-panel]').forEach(p => this.st(p, { top: 'auto', left: '10px', right: '10px', bottom: 'calc(72px + env(safe-area-inset-bottom))', width: 'auto', maxHeight: '50dvh', padding: '18px', borderRadius: '16px' }));
     this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'none' }));
   }
 
@@ -802,10 +836,21 @@ class Component extends DCLogic {
         if (b) this.setCursor(b.dataset.cursorpick);
       },
       onEnterAR: async () => {
+        if (!navigator.xr) {
+          return this.xrLine('Browser ini belum mendukung WebXR AR. Di Android pakai Chrome; Safari iOS belum mendukungnya.');
+        }
+        if (!isSecureContext) {
+          return this.xrLine('Mode AR butuh koneksi HTTPS. Buka situs lewat https://');
+        }
         try {
           await this.scene().enterAR();
         } catch (err) {
-          this.xrLine('Mode AR belum bisa dijalankan di perangkat ini. Buka dari browser ponsel yang mendukung WebXR AR.');
+          const n = err && err.name;
+          if (n === 'NotSupportedError') this.xrLine('AR belum tersedia di perangkat ini. Di Android, pasang atau perbarui "Google Play Services for AR" lalu coba lagi.');
+          else if (n === 'SecurityError') this.xrLine('Izin kamera ditolak atau halaman tersemat. Buka situs langsung di tab browser dan izinkan kamera.');
+          else if (n === 'NotAllowedError') this.xrLine('Izin kamera diperlukan untuk mode AR. Izinkan akses kamera lalu ketuk Mode AR lagi.');
+          else if (n === 'InvalidStateError') this.xrLine('Sesi AR lain masih aktif. Tutup lalu coba lagi.');
+          else this.xrLine('Mode AR gagal dijalankan' + (err && err.message ? ': ' + err.message : '.'));
         }
       },
       onReplaceAR: () => {

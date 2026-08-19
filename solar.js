@@ -859,7 +859,7 @@ class SolarSystem extends HTMLElement {
 
   async enterAR() {
     if (!navigator.xr) throw new Error('WebXR tidak tersedia');
-    const opts = { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay', 'local-floor'] };
+    const opts = { optionalFeatures: ['hit-test', 'dom-overlay', 'local-floor', 'anchors'] };
     const sel = this.getAttribute('overlay-root') || this.getAttribute('overlayroot') || this.overlayRoot || '[data-ui="arlayer"]';
     let root = null;
     try { root = sel ? document.querySelector(sel) : null; } catch (e) { root = null; }
@@ -906,11 +906,21 @@ class SolarSystem extends HTMLElement {
     this.planets.forEach(p => { p.tag.visible = true; });
     this.sunTag.visible = true;
 
-    const viewerSpace = await session.requestReferenceSpace('viewer');
-    this.hitSource = await session.requestHitTestSource({ space: viewerSpace });
-
     session.addEventListener('end', () => this._exitXR());
     this.dispatchEvent(new CustomEvent('ar-start', { detail: { overlay: granted, root: !!root }, bubbles: true }));
+
+    // hit testing is a bonus: without it the system simply previews in front of the camera
+    this.hitSource = null;
+    try {
+      if (session.requestHitTestSource) {
+        const viewerSpace = await session.requestReferenceSpace('viewer');
+        const src = await session.requestHitTestSource({ space: viewerSpace });
+        if (src) this.hitSource = src;
+      }
+    } catch (e) {
+      this.hitSource = null;
+    }
+    this.dispatchEvent(new CustomEvent('ar-hittest', { detail: { ok: !!this.hitSource }, bubbles: true }));
     return session;
   }
 
@@ -921,7 +931,7 @@ class SolarSystem extends HTMLElement {
   }
 
   _placeAR() {
-    const p = this.arHit ? this.arHit.clone() : new THREE.Vector3(0, -0.25, -1.1);
+    const p = this.arHit ? this.arHit.clone() : this.world.position.clone();
     this.world.position.copy(p);
     this.world.scale.setScalar(0.0135);
     this.arPlaced = true;
@@ -931,6 +941,7 @@ class SolarSystem extends HTMLElement {
 
   _arFrame(frame) {
     const ref = this.renderer.xr.getReferenceSpace();
+    const camNow = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
     if (!this.arPlaced) {
       let found = false;
       if (this.hitSource && frame && ref) {
@@ -945,9 +956,19 @@ class SolarSystem extends HTMLElement {
         }
       }
       this.arReticle.visible = found;
-      this.world.scale.setScalar(0.0001);
+      // live preview: on the surface when detected, otherwise floating ahead of the device
+      if (found) {
+        this.world.position.lerp(this.arHit, 0.25);
+      } else {
+        camNow.getWorldPosition(this.tmp);
+        camNow.getWorldDirection(this.tmp2);
+        this.tmp.addScaledVector(this.tmp2, 1.15);
+        this.world.position.lerp(this.tmp, 0.18);
+        this.arHit = this.world.position.clone();
+      }
+      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0085, 0.15));
     } else {
-      this.world.scale.setScalar(0.0135);
+      this.world.scale.setScalar(lerp(this.world.scale.x, 0.0135, 0.12));
     }
 
     let hoverUI = null, hoverPlanet = null;
@@ -1000,8 +1021,16 @@ class SolarSystem extends HTMLElement {
       const need = !this.arPlaced && !this.arOverlay;
       this.arPrompt.visible = need;
       if (need) {
-        const cam2 = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
-        this.arPrompt.position.copy(this.tmp.set(0, 0.03, -0.72).applyMatrix4(cam2.matrixWorld));
+        const want = this.hitSource ? 'surface' : 'free';
+        if (this._promptKind !== want) {
+          this._promptKind = want;
+          if (this.arPrompt.material.map) this.arPrompt.material.map.dispose();
+          this.arPrompt.material.map = this._promptTexture(this.hitSource
+            ? 'Arahkan ke permukaan datar, lalu ketuk'
+            : 'Ketuk untuk menempatkan di depanmu');
+          this.arPrompt.material.needsUpdate = true;
+        }
+        this.arPrompt.position.copy(this.tmp.set(0, 0.03, -0.72).applyMatrix4(camNow.matrixWorld));
       }
     }
 
@@ -1038,6 +1067,8 @@ class SolarSystem extends HTMLElement {
     this.arPlaced = false;
     if (this.arReticle) this.arReticle.visible = false;
     if (this.arPrompt) this.arPrompt.visible = false;
+    this._promptKind = null;
+    this.world.position.set(0, 0, 0);
     this.arOverlay = false;
     if (this.hitSource && this.hitSource.cancel) { try { this.hitSource.cancel(); } catch (e) {} }
     this.hitSource = null;
