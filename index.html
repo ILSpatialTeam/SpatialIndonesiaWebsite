@@ -11,14 +11,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0b0910; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #121116; }
   body { font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
   * { box-sizing: border-box; }
-  a { color: #ff5c2b; text-decoration: none; }
-  a:hover { color: #ff8055; }
-  ::selection { background: #ff5c2b; color: #0b0910; }
+  a { color: #9E94F9; text-decoration: none; }
+  a:hover { color: #9b8ff0; }
+  ::selection { background: #9E94F9; color: #121116; }
   @keyframes hudIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
   @keyframes panelIn { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
   @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -29,368 +29,368 @@
 </style>
 <script type="module" src="./solar.js"></script>
 </helmet>
-<div data-ui="arlayer" style="position: relative; width: 100%; height: 100dvh; background: #0b0910; color: #ede8dc; overflow: hidden; font-size: 14px;">
+<div data-ui="arlayer" style="position: relative; width: 100%; height: 100dvh; background: #121116; color: #f3f2f8; overflow: hidden; font-size: 14px;">
 
   <x-import component-from-global-scope="solar-system" overlay-root="[data-ui=&quot;arlayer&quot;]" hint-size="100%,100%" style="position: absolute; inset: 0;"></x-import>
 
-  <div data-ui="vignette" style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 40%, rgba(11,9,16,.72) 100%);"></div>
+  <div data-ui="vignette" style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 60% at 50% 50%, transparent 40%, rgba(18,17,22,.72) 100%);"></div>
 
   <div onClick="{{ onGoto }}" style="position: absolute; inset: 0; z-index: 20; pointer-events: none;">
-    <div data-planet-label="inti" data-goto="inti" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ff5c2b;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px; letter-spacing: .02em;">Inti — Visi &amp; Misi</span>
+    <div data-planet-label="inti" data-goto="inti" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #9E94F9;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px; letter-spacing: .02em;">Inti — Visi &amp; Misi</span>
     </div>
-    <div data-planet-label="program" data-goto="program" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #6fe3b8;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Program</span>
+    <div data-planet-label="program" data-goto="program" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #a99bf2;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Program</span>
     </div>
-    <div data-planet-label="karya" data-goto="karya" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ff5c2b;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Karya</span>
+    <div data-planet-label="karya" data-goto="karya" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #9E94F9;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Karya</span>
     </div>
-    <div data-planet-label="event" data-goto="event" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ede8dc;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Event</span>
+    <div data-planet-label="event" data-goto="event" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #f3f2f8;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Event</span>
     </div>
-    <div data-planet-label="insight" data-goto="insight" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #6fe3b8;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Insight</span>
+    <div data-planet-label="insight" data-goto="insight" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #a99bf2;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Insight</span>
     </div>
-    <div data-planet-label="tim" data-goto="tim" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ede8dc;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Tim</span>
+    <div data-planet-label="tim" data-goto="tim" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #f3f2f8;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Tim</span>
     </div>
-    <div data-planet-label="gabung" data-goto="gabung" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(237,232,220,.18); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #ff5c2b;"></span>
-      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 13px;">Gabung</span>
+    <div data-planet-label="gabung" data-goto="gabung" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #9E94F9;"></span>
+      <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Gabung</span>
     </div>
   </div>
 
-  <div style="position: absolute; inset: 16px; z-index: 25; pointer-events: none; border: 1px solid rgba(237,232,220,.07);">
-    <span style="position: absolute; top: -1px; left: -1px; width: 22px; height: 22px; border-top: 1px solid #ff5c2b; border-left: 1px solid #ff5c2b;"></span>
-    <span style="position: absolute; top: -1px; right: -1px; width: 22px; height: 22px; border-top: 1px solid #ff5c2b; border-right: 1px solid #ff5c2b;"></span>
-    <span style="position: absolute; bottom: -1px; left: -1px; width: 22px; height: 22px; border-bottom: 1px solid #ff5c2b; border-left: 1px solid #ff5c2b;"></span>
-    <span style="position: absolute; bottom: -1px; right: -1px; width: 22px; height: 22px; border-bottom: 1px solid #ff5c2b; border-right: 1px solid #ff5c2b;"></span>
+  <div style="position: absolute; inset: 16px; z-index: 25; pointer-events: none; border: 1px solid rgba(243,242,248,.07);">
+    <span style="position: absolute; top: -1px; left: -1px; width: 22px; height: 22px; border-top: 1px solid #9E94F9; border-left: 1px solid #9E94F9;"></span>
+    <span style="position: absolute; top: -1px; right: -1px; width: 22px; height: 22px; border-top: 1px solid #9E94F9; border-right: 1px solid #9E94F9;"></span>
+    <span style="position: absolute; bottom: -1px; left: -1px; width: 22px; height: 22px; border-bottom: 1px solid #9E94F9; border-left: 1px solid #9E94F9;"></span>
+    <span style="position: absolute; bottom: -1px; right: -1px; width: 22px; height: 22px; border-bottom: 1px solid #9E94F9; border-right: 1px solid #9E94F9;"></span>
   </div>
 
   <div data-ui="reticle" style="position: absolute; top: 50%; left: 50%; z-index: 24; margin: -13px 0 0 -13px; width: 26px; height: 26px; pointer-events: none; opacity: .5; transition: opacity .3s;">
-    <span style="position: absolute; top: 12px; left: 0; width: 8px; height: 1px; background: #6fe3b8;"></span>
-    <span style="position: absolute; top: 12px; right: 0; width: 8px; height: 1px; background: #6fe3b8;"></span>
-    <span style="position: absolute; left: 12px; top: 0; width: 1px; height: 8px; background: #6fe3b8;"></span>
-    <span style="position: absolute; left: 12px; bottom: 0; width: 1px; height: 8px; background: #6fe3b8;"></span>
+    <span style="position: absolute; top: 12px; left: 0; width: 8px; height: 1px; background: #a99bf2;"></span>
+    <span style="position: absolute; top: 12px; right: 0; width: 8px; height: 1px; background: #a99bf2;"></span>
+    <span style="position: absolute; left: 12px; top: 0; width: 1px; height: 8px; background: #a99bf2;"></span>
+    <span style="position: absolute; left: 12px; bottom: 0; width: 1px; height: 8px; background: #a99bf2;"></span>
   </div>
 
   <header data-ui="header" style="position: absolute; top: 32px; left: 34px; right: 34px; z-index: 30; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .3s both;">
-    <div data-ui="brandgroup" style="display: flex; align-items: center; gap: 11px; min-width: 0;">
-      <span style="display: block; width: 13px; height: 13px; border: 1.5px solid #ff5c2b; border-radius: 50%; box-shadow: 0 0 0 4px rgba(255,92,43,.16); flex: 0 0 auto;"></span>
-      <span data-ui="brand" style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap;">Spatial Indonesia</span>
-      <span data-ui="brandtag" style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8e8899; white-space: nowrap;">SISTEM SPATIAL</span>
+    <div data-ui="brandgroup" style="display: flex; align-items: center; gap: 9px; min-width: 0;">
+      <img src="assets/si-mark.png" srcset="assets/si-mark.png 1x, assets/si-mark-3x.png 3x" alt="Spatial Indonesia" width="24" height="24" style="display: block; flex: 0 0 auto; width: 24px; height: auto;" />
+      <span data-ui="brand" style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap;">Spatial Indonesia</span>
+      <span data-ui="brandtag" style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8f8aa3; white-space: nowrap;">SISTEM SPATIAL</span>
     </div>
     <div data-ui="actiongroup" style="display: flex; align-items: center; gap: 12px; pointer-events: auto; flex: 0 0 auto;">
-      <div data-ui="mode" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(237,232,220,.14); border-radius: 999px; background: rgba(11,9,16,.55); font-size: 11px; letter-spacing: .16em; color: #8e8899;">
-        <span style="width: 5px; height: 5px; border-radius: 50%; background: #6fe3b8;"></span>
+      <div data-ui="mode" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(243,242,248,.14); border-radius: 999px; background: rgba(18,17,22,.55); font-size: 11px; letter-spacing: .16em; color: #8f8aa3;">
+        <span style="width: 5px; height: 5px; border-radius: 50%; background: #a99bf2;"></span>
         <span data-hud="mode">ORBIT BEBAS</span>
       </div>
-      <button data-ui="arbtn" onClick="{{ onEnterAR }}" style="display: none; align-items: center; gap: 9px; padding: 10px 18px; border: 1px solid #6fe3b8; border-radius: 999px; background: rgba(111,227,184,.12); color: #6fe3b8; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;" style-hover="background: rgba(111,227,184,.2);">
-        <span style="width: 13px; height: 13px; border: 1.5px solid #6fe3b8; border-radius: 3px;"></span>
+      <button data-ui="arbtn" onClick="{{ onEnterAR }}" style="display: none; align-items: center; gap: 9px; padding: 10px 18px; border: 1px solid #a99bf2; border-radius: 999px; background: rgba(169,155,242,.12); color: #a99bf2; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;" style-hover="background: rgba(169,155,242,.2);">
+        <span style="width: 13px; height: 13px; border: 1.5px solid #a99bf2; border-radius: 3px;"></span>
         <span data-ui="arlabel">Mode AR</span>
       </button>
-      <button data-ui="vrbtn" onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; white-space: nowrap; border: none; border-radius: 999px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">
-        <span style="width: 15px; height: 9px; border: 1.5px solid #0b0910; border-radius: 3px 3px 5px 5px;"></span>
+      <button data-ui="vrbtn" onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; white-space: nowrap; border: none; border-radius: 999px; background: #9E94F9; color: #121116; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #8375ea;">
+        <span style="width: 15px; height: 9px; border: 1.5px solid #121116; border-radius: 3px 3px 5px 5px;"></span>
         <span data-ui="vrlabel">Masuk Mode VR</span>
       </button>
     </div>
   </header>
 
   <div data-ui="flightplan" style="position: absolute; top: 96px; left: 34px; z-index: 30; width: 246px; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .45s both;">
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #8e8899;">
-      <span data-ui="fpTitleRule" style="width: 20px; height: 1px; background: #ff5c2b;"></span>Rencana penerbangan
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #8f8aa3;">
+      <span data-ui="fpTitleRule" style="width: 20px; height: 1px; background: #9E94F9;"></span>Rencana penerbangan
     </div>
     <div data-ui="fpList" onClick="{{ onGoto }}" style="display: flex; flex-direction: column; gap: 1px;">
-      <button data-goto="inti" data-nav="inti" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">00</span>
+      <button data-goto="inti" data-nav="inti" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">00</span>
         <span>Inti</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">VISI</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">VISI</span>
       </button>
-      <button data-goto="program" data-nav="program" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">01</span>
+      <button data-goto="program" data-nav="program" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">01</span>
         <span>Program</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">4 KEGIATAN</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">4 KEGIATAN</span>
       </button>
-      <button data-goto="karya" data-nav="karya" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">02</span>
+      <button data-goto="karya" data-nav="karya" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">02</span>
         <span>Karya</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">SHOWCASE</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">SHOWCASE</span>
       </button>
-      <button data-goto="event" data-nav="event" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">03</span>
+      <button data-goto="event" data-nav="event" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">03</span>
         <span>Event</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">JADWAL</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">JADWAL</span>
       </button>
-      <button data-goto="insight" data-nav="insight" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">04</span>
+      <button data-goto="insight" data-nav="insight" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">04</span>
         <span>Insight</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">CATATAN</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">CATATAN</span>
       </button>
-      <button data-goto="tim" data-nav="tim" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(11,9,16,.45); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(111,227,184,.5); background: rgba(111,227,184,.07);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #6c667a;">05</span>
+      <button data-goto="tim" data-nav="tim" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">05</span>
         <span>Tim</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c667a;">RELAWAN</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">RELAWAN</span>
       </button>
-      <button data-goto="gabung" data-nav="gabung" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(255,92,43,.1); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: #ff5c2b;">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">06</span>
+      <button data-goto="gabung" data-nav="gabung" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(106,90,224,.1); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: #9E94F9;">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">06</span>
         <span>Gabung</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #ff5c2b;">TERBUKA</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #9E94F9;">TERBUKA</span>
       </button>
     </div>
-    <button data-ui="freeflight" onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(237,232,220,.14); border-radius: 6px; background: transparent; color: #8e8899; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">KEMBALI KE ORBIT BEBAS</button>
+    <button data-ui="freeflight" onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(243,242,248,.14); border-radius: 6px; background: transparent; color: #8f8aa3; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #a99bf2; color: #a99bf2;">KEMBALI KE ORBIT BEBAS</button>
   </div>
 
-  <div data-ui="hints" style="position: absolute; bottom: 88px; left: 34px; z-index: 30; display: flex; flex-direction: column; gap: 8px; font-size: 11px; letter-spacing: .06em; color: #6c667a; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .6s both;">
+  <div data-ui="hints" style="position: absolute; bottom: 88px; left: 34px; z-index: 30; display: flex; flex-direction: column; gap: 8px; font-size: 11px; letter-spacing: .06em; color: #6c6782; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .6s both;">
     <span>TARIK — arahkan pandangan</span>
     <span>KLIK PLANET — terbang ke tujuan</span>
     <span>SCROLL — atur jarak · ESC — orbit bebas</span>
-    <span style="color: #8e8899;">DI VR — trigger, pinch, atau tatap 1,2 detik</span>
+    <span style="color: #8f8aa3;">DI VR — trigger, pinch, atau tatap 1,2 detik</span>
   </div>
 
   <div data-ui="readout" style="position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 30; pointer-events: none;">
-    <div data-ui="readoutInner" style="display: flex; align-items: center; gap: 26px; padding: 12px 22px; border: 1px solid rgba(237,232,220,.12); border-radius: 999px; background: rgba(11,9,16,.6); backdrop-filter: blur(10px); animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .55s both;">
+    <div data-ui="readoutInner" style="display: flex; align-items: center; gap: 26px; padding: 12px 22px; border: 1px solid rgba(243,242,248,.12); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(10px); animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .55s both;">
     <div style="display: flex; flex-direction: column; gap: 3px;">
-      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">KECEPATAN</span>
-      <span data-hud="speed" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #6fe3b8;">000</span>
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">KECEPATAN</span>
+      <span data-hud="speed" style="font-family: 'Poppins', sans-serif; font-size: 17px; color: #a99bf2;">000</span>
     </div>
-    <span style="width: 1px; height: 26px; background: rgba(237,232,220,.12);"></span>
+    <span style="width: 1px; height: 26px; background: rgba(243,242,248,.12);"></span>
     <div style="display: flex; flex-direction: column; gap: 3px;">
-      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">JARAK KE TUJUAN</span>
-      <span data-hud="distance" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #ede8dc;">—</span>
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">JARAK KE TUJUAN</span>
+      <span data-hud="distance" style="font-family: 'Poppins', sans-serif; font-size: 17px; color: #f3f2f8;">—</span>
     </div>
-    <span style="width: 1px; height: 26px; background: rgba(237,232,220,.12);"></span>
+    <span style="width: 1px; height: 26px; background: rgba(243,242,248,.12);"></span>
     <div style="display: flex; flex-direction: column; gap: 3px;">
-      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">TUJUAN</span>
-      <span data-hud="target" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; color: #ff5c2b;">—</span>
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">TUJUAN</span>
+      <span data-hud="target" style="font-family: 'Poppins', sans-serif; font-size: 17px; color: #9E94F9;">—</span>
       </div>
     </div>
   </div>
 
   <div data-intro="1" style="position: absolute; bottom: 122px; left: 50%; transform: translateX(-50%); z-index: 28; width: min(500px, 42vw); text-align: center; pointer-events: none; transition: opacity .5s;">
     <div style="animation: hudIn 1s cubic-bezier(.2,.7,.2,1) .8s both;">
-    <h1 style="margin: 0 0 12px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(30px, 4.4vw, 54px); line-height: .98; letter-spacing: -.035em;">Jelajahi tata surya spatial</h1>
-    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #b6b0c0;">Tiap planet adalah bagian dari komunitas. Terbang ke sana untuk melihat isinya.</p>
+    <h1 style="margin: 0 0 12px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: clamp(30px, 4.4vw, 54px); line-height: .98; letter-spacing: -.035em;">Jelajahi tata surya spatial</h1>
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #b9b4cc;">Tiap planet adalah bagian dari komunitas. Terbang ke sana untuk melihat isinya.</p>
     </div>
   </div>
 
-  <div data-panel="inti" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="inti" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ff5c2b;">Planet 00 · Inti</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 00 · Inti</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Opening Access of Emerging Spatial Technology</h2>
-    <p style="margin: 0 0 26px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Teknologi spatial seharusnya bisa diakses siapa pun, dari mana pun di Indonesia. Itu titik awal kami.</p>
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #6fe3b8;">
-      <span style="width: 20px; height: 1px; background: #6fe3b8;"></span>Misi
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Opening Access of Emerging Spatial Technology</h2>
+    <p style="margin: 0 0 26px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Teknologi spatial seharusnya bisa diakses siapa pun, dari mana pun di Indonesia. Itu titik awal kami.</p>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">
+      <span style="width: 20px; height: 1px; background: #a99bf2;"></span>Misi
     </div>
     <div style="display: flex; flex-direction: column; gap: 1px;">
-      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">01</span>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">01</span>
         <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Membuat teknologi spatial lebih accessible bagi semua.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">02</span>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">02</span>
         <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Membangun kolaborasi untuk mendorong inovasi spatial.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">03</span>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">03</span>
         <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Mengembangkan talenta teknologi spatial masa depan.</p>
       </div>
-      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(237,232,220,.1); border-bottom: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; color: #ff5c2b;">04</span>
+      <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1); border-bottom: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">04</span>
         <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Menciptakan teknologi spatial yang meaningful dan berdampak.</p>
       </div>
     </div>
   </div>
 
-  <div data-panel="program" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="program" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #6fe3b8;">Planet 01 · Program</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">Planet 01 · Program</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Program &amp; kegiatan</h2>
-    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Semua terbuka untuk publik. Tidak perlu headset sendiri untuk mulai ikut.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Program &amp; kegiatan</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Semua terbuka untuk publik. Tidak perlu headset sendiri untuk mulai ikut.</p>
     <div style="display: flex; flex-direction: column; gap: 14px;">
-      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Bulanan</div>
-        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">XR Meetup</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Ngumpul santai: demo karya, sesi tanya jawab, dan coba perangkat bareng.</p>
+      <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Bulanan</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">XR Meetup</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Ngumpul santai: demo karya, sesi tanya jawab, dan coba perangkat bareng.</p>
       </div>
-      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Belajar</div>
-        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">Workshop &amp; bootcamp</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Kelas praktik dari nol: WebXR, Unity, three.js, sampai desain interaksi spatial.</p>
+      <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Belajar</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Workshop &amp; bootcamp</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Kelas praktik dari nol: WebXR, Unity, three.js, sampai desain interaksi spatial.</p>
       </div>
-      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Kolaborasi</div>
-        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">Open Build</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Bikin proyek bareng lintas disiplin, dari ide sampai rilis, dengan mentor komunitas.</p>
+      <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Kolaborasi</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Open Build</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Bikin proyek bareng lintas disiplin, dari ide sampai rilis, dengan mentor komunitas.</p>
       </div>
-      <div style="padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #ff5c2b;">Kampus</div>
-        <h3 style="margin: 0 0 6px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 18px;">Kelas keliling</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8e8899;">Membawa pengenalan teknologi spatial ke kampus dan sekolah di berbagai kota.</p>
+      <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Kampus</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Kelas keliling</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Membawa pengenalan teknologi spatial ke kampus dan sekolah di berbagai kota.</p>
       </div>
     </div>
   </div>
 
-  <div data-panel="karya" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="karya" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ff5c2b;">Planet 02 · Karya</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 02 · Karya</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Karya member</h2>
-    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Proyek VR, AR, dan XR yang dibangun oleh member komunitas.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Karya member</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Proyek VR, AR, dan XR yang dibangun oleh member komunitas.</p>
     <div style="display: flex; flex-direction: column; gap: 16px;">
-      <article style="border: 1px solid rgba(237,232,220,.1); border-radius: 8px; overflow: hidden;">
-        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(255,92,43,.16), rgba(111,227,184,.09)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c667a;">Visual proyek</div>
+      <article style="border: 1px solid rgba(243,242,248,.1); border-radius: 8px; overflow: hidden;">
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(106,90,224,.16), rgba(169,155,242,.09)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Visual proyek</div>
         <div style="padding: 16px 18px;">
           <div style="display: flex; gap: 7px; margin-bottom: 10px;">
-            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">VR</span>
-            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">Edukasi</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">VR</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Edukasi</span>
           </div>
-          <h3 style="margin: 0 0 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8e8899;">Deskripsi singkat dan nama member pembuatnya.</p>
+          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Deskripsi singkat dan nama member pembuatnya.</p>
         </div>
       </article>
-      <article style="border: 1px solid rgba(237,232,220,.1); border-radius: 8px; overflow: hidden;">
-        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(111,227,184,.16), rgba(255,92,43,.08)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c667a;">Visual proyek</div>
+      <article style="border: 1px solid rgba(243,242,248,.1); border-radius: 8px; overflow: hidden;">
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(169,155,242,.16), rgba(106,90,224,.08)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Visual proyek</div>
         <div style="padding: 16px 18px;">
           <div style="display: flex; gap: 7px; margin-bottom: 10px;">
-            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">AR</span>
-            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">Budaya</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">AR</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Budaya</span>
           </div>
-          <h3 style="margin: 0 0 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8e8899;">Deskripsi singkat dan nama member pembuatnya.</p>
+          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Deskripsi singkat dan nama member pembuatnya.</p>
         </div>
       </article>
-      <article style="border: 1px solid rgba(237,232,220,.1); border-radius: 8px; overflow: hidden;">
-        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(237,232,220,.12), rgba(255,92,43,.1)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c667a;">Visual proyek</div>
+      <article style="border: 1px solid rgba(243,242,248,.1); border-radius: 8px; overflow: hidden;">
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(243,242,248,.12), rgba(106,90,224,.1)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Visual proyek</div>
         <div style="padding: 16px 18px;">
           <div style="display: flex; gap: 7px; margin-bottom: 10px;">
-            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">XR</span>
-            <span style="padding: 3px 9px; border: 1px solid rgba(237,232,220,.16); border-radius: 999px; font-size: 10px; color: #8e8899;">Industri</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">XR</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Industri</span>
           </div>
-          <h3 style="margin: 0 0 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8e8899;">Deskripsi singkat dan nama member pembuatnya.</p>
+          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Deskripsi singkat dan nama member pembuatnya.</p>
         </div>
       </article>
     </div>
   </div>
 
-  <div data-panel="event" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="event" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ede8dc;">Planet 03 · Event</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #f3f2f8;">Planet 03 · Event</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Event &amp; meetup</h2>
-    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Jadwal terdekat. Klik untuk daftar lewat planet Gabung.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Event &amp; meetup</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Jadwal terdekat. Klik untuk daftar lewat planet Gabung.</p>
     <div style="display: flex; flex-direction: column;">
-      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12px; color: #ff5c2b;">Bulan ini</span>
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #9E94F9;">Bulan ini</span>
         <span style="font-size: 17px; font-weight: 500;">XR Meetup — demo malam</span>
-        <span style="font-size: 12.5px; color: #8e8899;">Jakarta · Terbuka</span>
+        <span style="font-size: 12.5px; color: #8f8aa3;">Jakarta · Terbuka</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12px; color: #ff5c2b;">Segera</span>
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #9E94F9;">Segera</span>
         <span style="font-size: 17px; font-weight: 500;">Workshop WebXR untuk pemula</span>
-        <span style="font-size: 12.5px; color: #8e8899;">Online · Kuota terbatas</span>
+        <span style="font-size: 12.5px; color: #8f8aa3;">Online · Kuota terbatas</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(237,232,220,.1); border-bottom: 1px solid rgba(237,232,220,.1);">
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12px; color: #ff5c2b;">Rencana</span>
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(243,242,248,.1); border-bottom: 1px solid rgba(243,242,248,.1);">
+        <span style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #9E94F9;">Rencana</span>
         <span style="font-size: 17px; font-weight: 500;">Open Build showcase day</span>
-        <span style="font-size: 12.5px; color: #8e8899;">Bandung · Menunggu tanggal</span>
+        <span style="font-size: 12.5px; color: #8f8aa3;">Bandung · Menunggu tanggal</span>
       </div>
     </div>
   </div>
 
-  <div data-panel="insight" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="insight" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #6fe3b8;">Planet 04 · Insight</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">Planet 04 · Insight</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Insight</h2>
-    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Catatan, tutorial, dan obrolan dari member komunitas.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Insight</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Catatan, tutorial, dan obrolan dari member komunitas.</p>
     <div style="display: flex; flex-direction: column; gap: 14px;">
-      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px; color: #ede8dc;" style-hover="border-color: #6fe3b8;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6fe3b8;">Tutorial</span>
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8e8899;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Tutorial</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
       </a>
-      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px; color: #ede8dc;" style-hover="border-color: #6fe3b8;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6fe3b8;">Cerita member</span>
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8e8899;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Cerita member</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
       </a>
-      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(237,232,220,.1); border-radius: 8px; color: #ede8dc;" style-hover="border-color: #6fe3b8;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #6fe3b8;">Industri</span>
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8e8899;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+      <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Industri</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
       </a>
     </div>
   </div>
 
-  <div data-panel="tim" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(237,232,220,.14); border-radius: 10px; background: rgba(11,9,16,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="tim" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ede8dc;">Planet 05 · Tim</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #f3f2f8;">Planet 05 · Tim</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Tim inti</h2>
-    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Relawan yang menjaga ritme komunitas.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Tim inti</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Relawan yang menjaga ritme komunitas.</p>
     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
         <div>
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
         <div>
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
         <div>
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(237,232,220,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c667a;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
         <div>
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8e8899;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
         </div>
       </div>
     </div>
   </div>
 
-  <div data-panel="gabung" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(255,92,43,.3); border-radius: 10px; background: rgba(11,9,16,.88); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
+  <div data-panel="gabung" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(106,90,224,.3); border-radius: 10px; background: rgba(18,17,22,.88); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #ff5c2b;">Planet 06 · Gabung</span>
-      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(237,232,220,.18); border-radius: 50%; background: transparent; color: #8e8899; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #ff5c2b; color: #ff5c2b;">×</button>
+      <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 06 · Gabung</span>
+      <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 32px; line-height: 1.02; letter-spacing: -.035em;">Ikut bangun ruangnya</h2>
-    <p style="margin: 0 0 22px; font-size: 14px; line-height: 1.65; color: #b6b0c0;">Kami senang kenalan dengan orang baru. Isi datanya, kami hubungi untuk kegiatan terdekat.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; line-height: 1.02; letter-spacing: -.035em;">Ikut bangun ruangnya</h2>
+    <p style="margin: 0 0 22px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Kami senang kenalan dengan orang baru. Isi datanya, kami hubungi untuk kegiatan terdekat.</p>
     <form onSubmit="{{ onSubmit }}" style="display: flex; flex-direction: column; gap: 14px;">
-      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8e8899;">Nama
-        <input type="text" placeholder="Nama lengkap" style="padding: 12px 13px; border: 1px solid rgba(237,232,220,.16); border-radius: 6px; background: rgba(237,232,220,.04); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #ff5c2b; outline: none;" />
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Nama
+        <input type="text" placeholder="Nama lengkap" style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;" />
       </label>
-      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8e8899;">Email
-        <input type="email" placeholder="nama@email.com" style="padding: 12px 13px; border: 1px solid rgba(237,232,220,.16); border-radius: 6px; background: rgba(237,232,220,.04); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #ff5c2b; outline: none;" />
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Email
+        <input type="email" placeholder="nama@email.com" style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;" />
       </label>
-      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8e8899;">Fokus
-        <select style="padding: 12px 13px; border: 1px solid rgba(237,232,220,.16); border-radius: 6px; background: rgba(237,232,220,.04); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #ff5c2b; outline: none;">
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Fokus
+        <select style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;">
           <option>Developer</option>
           <option>Designer / 3D artist</option>
           <option>Mahasiswa / pemula</option>
@@ -398,67 +398,68 @@
           <option>Peneliti / pendidik</option>
         </select>
       </label>
-      <button type="submit" style="margin-top: 4px; padding: 14px; border: none; border-radius: 6px; background: #ff5c2b; color: #0b0910; font-family: 'Instrument Sans', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;" style-hover="background: #ff7a52;">Kirim</button>
-      <div style="min-height: 17px; font-size: 12.5px; color: #6fe3b8;">{{ formMsg }}</div>
+      <button type="submit" style="margin-top: 4px; padding: 14px; border: none; border-radius: 6px; background: #9E94F9; color: #121116; font-family: 'Instrument Sans', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;" style-hover="background: #8375ea;">Kirim</button>
+      <div style="min-height: 17px; font-size: 12.5px; color: #a99bf2;">{{ formMsg }}</div>
     </form>
-    <div style="display: flex; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(237,232,220,.1); font-size: 12.5px;">
-      <a href="#gabung" style="color: #8e8899;">Instagram</a>
-      <a href="#gabung" style="color: #8e8899;">Discord</a>
-      <a href="#gabung" style="color: #8e8899;">LinkedIn</a>
+    <div style="display: flex; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(243,242,248,.1); font-size: 12.5px;">
+      <a href="#gabung" style="color: #8f8aa3;">Instagram</a>
+      <a href="#gabung" style="color: #8f8aa3;">Discord</a>
+      <a href="#gabung" style="color: #8f8aa3;">LinkedIn</a>
     </div>
   </div>
 
-  <div data-ui="xrline" style="position: absolute; bottom: 100px; right: 34px; z-index: 30; max-width: 230px; font-size: 11px; line-height: 1.6; letter-spacing: .04em; text-align: right; color: #6c667a; pointer-events: none;">
+  <div data-ui="xrline" style="position: absolute; bottom: 100px; right: 34px; z-index: 30; max-width: 230px; font-size: 11px; line-height: 1.6; letter-spacing: .04em; text-align: right; color: #6c6782; pointer-events: none;">
     <span data-hud="xr">Cek dukungan headset...</span>
   </div>
 
   <div data-ui="cursor" style="position: fixed; top: 0; left: 0; z-index: 70; pointer-events: none; opacity: 0; transition: opacity .35s; will-change: transform;">
     <div data-cursor="target" style="position: absolute; left: 0; top: 0; width: 34px; height: 34px; transform: translate(-50%, -50%); transition: transform .18s;">
-      <span style="position: absolute; inset: 0; border: 1px solid rgba(111,227,184,.45); border-radius: 50%;"></span>
-      <span style="position: absolute; top: 16px; left: -4px; width: 9px; height: 1px; background: #6fe3b8;"></span>
-      <span style="position: absolute; top: 16px; right: -4px; width: 9px; height: 1px; background: #6fe3b8;"></span>
-      <span style="position: absolute; left: 16px; top: -4px; width: 1px; height: 9px; background: #6fe3b8;"></span>
-      <span style="position: absolute; left: 16px; bottom: -4px; width: 1px; height: 9px; background: #6fe3b8;"></span>
-      <span style="position: absolute; top: 16px; left: 16px; width: 2px; height: 2px; background: #ff5c2b;"></span>
+      <span style="position: absolute; inset: 0; border: 1px solid rgba(169,155,242,.45); border-radius: 50%;"></span>
+      <span style="position: absolute; top: 16px; left: -4px; width: 9px; height: 1px; background: #a99bf2;"></span>
+      <span style="position: absolute; top: 16px; right: -4px; width: 9px; height: 1px; background: #a99bf2;"></span>
+      <span style="position: absolute; left: 16px; top: -4px; width: 1px; height: 9px; background: #a99bf2;"></span>
+      <span style="position: absolute; left: 16px; bottom: -4px; width: 1px; height: 9px; background: #a99bf2;"></span>
+      <span style="position: absolute; top: 16px; left: 16px; width: 2px; height: 2px; background: #9E94F9;"></span>
     </div>
     <div data-cursor="blackhole" style="position: absolute; left: 0; top: 0; width: 104px; height: 104px; display: none; transform: translate(-50%, -50%); transition: transform .25s;">
-      <span style="position: absolute; inset: 34px; border-radius: 50%; background: radial-gradient(circle, #05040a 60%, rgba(11,9,16,.35) 84%, transparent 100%);"></span>
-      <span data-bh-disc="1" style="position: absolute; inset: 26px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, rgba(255,92,43,.85) 26%, rgba(111,227,184,.6) 44%, transparent 68%); mask-image: radial-gradient(closest-side, transparent 62%, #000 66%); -webkit-mask-image: radial-gradient(closest-side, transparent 62%, #000 66%); animation: spin 2.8s linear infinite;"></span>
-      <span style="position: absolute; inset: 30px; border: 1px solid rgba(255,92,43,.5); border-radius: 50%;"></span>
+      <span style="position: absolute; inset: 34px; border-radius: 50%; background: radial-gradient(circle, #08060f 60%, rgba(18,17,22,.35) 84%, transparent 100%);"></span>
+      <span data-bh-disc="1" style="position: absolute; inset: 26px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, rgba(106,90,224,.85) 26%, rgba(169,155,242,.6) 44%, transparent 68%); mask-image: radial-gradient(closest-side, transparent 62%, #000 66%); -webkit-mask-image: radial-gradient(closest-side, transparent 62%, #000 66%); animation: spin 2.8s linear infinite;"></span>
+      <span style="position: absolute; inset: 30px; border: 1px solid rgba(106,90,224,.5); border-radius: 50%;"></span>
     </div>
     <div data-cursor="ship" style="position: absolute; left: 0; top: 0; width: 26px; height: 30px; display: none; transform: translate(-50%, -50%);">
-      <span style="position: absolute; left: 50%; top: 0; margin-left: -7px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 19px solid #ede8dc;"></span>
-      <span style="position: absolute; left: 50%; top: 17px; margin-left: -9px; width: 18px; height: 3px; background: rgba(237,232,220,.5);"></span>
-      <span data-ship-trail="1" style="position: absolute; left: 50%; top: 21px; margin-left: -3px; width: 6px; height: 12px; border-radius: 50%; background: linear-gradient(180deg, #ff5c2b, transparent); filter: blur(2px); opacity: 0;"></span>
+      <span style="position: absolute; left: 50%; top: 0; margin-left: -7px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 19px solid #f3f2f8;"></span>
+      <span style="position: absolute; left: 50%; top: 17px; margin-left: -9px; width: 18px; height: 3px; background: rgba(243,242,248,.5);"></span>
+      <span data-ship-trail="1" style="position: absolute; left: 50%; top: 21px; margin-left: -3px; width: 6px; height: 12px; border-radius: 50%; background: linear-gradient(180deg, #9E94F9, transparent); filter: blur(2px); opacity: 0;"></span>
     </div>
   </div>
   <div data-ui="cursorpick" onClick="{{ onCursorPick }}" style="position: absolute; bottom: 30px; left: 34px; z-index: 31; display: none; align-items: center; gap: 8px;">
-    <span style="margin-right: 2px; font-size: 9.5px; letter-spacing: .2em; color: #6c667a;">KURSOR</span>
-    <button data-cursorpick="target" title="Mode target" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(237,232,220,.16); border-radius: 8px; background: transparent; color: #8e8899; cursor: pointer;">
+    <span style="margin-right: 2px; font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">KURSOR</span>
+    <button data-cursorpick="target" title="Mode target" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(243,242,248,.16); border-radius: 8px; background: transparent; color: #8f8aa3; cursor: pointer;">
       <span style="position: absolute; top: 50%; left: 50%; width: 13px; height: 13px; margin: -7px 0 0 -7px; border: 1px solid currentColor; border-radius: 50%;"></span>
       <span style="position: absolute; top: 50%; left: 50%; width: 21px; height: 1px; margin: 0 0 0 -10px; background: currentColor;"></span>
       <span style="position: absolute; top: 50%; left: 50%; width: 1px; height: 21px; margin: -10px 0 0 0; background: currentColor;"></span>
     </button>
-    <button data-cursorpick="blackhole" title="Mode black hole" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(237,232,220,.16); border-radius: 8px; background: transparent; color: #8e8899; cursor: pointer;">
+    <button data-cursorpick="blackhole" title="Mode black hole" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(243,242,248,.16); border-radius: 8px; background: transparent; color: #8f8aa3; cursor: pointer;">
       <span style="position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: currentColor;"></span>
       <span style="position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border: 1px solid currentColor; border-radius: 50%; opacity: .5;"></span>
     </button>
-    <button data-cursorpick="ship" title="Mode pesawat mini" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(237,232,220,.16); border-radius: 8px; background: transparent; color: #8e8899; cursor: pointer;">
+    <button data-cursorpick="ship" title="Mode pesawat mini" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(243,242,248,.16); border-radius: 8px; background: transparent; color: #8f8aa3; cursor: pointer;">
       <span style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; margin: -9px 0 0 -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid currentColor;"></span>
     </button>
   </div>
-  <div data-ui="arhint" style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); z-index: 36; display: none; flex-direction: column; align-items: center; gap: 14px; padding: 22px 26px; border: 1px solid rgba(111,227,184,.4); border-radius: 14px; background: rgba(11,9,16,.82); text-align: center; pointer-events: none;">
-    <span style="width: 30px; height: 30px; border: 1.5px solid #6fe3b8; border-radius: 50%;"></span>
-    <span data-ui="arhintTitle" style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px;">Arahkan ke permukaan datar</span>
-    <span data-ui="arhintBody" style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b6b0c0;">Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.</span>
+  <div data-ui="arhint" style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); z-index: 36; display: none; flex-direction: column; align-items: center; gap: 14px; padding: 22px 26px; border: 1px solid rgba(169,155,242,.4); border-radius: 14px; background: rgba(18,17,22,.82); text-align: center; pointer-events: none;">
+    <span style="width: 30px; height: 30px; border: 1.5px solid #a99bf2; border-radius: 50%;"></span>
+    <span data-ui="arhintTitle" style="font-family: 'Poppins', sans-serif; font-size: 17px;">Arahkan ke permukaan datar</span>
+    <span data-ui="arhintBody" style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b9b4cc;">Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.</span>
   </div>
 
-  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: calc(72px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(237,232,220,.2); border-radius: 999px; background: rgba(11,9,16,.7); color: #ede8dc; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #6fe3b8; color: #6fe3b8;">TEMPATKAN ULANG</button>
+  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: calc(72px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(243,242,248,.2); border-radius: 999px; background: rgba(18,17,22,.7); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #a99bf2; color: #a99bf2;">TEMPATKAN ULANG</button>
 
-  <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #0b0910; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
-    <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8e8899;">Menyalakan pesawat</div>
-    <div style="width: 190px; height: 1px; background: #26222f; overflow: hidden;">
-      <div style="width: 100%; height: 100%; background: #ff5c2b; transform-origin: left; animation: grow 1.6s cubic-bezier(.2,.7,.2,1) forwards;"></div>
+  <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #121116; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
+    <div style="width: 56px;"><img src="assets/si-mark.png" srcset="assets/si-mark.png 1x, assets/si-mark-3x.png 3x" alt="Spatial Indonesia" width="100%" height="100%" style="display: block; flex: 0 0 auto; width: 100%; height: auto;" /></div>
+    <div style="font-family: 'Poppins', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8f8aa3;">Menyalakan pesawat</div>
+    <div style="width: 190px; height: 1px; background: #272338; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: #9E94F9; transform-origin: left; animation: grow 1.6s cubic-bezier(.2,.7,.2,1) forwards;"></div>
     </div>
   </div>
 </div>
@@ -628,9 +629,9 @@ class Component extends DCLogic {
     this.qa('[data-cursorpick]').forEach(b => {
       const a = b.dataset.cursorpick === mode;
       this.st(b, {
-        borderColor: a ? '#ff5c2b' : 'rgba(237,232,220,.16)',
-        background: a ? 'rgba(255,92,43,.14)' : 'transparent',
-        color: a ? '#ff5c2b' : '#8e8899'
+        borderColor: a ? '#9E94F9' : 'rgba(243,242,248,.16)',
+        background: a ? 'rgba(106,90,224,.14)' : 'transparent',
+        color: a ? '#9E94F9' : '#8f8aa3'
       });
     });
     this.st(this.q('[data-ui="reticle"]'), { opacity: on ? '0' : '.5' });
@@ -689,8 +690,8 @@ class Component extends DCLogic {
       ? {
           top: 'calc(10px + env(safe-area-inset-top))', left: '10px', right: '10px',
           alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '14px',
-          background: 'rgba(11,9,16,.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(237,232,220,.1)', pointerEvents: 'none'
+          background: 'rgba(18,17,22,.62)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(243,242,248,.1)', pointerEvents: 'none'
         }
       : {
           top: '32px', left: '34px', right: '34px', alignItems: 'flex-start', gap: '20px',
@@ -714,7 +715,7 @@ class Component extends DCLogic {
       : { flexDirection: 'column', gap: '1px', overflowX: 'visible', paddingBottom: '0' });
     qa('[data-nav]').forEach(b => {
       st(b, m
-        ? { display: 'flex', alignItems: 'center', gap: '7px', padding: '0 14px', minHeight: '44px', borderRadius: '999px', borderColor: b.dataset.nav === 'gabung' ? '#ff5c2b' : 'rgba(237,232,220,.14)', whiteSpace: 'nowrap', flex: '0 0 auto' }
+        ? { display: 'flex', alignItems: 'center', gap: '7px', padding: '0 14px', minHeight: '44px', borderRadius: '999px', borderColor: b.dataset.nav === 'gabung' ? '#9E94F9' : 'rgba(243,242,248,.14)', whiteSpace: 'nowrap', flex: '0 0 auto' }
         : { display: 'grid', alignItems: 'center', gap: '10px', padding: '10px 12px', minHeight: '0', borderRadius: '6px' });
       const spans = b.querySelectorAll('span');
       if (spans.length === 3) st(spans[2], { display: m ? 'none' : 'block' });
@@ -779,10 +780,10 @@ class Component extends DCLogic {
 
   transparent(on) {
     const root = this.q('[data-ui="arlayer"]');
-    this.st(root, { background: on ? 'transparent' : '#0b0910' });
+    this.st(root, { background: on ? 'transparent' : '#121116' });
     this.st(this.q('[data-ui="vignette"]'), { display: on ? 'none' : 'block' });
-    if (document.body) document.body.style.background = on ? 'transparent' : '#0b0910';
-    if (document.documentElement) document.documentElement.style.background = on ? 'transparent' : '#0b0910';
+    if (document.body) document.body.style.background = on ? 'transparent' : '#121116';
+    if (document.documentElement) document.documentElement.style.background = on ? 'transparent' : '#121116';
   }
 
   arChrome() {
@@ -818,8 +819,8 @@ class Component extends DCLogic {
     this.qa('[data-panel]').forEach(p => { p.style.display = p.dataset.panel === id ? 'flex' : 'none'; });
     this.qa('[data-nav]').forEach(b => {
       const on = b.dataset.nav === id;
-      b.style.borderColor = on ? '#ff5c2b' : (this.mobile ? 'rgba(237,232,220,.14)' : 'transparent');
-      b.style.background = on ? 'rgba(255,92,43,.12)' : (b.dataset.nav === 'gabung' ? 'rgba(255,92,43,.1)' : 'rgba(11,9,16,.45)');
+      b.style.borderColor = on ? '#9E94F9' : (this.mobile ? 'rgba(243,242,248,.14)' : 'transparent');
+      b.style.background = on ? 'rgba(106,90,224,.12)' : (b.dataset.nav === 'gabung' ? 'rgba(106,90,224,.1)' : 'rgba(18,17,22,.45)');
     });
     const t = this.q('[data-hud="target"]');
     if (t) t.textContent = id ? NAMES[id] : '—';

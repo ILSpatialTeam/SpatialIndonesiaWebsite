@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.184.0/build/three.module.js';
 
-const ACCENT = 0xff5c2b, MINT = 0x6fe3b8, PAPER = 0xede8dc, INK = 0x0b0910;
+const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP = 0x2a1fc9;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -8,7 +8,8 @@ const PLANETS = [
   { id: 'program', label: 'Program', orbit: 11, size: 0.9, color: MINT, speed: 0.085, phase: 0.4, kind: 'ringed' },
   { id: 'karya', label: 'Karya', orbit: 15.5, size: 1.15, color: ACCENT, speed: 0.062, phase: 2.1, kind: 'dodeca' },
   { id: 'event', label: 'Event', orbit: 20, size: 0.85, color: PAPER, speed: 0.048, phase: 4.0, kind: 'wire' },
-  { id: 'insight', label: 'Insight', orbit: 25, size: 1.0, color: MINT, speed: 0.038, phase: 5.4, kind: 'torus' },
+  // deep blue reads as the far end of the brand gradient
+  { id: 'insight', label: 'Insight', orbit: 25, size: 1.0, color: DEEP, speed: 0.038, phase: 5.4, kind: 'torus' },
   { id: 'tim', label: 'Tim', orbit: 30, size: 0.8, color: PAPER, speed: 0.03, phase: 1.2, kind: 'cluster' },
   { id: 'gabung', label: 'Gabung', orbit: 35.5, size: 1.3, color: ACCENT, speed: 0.024, phase: 3.3, kind: 'glow' }
 ];
@@ -16,7 +17,7 @@ const PLANETS = [
 // Condensed content for the in-headset panels (the DOM panels keep the full version).
 const PANELS = {
   inti: {
-    no: '00', tag: 'Inti', accent: '#ff5c2b',
+    no: '00', tag: 'Inti', accent: '#9E94F9',
     title: 'Opening Access of Emerging Spatial Technology',
     lead: 'Teknologi spatial seharusnya bisa diakses siapa pun, dari mana pun di Indonesia.',
     items: [
@@ -27,7 +28,7 @@ const PANELS = {
     ]
   },
   program: {
-    no: '01', tag: 'Program', accent: '#6fe3b8',
+    no: '01', tag: 'Program', accent: '#a99bf2',
     title: 'Program & kegiatan',
     lead: 'Semua terbuka untuk publik. Tidak perlu headset sendiri untuk mulai ikut.',
     items: [
@@ -38,7 +39,7 @@ const PANELS = {
     ]
   },
   karya: {
-    no: '02', tag: 'Karya', accent: '#ff5c2b',
+    no: '02', tag: 'Karya', accent: '#9E94F9',
     title: 'Karya member',
     lead: 'Proyek VR, AR, dan XR yang dibangun oleh member komunitas.',
     items: [
@@ -48,7 +49,7 @@ const PANELS = {
     ]
   },
   event: {
-    no: '03', tag: 'Event', accent: '#ede8dc',
+    no: '03', tag: 'Event', accent: '#f3f2f8',
     title: 'Event & meetup',
     lead: 'Jadwal terdekat komunitas.',
     items: [
@@ -58,7 +59,7 @@ const PANELS = {
     ]
   },
   insight: {
-    no: '04', tag: 'Insight', accent: '#6fe3b8',
+    no: '04', tag: 'Insight', accent: '#a99bf2',
     title: 'Insight',
     lead: 'Catatan, tutorial, dan obrolan dari member komunitas.',
     items: [
@@ -68,7 +69,7 @@ const PANELS = {
     ]
   },
   tim: {
-    no: '05', tag: 'Tim', accent: '#ede8dc',
+    no: '05', tag: 'Tim', accent: '#f3f2f8',
     title: 'Tim inti',
     lead: 'Relawan yang menjaga ritme komunitas.',
     items: [
@@ -79,7 +80,7 @@ const PANELS = {
     ]
   },
   gabung: {
-    no: '06', tag: 'Gabung', accent: '#ff5c2b',
+    no: '06', tag: 'Gabung', accent: '#9E94F9',
     title: 'Ikut bangun ruangnya',
     lead: 'Gratis dan terbuka untuk semua level, tidak wajib punya headset, dari kota mana pun.',
     items: [
@@ -95,6 +96,17 @@ function makeCanvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   return c;
+}
+
+// soft radial-gradient disc, used for the sun corona and glowing particles
+function glowTexture(size, stops) {
+  const c = makeCanvas(size, size);
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  stops.forEach(([o, col]) => grad.addColorStop(o, col));
+  g.fillStyle = grad;
+  g.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
 }
 
 function wrap(ctx, text, maxW) {
@@ -147,7 +159,17 @@ class SolarSystem extends HTMLElement {
     }
     const starGeo = new THREE.BufferGeometry();
     starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: PAPER, size: 0.55, transparent: true, opacity: 0.75, sizeAttenuation: true }));
+    // shared soft-glow sprite so every point reads as a small light, not a hard square
+    const particleMap = glowTexture(64, [
+      [0, 'rgba(255,255,255,1)'],
+      [0.22, 'rgba(243,242,248,.9)'],
+      [0.5, 'rgba(169,155,242,.32)'],
+      [1, 'rgba(169,155,242,0)']
+    ]);
+    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+      color: PAPER, size: 1.35, map: particleMap, transparent: true, opacity: 0.85,
+      sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
     stars.name = 'stars';
     world.add(stars);
     this.stars = stars;
@@ -160,13 +182,18 @@ class SolarSystem extends HTMLElement {
     }
     const dustGeo = new THREE.BufferGeometry();
     dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPos, 3));
-    world.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: MINT, size: 0.16, transparent: true, opacity: 0.4 })));
+    const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+      color: MINT, size: 0.38, map: particleMap, transparent: true, opacity: 0.55,
+      sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    world.add(dust);
+    this.dust = dust;
 
     const sun = new THREE.Group();
     sun.name = 'inti';
     const sunCore = new THREE.Mesh(
       new THREE.IcosahedronGeometry(3, 3),
-      new THREE.MeshStandardMaterial({ color: 0x2a1a1c, emissive: ACCENT, emissiveIntensity: 1.5, roughness: 0.6, flatShading: true })
+      new THREE.MeshStandardMaterial({ color: 0x241c4a, emissive: ACCENT, emissiveIntensity: 2.4, roughness: 0.6, flatShading: true })
     );
     sunCore.name = 'intiCore';
     sun.add(sunCore);
@@ -176,8 +203,35 @@ class SolarSystem extends HTMLElement {
     );
     sun.add(sunWire);
     this.sunWire = sunWire;
-    sun.add(new THREE.Mesh(new THREE.SphereGeometry(5.6, 32, 32), new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.05 })));
-    sun.add(new THREE.PointLight(ACCENT, 900, 140));
+    // corona: two camera-facing gradient discs — a hot bright heart fading through
+    // the brand purples into deep blue, plus a wide faint outer haze
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTexture(256, [
+        [0, 'rgba(255,255,255,.95)'],
+        [0.16, 'rgba(216,208,255,.85)'],
+        [0.38, 'rgba(158,148,249,.5)'],
+        [0.68, 'rgba(106,90,224,.18)'],
+        [1, 'rgba(42,31,201,0)']
+      ]),
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    sunGlow.name = 'intiGlow';
+    sunGlow.scale.set(15, 15, 1);
+    sun.add(sunGlow);
+    this.sunGlow = sunGlow;
+    const sunHaze = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTexture(256, [
+        [0, 'rgba(169,155,242,.4)'],
+        [0.45, 'rgba(106,90,224,.14)'],
+        [1, 'rgba(42,31,201,0)']
+      ]),
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    sunHaze.name = 'intiHaze';
+    sunHaze.scale.set(30, 30, 1);
+    sun.add(sunHaze);
+    this.sunHaze = sunHaze;
+    sun.add(new THREE.PointLight(ACCENT, 1200, 140));
     const sunHit = new THREE.Mesh(new THREE.SphereGeometry(4.6, 12, 12), new THREE.MeshBasicMaterial({ visible: false }));
     sunHit.userData.planetId = 'inti';
     sun.add(sunHit);
@@ -186,7 +240,8 @@ class SolarSystem extends HTMLElement {
     this.sunCore = sunCore;
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.42));
-    const rim = new THREE.DirectionalLight(MINT, 1.1); rim.position.set(-30, 22, -18); scene.add(rim);
+    const rim = new THREE.DirectionalLight(DEEP, 1.6); rim.position.set(-30, 22, -18); scene.add(rim);
+    const cool = new THREE.DirectionalLight(MINT, 0.5); cool.position.set(24, -14, 20); scene.add(cool);
 
     this.planets = PLANETS.map(p => {
       const g = new THREE.Group();
@@ -360,7 +415,7 @@ class SolarSystem extends HTMLElement {
         '  c.rgb *= 1.0 - sh;',
         '  c.a = max(c.a, sh * 0.97);',
         '  float ring = exp(-pow((r - rs * 1.1) / max(rs * 0.28, 1e-4), 2.0));',
-        '  vec3 glow = mix(vec3(1.0, 0.36, 0.17), vec3(0.44, 0.89, 0.72), 0.35 + 0.35 * sin(uTime * 0.8));',
+        '  vec3 glow = mix(vec3(0.42, 0.35, 0.88), vec3(0.66, 0.61, 0.95), 0.35 + 0.35 * sin(uTime * 0.8));',
         '  c.rgb += glow * ring * 0.62 * uStrength;',
         '  c.a = max(c.a, ring * 0.6 * uStrength);',
         '  gl_FragColor = c;',
@@ -418,8 +473,8 @@ class SolarSystem extends HTMLElement {
     const c = makeCanvas(740, 185);
     const g = c.getContext('2d');
     const hex = '#' + new THREE.Color(color).getHexString();
-    g.fillStyle = 'rgba(11,9,16,.72)';
-    g.strokeStyle = 'rgba(237,232,220,.28)';
+    g.fillStyle = 'rgba(18,17,22,.72)';
+    g.strokeStyle = 'rgba(243,242,248,.28)';
     g.lineWidth = 3;
     const r = 78;
     g.beginPath();
@@ -429,8 +484,8 @@ class SolarSystem extends HTMLElement {
     g.closePath(); g.fill(); g.stroke();
     g.fillStyle = hex;
     g.beginPath(); g.arc(66, 93, 15, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#ede8dc';
-    g.font = "600 62px 'Bricolage Grotesque', system-ui, sans-serif";
+    g.fillStyle = '#f3f2f8';
+    g.font = "600 62px 'Poppins', system-ui, sans-serif";
     g.textBaseline = 'middle';
     g.fillText(text, 104, 97);
     const t = new THREE.CanvasTexture(c);
@@ -441,12 +496,12 @@ class SolarSystem extends HTMLElement {
   _buttonTexture(label, state) {
     const c = makeCanvas(680, 130);
     const g = c.getContext('2d');
-    g.fillStyle = state === 'active' ? 'rgba(255,92,43,.22)' : (state === 'hover' ? 'rgba(111,227,184,.16)' : 'rgba(11,9,16,.8)');
+    g.fillStyle = state === 'active' ? 'rgba(106,90,224,.22)' : (state === 'hover' ? 'rgba(169,155,242,.16)' : 'rgba(18,17,22,.8)');
     g.fillRect(0, 0, c.width, c.height);
-    g.strokeStyle = state === 'active' ? '#ff5c2b' : (state === 'hover' ? '#6fe3b8' : 'rgba(237,232,220,.22)');
+    g.strokeStyle = state === 'active' ? '#9E94F9' : (state === 'hover' ? '#a99bf2' : 'rgba(243,242,248,.22)');
     g.lineWidth = 4;
     g.strokeRect(2, 2, c.width - 4, c.height - 4);
-    g.fillStyle = '#ede8dc';
+    g.fillStyle = '#f3f2f8';
     g.font = "500 52px 'Instrument Sans', system-ui, sans-serif";
     g.textBaseline = 'middle';
     g.fillText(label, 34, 68);
@@ -458,17 +513,17 @@ class SolarSystem extends HTMLElement {
   _promptTexture(text) {
     const c = makeCanvas(880, 220);
     const g = c.getContext('2d');
-    g.fillStyle = 'rgba(11,9,16,.84)';
+    g.fillStyle = 'rgba(18,17,22,.84)';
     g.fillRect(0, 0, c.width, c.height);
-    g.strokeStyle = 'rgba(111,227,184,.55)';
+    g.strokeStyle = 'rgba(169,155,242,.55)';
     g.lineWidth = 5;
     g.strokeRect(3, 3, c.width - 6, c.height - 6);
-    g.fillStyle = '#6fe3b8';
+    g.fillStyle = '#a99bf2';
     g.font = "500 30px 'Instrument Sans', system-ui, sans-serif";
     g.textBaseline = 'top';
     g.fillText('MODE AR', 44, 40);
-    g.fillStyle = '#ede8dc';
-    g.font = "600 44px 'Bricolage Grotesque', system-ui, sans-serif";
+    g.fillStyle = '#f3f2f8';
+    g.font = "600 44px 'Poppins', system-ui, sans-serif";
     let y = 96;
     wrap(g, text, c.width - 88).forEach(l => { g.fillText(l, 44, y); y += 52; });
     const t = new THREE.CanvasTexture(c);
@@ -480,9 +535,9 @@ class SolarSystem extends HTMLElement {
     const d = PANELS[id];
     const c = makeCanvas(940, 1180);
     const g = c.getContext('2d');
-    g.fillStyle = 'rgba(11,9,16,.94)';
+    g.fillStyle = 'rgba(18,17,22,.94)';
     g.fillRect(0, 0, c.width, c.height);
-    g.strokeStyle = 'rgba(237,232,220,.2)';
+    g.strokeStyle = 'rgba(243,242,248,.2)';
     g.lineWidth = 5;
     g.strokeRect(3, 3, c.width - 6, c.height - 6);
     g.textBaseline = 'top';
@@ -493,18 +548,18 @@ class SolarSystem extends HTMLElement {
     g.fillText('PLANET ' + d.no + '  ·  ' + d.tag.toUpperCase(), 56, y);
     y += 62;
 
-    g.fillStyle = '#ede8dc';
-    g.font = "600 62px 'Bricolage Grotesque', system-ui, sans-serif";
+    g.fillStyle = '#f3f2f8';
+    g.font = "600 62px 'Poppins', system-ui, sans-serif";
     wrap(g, d.title, c.width - 112).forEach(l => { g.fillText(l, 56, y); y += 68; });
     y += 12;
 
-    g.fillStyle = '#b6b0c0';
+    g.fillStyle = '#b9b4cc';
     g.font = "400 32px 'Instrument Sans', system-ui, sans-serif";
     wrap(g, d.lead, c.width - 112).forEach(l => { g.fillText(l, 56, y); y += 43; });
     y += 26;
 
     d.items.forEach(it => {
-      g.strokeStyle = 'rgba(237,232,220,.14)';
+      g.strokeStyle = 'rgba(243,242,248,.14)';
       g.lineWidth = 2;
       g.beginPath(); g.moveTo(56, y); g.lineTo(c.width - 56, y); g.stroke();
       y += 26;
@@ -513,17 +568,17 @@ class SolarSystem extends HTMLElement {
       g.fillText(String(it.k).toUpperCase(), 56, y);
       y += 38;
       if (it.t) {
-        g.fillStyle = '#ede8dc';
-        g.font = "600 38px 'Bricolage Grotesque', system-ui, sans-serif";
+        g.fillStyle = '#f3f2f8';
+        g.font = "600 38px 'Poppins', system-ui, sans-serif";
         wrap(g, it.t, c.width - 112).forEach(l => { g.fillText(l, 56, y); y += 46; });
       }
-      g.fillStyle = it.t ? '#8e8899' : '#ede8dc';
+      g.fillStyle = it.t ? '#8f8aa3' : '#f3f2f8';
       g.font = (it.t ? "400 30px" : "400 34px") + " 'Instrument Sans', system-ui, sans-serif";
       wrap(g, it.d, c.width - 112).forEach(l => { g.fillText(l, 56, y); y += 41; });
       y += 24;
     });
 
-    g.fillStyle = '#6c667a';
+    g.fillStyle = '#6c6782';
     g.font = "400 26px 'Instrument Sans', system-ui, sans-serif";
     g.fillText('Arahkan controller ke planet lain untuk berpindah', 56, c.height - 62);
     const t = new THREE.CanvasTexture(c);
@@ -1162,7 +1217,7 @@ class SolarSystem extends HTMLElement {
     rows.forEach(row => {
       const { p, el, d, x, y, behind } = row;
       el.style.transform = 'translate(-50%, -50%) translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
-      el.style.borderColor = this.active === p.id ? '#ff5c2b' : (this.hover === p.id ? '#6fe3b8' : 'rgba(237,232,220,.18)');
+      el.style.borderColor = this.active === p.id ? '#9E94F9' : (this.hover === p.id ? '#a99bf2' : 'rgba(243,242,248,.18)');
 
       const bwHalf = ((el.offsetWidth || 120) / 2) + 6;
       const bhHalf = ((el.offsetHeight || 30) / 2) + 4;
@@ -1308,6 +1363,15 @@ class SolarSystem extends HTMLElement {
     this.sunCore.rotation.y = t * 0.05;
     this.sunWire.rotation.y = -t * 0.07;
     this.sunWire.rotation.x = Math.sin(t * 0.2) * 0.12;
+
+    // breathing corona and gently twinkling particles
+    const pulse = 1 + Math.sin(t * 1.4) * 0.045 + Math.sin(t * 3.1) * 0.02;
+    this.sunGlow.scale.set(15 * pulse, 15 * pulse, 1);
+    this.sunHaze.scale.set(30 * (2 - pulse), 30 * (2 - pulse), 1);
+    this.sunGlow.material.opacity = 0.9 + Math.sin(t * 1.4) * 0.1;
+    this.sunCore.material.emissiveIntensity = 2.4 + Math.sin(t * 1.4) * 0.35;
+    this.stars.material.opacity = 0.8 + Math.sin(t * 0.9) * 0.12 + Math.sin(t * 2.3) * 0.05;
+    this.dust.material.opacity = 0.5 + Math.sin(t * 1.1 + 2) * 0.12;
 
     if (this.renderer.xr.isPresenting) return this.mode === 'ar' ? this._arFrame(frame) : this._xrFrame();
 

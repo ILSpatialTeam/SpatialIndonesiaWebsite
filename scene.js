@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.184.0/build/three.module.js';
 
-const INK = 0x0f0d14, ACCENT = 0xff5c2b, MINT = 0x6fe3b8, PAPER = 0xede8dc;
+const INK = 0x121116, ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8;
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -60,7 +60,7 @@ class SpatialScene extends HTMLElement {
     // solid core
     const core = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.72, 0),
-      new THREE.MeshStandardMaterial({ color: 0x1b1826, roughness: 0.35, metalness: 0.5, flatShading: true })
+      new THREE.MeshStandardMaterial({ color: 0x1c1930, roughness: 0.35, metalness: 0.5, flatShading: true })
     );
     core.name = 'core';
     field.add(core);
@@ -93,7 +93,7 @@ class SpatialScene extends HTMLElement {
     // anchors drifting in the volume
     this.anchors = [];
     const anchorGeo = new THREE.OctahedronGeometry(0.062, 0);
-    const anchorMat = new THREE.MeshStandardMaterial({ color: PAPER, roughness: 0.4, metalness: 0.2, emissive: 0x221a16 });
+    const anchorMat = new THREE.MeshStandardMaterial({ color: PAPER, roughness: 0.4, metalness: 0.2, emissive: 0x1e1a3a });
     for (let i = 0; i < 22; i++) {
       const a = new THREE.Mesh(anchorGeo, anchorMat);
       a.name = 'anchor' + i;
