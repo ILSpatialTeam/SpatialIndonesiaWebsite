@@ -1,4 +1,6 @@
-import * as THREE from 'https://unpkg.com/three@0.184.0/build/three.module.js';
+// build terkompresi: three.module.js + three.core.js versi mentah berjumlah
+// 2,08 MB dan harus diurai browser sebelum satu pun frame digambar
+import * as THREE from 'https://unpkg.com/three@0.184.0/build/three.module.min.js';
 import { ARTICLES, CATEGORIES, FREQ } from './insight-data.js';
 
 const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP = 0x2a1fc9;
@@ -15,6 +17,12 @@ const MET_TRAIL = 24, MET_SPAWN_R = 86, MET_HEALTH = 100, MET_COOL = 0.11;
 const MOON_LIVE = 0.35;
 // how close the camera parks to a moon while reading, as a multiple of its radius
 const READ_DOCK = 3.6;
+// Headset menggambar dua mata pada resolusi penuh perangkat. Ini pengungkit
+// terbesar untuk sesi yang tersendat: 0,8 berarti 36% piksel lebih sedikit,
+// nyaris tak terlihat di mata tapi terasa jelas di frame rate.
+const XR_FB_SCALE = 0.8;
+// ruas cincin progres tatapan; busurnya dipotong lewat draw range, bukan geometri baru
+const ARC_SEG = 40;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -146,7 +154,10 @@ class SolarSystem extends HTMLElement {
     this.canvas = canvas;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    // layar sentuh rapat piksel: 2x devicePixelRatio menggandakan beban isi layar
+    // tanpa bisa dibedakan mata pada jarak pegang
+    const coarse = matchMedia('(pointer: coarse)').matches;
+    renderer.setPixelRatio(Math.min(devicePixelRatio, coarse ? 1.75 : 2));
     renderer.xr.enabled = true;
     this.renderer = renderer;
 
@@ -742,12 +753,13 @@ class SolarSystem extends HTMLElement {
     gaze.add(rim);
 
     const arc = new THREE.Mesh(
-      new THREE.RingGeometry(0.0092, 0.0126, 40, 1, Math.PI / 2, 0.0001),
+      new THREE.RingGeometry(0.0092, 0.0126, ARC_SEG, 1, Math.PI / 2, -Math.PI * 2),
       new THREE.MeshBasicMaterial({ color: MINT, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide })
     );
     arc.name = 'gazeProgress';
     arc.renderOrder = 1000;
     gaze.add(arc);
+    arc.geometry.setDrawRange(0, 0);
     this.gazeArc = arc;
     this.gazeDot = dot;
     this.gazeRim = rim;
@@ -833,8 +845,9 @@ class SolarSystem extends HTMLElement {
     const frac = clamp(f, 0, 1);
     if (Math.abs((this._arcFrac || 0) - frac) < 0.012) return;
     this._arcFrac = frac;
-    if (this.gazeArc.geometry) this.gazeArc.geometry.dispose();
-    this.gazeArc.geometry = new THREE.RingGeometry(0.0092, 0.0126, 40, 1, Math.PI / 2, -Math.max(0.0001, frac * Math.PI * 2));
+    // dulu tiap perubahan membuang lalu membuat RingGeometry baru — puluhan
+    // alokasi per detik di dalam loop XR, dan sampah itulah yang jadi tersendat
+    this.gazeArc.geometry.setDrawRange(0, Math.ceil(frac * ARC_SEG) * 6);
     this.gazeArc.material.color.set(frac > 0.985 ? ACCENT : MINT);
   }
 
@@ -859,8 +872,11 @@ class SolarSystem extends HTMLElement {
   }
 
   _activeTargets() {
+    // dipanggil tiga kali per frame (dua controller + tatapan); daftarnya sama
+    const f = this.renderer.info.render.frame;
+    if (this._tgtFrame === f && this._tgtCache) return this._tgtCache;
     const ar = this.mode === 'ar';
-    return this.xrTargets.filter(o => {
+    const list = this.xrTargets.filter(o => {
       const k = o.userData && o.userData.kind;
       if ((k === 'move' || k === 'near' || k === 'far') && !ar) return false;
       let n = o;
@@ -870,6 +886,9 @@ class SolarSystem extends HTMLElement {
       }
       return true;
     });
+    this._tgtFrame = f;
+    this._tgtCache = list;
+    return list;
   }
 
   _xrRay(source) {
@@ -1090,7 +1109,6 @@ class SolarSystem extends HTMLElement {
       };
     });
     this.moonHits = this.moons.map(m => m.hit);
-    this._buildReadStage();
   }
 
   // A lunar surface worth filling a third of the screen with. Drawn once and
@@ -1290,6 +1308,9 @@ class SolarSystem extends HTMLElement {
   openArticle(slug) {
     const m = this.moons && this.moons.find(x => x.slug === slug);
     if (!m || this.renderer.xr.isPresenting) return;
+    // tekstur 2048x1024 dan bola 128 segmen itu mahal dibuat, dan sebagian besar
+    // pengunjung (termasuk semua sesi VR) tidak pernah membuka artikel
+    if (!this.read) this._buildReadStage();
     if (this.active !== 'insight') this.travelTo('insight');
     this.moonFocus = slug;
     this.dockDist = READ_DOCK;
@@ -1692,8 +1713,15 @@ class SolarSystem extends HTMLElement {
     hud.name = 'meteorHud';
     hud.renderOrder = 998;
     hud.visible = false;
+    this._metCanvas = makeCanvas(768, 192);
+    this._metTex = new THREE.CanvasTexture(this._metCanvas);
+    this._metTex.colorSpace = THREE.SRGBColorSpace;
+    hud.material.map = this._metTex;
     this.scene.add(hud);
     this.metHud = hud;
+    // vektor kerja untuk tembakan tatapan, supaya loop XR tidak mengalokasi
+    this._gO = new THREE.Vector3();
+    this._gD = new THREE.Vector3();
   }
 
   _makeMeteor() {
@@ -2033,7 +2061,10 @@ class SolarSystem extends HTMLElement {
       M.spawnT -= dt;
       let alive = 0;
       M.pool.forEach(m => { if (m.alive) alive++; });
-      if (M.spawnT <= 0 && alive < M.maxAlive) {
+      // tiap batu itu tiga gambar (inti, pijar, jejak) dan di headset semuanya
+      // digambar dua kali; gelombang tinggi dibatasi supaya frame tetap stabil
+      const cap = this.renderer.xr.isPresenting ? Math.min(M.maxAlive, 10) : M.maxAlive;
+      if (M.spawnT <= 0 && alive < cap) {
         this._spawnMeteor();
         M.spawnT = M.gap * (0.72 + Math.random() * 0.56);
       }
@@ -2073,9 +2104,11 @@ class SolarSystem extends HTMLElement {
   }
 
   // canvas readout that rides in front of the viewer while playing in VR
-  _metHudTexture() {
+  // digambar ulang di kanvas yang sama: satu tekstur untuk seumur sesi, bukan
+  // CanvasTexture baru tiap kali skor berubah
+  _metHudPaint() {
     const M = this.met;
-    const c = makeCanvas(768, 192);
+    const c = this._metCanvas;
     const g = c.getContext('2d');
     g.clearRect(0, 0, 768, 192);
     g.fillStyle = 'rgba(18,17,22,.82)';
@@ -2108,9 +2141,7 @@ class SolarSystem extends HTMLElement {
       g.font = '600 30px Poppins, sans-serif';
       g.fillText('SISTEM RUNTUH', 540, 148);
     }
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
+    this._metTex.needsUpdate = true;
   }
 
   _metHudFrame() {
@@ -2120,9 +2151,7 @@ class SolarSystem extends HTMLElement {
     const stamp = M.health + '|' + M.score + '|' + M.wave + '|' + (M.over ? 1 : 0);
     if (this._metStamp !== stamp) {
       this._metStamp = stamp;
-      if (hud.material.map) hud.material.map.dispose();
-      hud.material.map = this._metHudTexture();
-      hud.material.needsUpdate = true;
+      this._metHudPaint();
     }
     hud.visible = true;
     const cam = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
@@ -2255,6 +2284,9 @@ class SolarSystem extends HTMLElement {
     }
     this.xrFloor = space === 'local-floor';
     this.renderer.xr.setReferenceSpaceType(space);
+    // harus disetel sebelum setSession: three memakainya saat membuat XRWebGLLayer
+    if (this.renderer.xr.setFramebufferScaleFactor) this.renderer.xr.setFramebufferScaleFactor(XR_FB_SCALE);
+    if (this.renderer.xr.setFoveation) this.renderer.xr.setFoveation(1);
     // kanvas halaman memang transparan, tapi di dalam headset latar itu harus
     // padat — kalau tidak, langitnya ikut kosong
     this._prevClearAlpha = this.renderer.getClearAlpha();
@@ -2270,11 +2302,24 @@ class SolarSystem extends HTMLElement {
     this.xrHome.set = false;
     this.planets.forEach(p => { p.tag.visible = true; });
     this.sunTag.visible = true;
+    this._xrDiet(true);
     session.addEventListener('end', () => this._exitXR());
     return session;
   }
 
+  // Di layar, kabut bintang dan korona besar itu murah. Di headset keduanya
+  // digambar dua kali pada resolusi penuh dengan additive blending — persis
+  // jenis beban yang membuat sesi tersendat. Jadi selama presenting, jumlahnya
+  // dipangkas, bukan kualitas geometrinya.
+  _xrDiet(on) {
+    if (this.stars) this.stars.geometry.setDrawRange(0, on ? 1100 : Infinity);
+    if (this.dust) this.dust.visible = !on;
+    if (this.sunHaze) this.sunHaze.visible = !on;
+  }
+
   _exitXR() {
+    this._xrDiet(false);
+    if (this.renderer.xr.setFramebufferScaleFactor) this.renderer.xr.setFramebufferScaleFactor(1);
     this.world.scale.setScalar(1);
     this.world.position.set(0, 0, 0);
     this.xrRoot.visible = false;
@@ -2296,7 +2341,6 @@ class SolarSystem extends HTMLElement {
     if (this.hitSource && this.hitSource.cancel) { try { this.hitSource.cancel(); } catch (e) {} }
     this.hitSource = null;
     this.stars.visible = true;
-    this.dust.visible = true;
     this.scene.fog = this.baseFog;
     this.xrDock.scale.setScalar(1);
     this.xrPanel.scale.setScalar(1);
@@ -2448,11 +2492,11 @@ class SolarSystem extends HTMLElement {
       // sekarang: begitu tak ada, reticle tatapan yang jadi pembidiknya
       const live = (this.controllers || []).some(c => c.userData.connected === true);
       if (!armed && !live && this.met.cool <= 0) {
-        const o = new THREE.Vector3().setFromMatrixPosition(cam.matrixWorld);
-        const d = new THREE.Vector3(0, 0, -1).transformDirection(cam.matrixWorld).normalize();
+        const o = this._gO.setFromMatrixPosition(cam.matrixWorld);
+        const d = this._gD.set(0, 0, -1).transformDirection(cam.matrixWorld).normalize();
         this.ray.set(o, d);
-        const live = this.met.hits.filter(h => h.visible);
-        if (live.length && this.ray.intersectObjects(live, false)[0]) this._fireRay(o, d, [o.clone()]);
+        const rocks = this.met.hits.filter(h => h.visible);
+        if (rocks.length && this.ray.intersectObjects(rocks, false)[0]) this._fireRay(o, d, [o]);
       }
     }
 
