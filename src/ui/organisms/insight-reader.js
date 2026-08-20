@@ -159,6 +159,14 @@ html.pn-read [data-ui="vignette"] { opacity: 0 !important; pointer-events: none 
 
 /* -- dokumen -- */
 .pn-doc { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; pointer-events: none; scrollbar-width: none; opacity: 0; transition: opacity .55s ease .1s; }
+/* Perangkat yang menunjuk lewat sentuhan atau tatapan — ponsel, tablet, dan
+   Vision Pro (cubitan datang sebagai pointer bertipe "touch") — tidak punya
+   cara lain menggulir selain menyeret di atas bacaan. Di sana seluruh
+   permukaan bacaan yang menerima masukan, bukan kolom teksnya saja; kalau
+   tidak, seretan yang jatuh di margin tembus ke kanvas yang ber-touch-action:
+   none dan bacaannya diam di tempat. Jendela Safari di Vision Pro itu lebar,
+   jadi patokan lebar layar tidak pernah menangkapnya. */
+html.pn-touch .pn-root[data-view="read"] .pn-doc { pointer-events: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
 .pn-doc::-webkit-scrollbar { display: none; }
 .pn-root[data-view="read"] .pn-doc.lit { opacity: 1; }
 .pn-root[data-view="manifest"] .pn-doc { display: none; }
@@ -283,6 +291,16 @@ const warp = el('div', { class: 'pn-warp' }, [el('div', { class: 's' }), el('div
 root.append(scrim, links, manifest, doc, topfade, back, tel);
 document.head.appendChild(el('style', { text: CSS }));
 document.body.append(root, warp);
+
+// Perangkat yang punya sentuhan sama sekali langsung dianggap perangkat
+// sentuh dan tidak pernah diturunkan lagi: satu-satunya kerugiannya adalah
+// tidak bisa menoleh selama artikel terbuka, sementara kerugian sebaliknya
+// adalah bacaan yang tidak bisa digulir sama sekali. Perangkat yang mengaku
+// tidak punya sentuhan tetap bisa naik kelas begitu pointer non-tetikus
+// pertama muncul — jaring pengaman kalau headset melaporkan dirinya keliru.
+const touchMode = on => { if (on) document.documentElement.classList.add('pn-touch'); };
+touchMode(navigator.maxTouchPoints > 0 || matchMedia('(any-pointer: coarse)').matches);
+addEventListener('pointerdown', e => { if (e.pointerType && e.pointerType !== 'mouse') touchMode(true); }, { capture: true, passive: true });
 
 const view = v => root.setAttribute('data-view', v);
 const current = () => root.getAttribute('data-view');
