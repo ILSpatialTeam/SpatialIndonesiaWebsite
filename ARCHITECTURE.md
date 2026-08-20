@@ -30,6 +30,7 @@ src/
     agenda-orbit.js     orbit sebagai kalender
     trails.js           jejak penjelajah
     aurora.js           tirai cahaya
+    milkyway.js         galaksi spiral yang mengelilingi tata surya
     meteor.js           permainan pertahanan
 
   scene/

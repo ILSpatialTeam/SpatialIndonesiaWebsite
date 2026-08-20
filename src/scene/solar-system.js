@@ -20,6 +20,7 @@ import { createSkyLore } from '../systems/sky-lore.js';
 import { createAgendaOrbit } from '../systems/agenda-orbit.js';
 import { createTrails } from '../systems/trails.js';
 import { createAurora } from '../systems/aurora.js';
+import { createMilkyWay } from '../systems/milkyway.js';
 import { createMeteorGame } from '../systems/meteor.js';
 
 // point sprites diukur dalam satuan dunia dan mengabaikan skala objek, jadi
@@ -270,6 +271,7 @@ class SolarSystem extends HTMLElement {
     this.sysAgenda = this.systems.add(createAgendaOrbit);
     this.trails = this.systems.add(createTrails);
     this.sysAurora = this.systems.add(createAurora);
+    this.milkyway = this.systems.add(createMilkyWay);
     this.meteor = this.systems.add(createMeteorGame);
     this.systems.build();
 
@@ -1015,6 +1017,7 @@ class SolarSystem extends HTMLElement {
       get baseFov() { return el.baseFov || 52; },
       get mode() { return el.mode; },
       get xrHome() { return el.xrHome; },
+      get readDim() { return el.readDim || 0; },
       setFov(v) { el.camera.fov = v; el.camera.updateProjectionMatrix(); },
       freeFlight() { el.freeFlight(); },
       closeArticle() { el.closeArticle(); },
@@ -1036,6 +1039,7 @@ class SolarSystem extends HTMLElement {
   setTrails(on) { return this.trails ? this.trails.toggle(on) : false; }
   presenceCount() { return this.trails ? this.trails.count() : 0; }
   setAurora(on) { return this.sysAurora ? this.sysAurora.toggle(on) : false; }
+  setMilkyWay(on) { return this.milkyway ? this.milkyway.toggle(on) : false; }
   agendaNow() { return this.sysAgenda ? this.sysAgenda.state() : null; }
   setMeteorMode(on) { return this.meteor ? this.meteor.setMode(on) : false; }
   restartMeteor() { if (this.meteor) this.meteor.restart(); }
@@ -1842,6 +1846,7 @@ class SolarSystem extends HTMLElement {
   // jenis beban yang membuat sesi tersendat. Jadi selama presenting, jumlahnya
   // dipangkas, bukan kualitas geometrinya.
   _xrDiet(on) {
+    if (this.milkyway) this.milkyway.setGain(on ? 0.45 : 1);
     if (this.stars) this.stars.geometry.setDrawRange(0, on ? 1100 : Infinity);
     if (this.dust) this.dust.visible = !on;
     if (this.sunHaze) this.sunHaze.visible = !on;

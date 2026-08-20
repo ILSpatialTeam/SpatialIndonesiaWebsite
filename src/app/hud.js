@@ -40,6 +40,10 @@ const auroraBtn = instrument('aurora', 'aurora', 'Aurora', () => {
   const s = scene();
   if (s && s.setAurora) auroraBtn.classList.toggle('on', s.setAurora());
 });
+const galaxyBtn = instrument('galaxy', 'galaxy', 'Galaksi', () => {
+  const s = scene();
+  if (s && s.setMilkyWay) galaxyBtn.classList.toggle('on', s.setMilkyWay());
+});
 const trailsBtn = instrument('trails', 'trails', 'Jejak penjelajah', () => {
   const s = scene();
   if (s && s.setTrails) trailsBtn.classList.toggle('on', s.setTrails());
@@ -61,7 +65,7 @@ mountAudioButton(audioBtn);
 const cluster = createCluster({
   status: statusOrb.node,
   modes: [meteorBtn, arBtn, portal],
-  tools: [boardBtn, skyBtn, auroraBtn, trailsBtn, audioBtn, cardBtn, focusBtn, fullBtn]
+  tools: [boardBtn, skyBtn, galaxyBtn, auroraBtn, trailsBtn, audioBtn, cardBtn, focusBtn, fullBtn]
 });
 
 /* ---------- pasang ---------- */
@@ -111,6 +115,12 @@ document.addEventListener('trails', e => {
   const d = e.detail || {};
   trailsBtn.classList.toggle('on', !!d.on);
   if (d.on) signal(d.count + ' penjelajah terakhir meninggalkan jejaknya di sini. Yang paling terang baru saja lewat.');
+});
+
+// galaksi menyala sejak awal, jadi keadaan tombolnya datang dari scene —
+// bukan ditebak di sini
+document.addEventListener('milkyway', e => {
+  galaxyBtn.classList.toggle('on', !!(e.detail && e.detail.on));
 });
 
 // aurora selalu muncul di tempat berbeda, jadi sebutkan di mana ia menyala
