@@ -1,0 +1,3 @@
+# hasil rakitan — dibuat ulang dengan `node build.mjs`, tidak perlu ikut repo
+dist/
+.DS_Store

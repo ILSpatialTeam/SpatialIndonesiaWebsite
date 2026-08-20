@@ -26,6 +26,23 @@
   @keyframes sheetIn { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes pulseRing { 0%, 100% { opacity: .5; transform: scale(1); } 50% { opacity: .9; transform: scale(1.12); } }
+  /* Penanda planet: tiap menu punya bentuk tata suryanya sendiri, bukan titik
+     yang sama semua. Ikonnya dipakai sebagai mask, jadi warnanya datang dari
+     palet kita — bukan dari warna bawaan berkas SVG-nya. */
+  [data-planet-icon] {
+    flex: 0 0 auto; width: 17px; height: 17px;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: center; mask-position: center;
+    -webkit-mask-size: contain; mask-size: contain;
+  }
+  [data-planet-icon="inti"] { background: linear-gradient(145deg, #cfc9ff 6%, #6a5ae0 94%); filter: drop-shadow(0 0 5px rgba(106,90,224,.5)); -webkit-mask-image: url(assets/icons/icon-1.svg); mask-image: url(assets/icons/icon-1.svg); }
+  [data-planet-icon="program"] { background: linear-gradient(145deg, #e0dbff 6%, #8b7ff0 94%); filter: drop-shadow(0 0 5px rgba(139,127,240,.45)); -webkit-mask-image: url(assets/icons/icon-4.svg); mask-image: url(assets/icons/icon-4.svg); }
+  [data-planet-icon="karya"] { background: linear-gradient(145deg, #c3baff 6%, #5f4fd8 94%); filter: drop-shadow(0 0 5px rgba(95,79,216,.5)); -webkit-mask-image: url(assets/icons/icon-3.svg); mask-image: url(assets/icons/icon-3.svg); }
+  [data-planet-icon="event"] { background: linear-gradient(145deg, #ffffff 6%, #a9a3c4 94%); filter: drop-shadow(0 0 5px rgba(243,242,248,.4)); -webkit-mask-image: url(assets/icons/icon-6.svg); mask-image: url(assets/icons/icon-6.svg); }
+  [data-planet-icon="insight"] { background: linear-gradient(145deg, #c2bbff 6%, #4b3ce0 94%); filter: drop-shadow(0 0 5px rgba(75,60,224,.55)); -webkit-mask-image: url(assets/icons/icon-5.svg); mask-image: url(assets/icons/icon-5.svg); }
+  [data-planet-icon="tim"] { background: linear-gradient(145deg, #ffffff 6%, #b5aed0 94%); filter: drop-shadow(0 0 5px rgba(243,242,248,.38)); -webkit-mask-image: url(assets/icons/icon-2.svg); mask-image: url(assets/icons/icon-2.svg); }
+  [data-planet-icon="gabung"] { background: linear-gradient(145deg, #d6d0ff 6%, #6a5ae0 94%); filter: drop-shadow(0 0 5px rgba(106,90,224,.5)); -webkit-mask-image: url(assets/icons/icon-7.svg); mask-image: url(assets/icons/icon-7.svg); }
+  @media (max-width: 779px) { [data-planet-icon] { width: 15px; height: 15px; } }
   /* pembukaan: logo yang menyala jadi tata surya kecil, bukan bilah progres */
   @keyframes markBoot { 0% { opacity: 0; transform: scale(.5) rotate(-22deg); } 62% { opacity: 1; transform: scale(1.08) rotate(3deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
   @keyframes markFloat { 0%, 100% { transform: translateY(-4px) rotate(-2.5deg) scale(1); } 50% { transform: translateY(5px) rotate(2.5deg) scale(1.045); } }
@@ -33,9 +50,7 @@
   @keyframes ringRise { from { opacity: 0; transform: rotateX(88deg) scale(.6); } }
   @keyframes bootLabel { 0%, 100% { opacity: .45; letter-spacing: .34em; } 50% { opacity: 1; letter-spacing: .4em; } }
 </style>
-<script type="module" src="./solar.js"></script>
-<script type="module" src="./insight-reader.js"></script>
-<script type="module" src="./meteor.js"></script>
+<script type="module" src="./src/main.js"></script>
 </helmet>
 <div data-ui="arlayer" style="position: relative; width: 100%; height: 100dvh; background: #121116; color: #f3f2f8; overflow: hidden; font-size: 14px;">
 
@@ -45,36 +60,36 @@
 
   <div onClick="{{ onGoto }}" style="position: absolute; inset: 0; z-index: 20; pointer-events: none;">
     <div data-planet-label="inti" data-goto="inti" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #9E94F9;"></span>
+      <span data-planet-icon="inti"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px; letter-spacing: .02em;">Inti — Visi &amp; Misi</span>
     </div>
     <div data-planet-label="program" data-goto="program" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #a99bf2;"></span>
+      <span data-planet-icon="program"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Program</span>
     </div>
     <div data-planet-label="karya" data-goto="karya" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #9E94F9;"></span>
+      <span data-planet-icon="karya"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Karya</span>
     </div>
     <div data-planet-label="event" data-goto="event" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #f3f2f8;"></span>
+      <span data-planet-icon="event"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Event</span>
     </div>
     <div data-planet-label="insight" data-goto="insight" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #a99bf2;"></span>
+      <span data-planet-icon="insight"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Insight</span>
     </div>
     <div data-planet-label="tim" data-goto="tim" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #f3f2f8;"></span>
+      <span data-planet-icon="tim"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Tim</span>
     </div>
     <div data-planet-label="gabung" data-goto="gabung" style="position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(243,242,248,.18); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(6px); cursor: pointer; white-space: nowrap; opacity: 0;">
-      <span style="width: 6px; height: 6px; border-radius: 50%; background: #9E94F9;"></span>
+      <span data-planet-icon="gabung"></span>
       <span style="font-family: 'Poppins', sans-serif; font-size: 13px;">Gabung</span>
     </div>
   </div>
 
-  <div style="position: absolute; inset: 16px; z-index: 25; pointer-events: none; border: 1px solid rgba(243,242,248,.07);">
+  <div data-ui="frame" style="position: absolute; inset: 16px; z-index: 25; pointer-events: none; border: 1px solid rgba(243,242,248,.07);">
     <span style="position: absolute; top: -1px; left: -1px; width: 22px; height: 22px; border-top: 1px solid #9E94F9; border-left: 1px solid #9E94F9;"></span>
     <span style="position: absolute; top: -1px; right: -1px; width: 22px; height: 22px; border-top: 1px solid #9E94F9; border-right: 1px solid #9E94F9;"></span>
     <span style="position: absolute; bottom: -1px; left: -1px; width: 22px; height: 22px; border-bottom: 1px solid #9E94F9; border-left: 1px solid #9E94F9;"></span>
@@ -92,7 +107,6 @@
     <div data-ui="brandgroup" style="display: flex; align-items: center; gap: 9px; min-width: 0;">
       <img src="assets/si-mark.png" srcset="assets/si-mark.png 1x, assets/si-mark-3x.png 3x" alt="Spatial Indonesia" width="24" height="24" style="display: block; flex: 0 0 auto; width: 24px; height: auto;" />
       <span data-ui="brand" style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap;">Spatial Indonesia</span>
-      <span data-ui="brandtag" style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 4px; font-size: 10px; letter-spacing: .18em; color: #8f8aa3; white-space: nowrap;">SISTEM SPATIAL</span>
     </div>
     <div data-ui="actiongroup" style="display: flex; align-items: center; gap: 12px; pointer-events: auto; flex: 0 0 auto;">
       <div data-ui="mode" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(243,242,248,.14); border-radius: 999px; background: rgba(18,17,22,.55); font-size: 11px; letter-spacing: .16em; color: #8f8aa3;">
@@ -303,23 +317,7 @@
     </div>
     <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Event &amp; meetup</h2>
     <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Jadwal terdekat. Klik untuk daftar lewat planet Gabung.</p>
-    <div style="display: flex; flex-direction: column;">
-      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(243,242,248,.1);">
-        <span style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #9E94F9;">Bulan ini</span>
-        <span style="font-size: 17px; font-weight: 500;">XR Meetup — demo malam</span>
-        <span style="font-size: 12.5px; color: #8f8aa3;">Jakarta · Terbuka</span>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(243,242,248,.1);">
-        <span style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #9E94F9;">Segera</span>
-        <span style="font-size: 17px; font-weight: 500;">Workshop WebXR untuk pemula</span>
-        <span style="font-size: 12.5px; color: #8f8aa3;">Online · Kuota terbatas</span>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 5px; padding: 18px 0; border-top: 1px solid rgba(243,242,248,.1); border-bottom: 1px solid rgba(243,242,248,.1);">
-        <span style="font-family: 'Poppins', sans-serif; font-size: 12px; color: #9E94F9;">Rencana</span>
-        <span style="font-size: 17px; font-weight: 500;">Open Build showcase day</span>
-        <span style="font-size: 12.5px; color: #8f8aa3;">Bandung · Menunggu tanggal</span>
-      </div>
-    </div>
+    <div data-agenda-list="1" style="display: flex; flex-direction: column;"></div>
   </div>
 
   <div data-panel="insight" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">

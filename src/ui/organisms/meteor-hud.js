@@ -11,6 +11,8 @@
 // insight-reader.js, seluruh DOM-nya dipasang ke document.body, di luar pohon
 // React milik Design Canvas, supaya tidak ikut ter-render ulang.
 
+import { audioContext, noiseSource } from '../../core/audio.js';
+
 const el = (tag, attrs, kids) => {
   const n = document.createElement(tag);
   if (attrs) for (const k in attrs) {
@@ -348,25 +350,9 @@ document.body.append(root, aim, tap);
 // tidak layak menambah unduhan
 
 const sfx = (() => {
-  let ctx = null, muted = false;
-  const ac = () => {
-    if (!ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      ctx = new AC();
-    }
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  };
-  const noise = (c, dur) => {
-    const n = Math.floor(c.sampleRate * dur);
-    const buf = c.createBuffer(1, n, c.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
-    const src = c.createBufferSource();
-    src.buffer = buf;
-    return src;
-  };
+  let muted = false;
+  const ac = audioContext;
+  const noise = noiseSource;
   return {
     mute(v) { muted = v === undefined ? !muted : !!v; return muted; },
     muted() { return muted; },
@@ -466,7 +452,7 @@ const sfx = (() => {
     },
     // deru mesin pelan selama kamu duduk di kokpit
     drone(want) {
-      const c = (want && !muted) ? ac() : ctx;
+      const c = (want && !muted) ? ac() : audioContext();
       if (!c) return;
       if (want && !muted) {
         if (this._drone) return;

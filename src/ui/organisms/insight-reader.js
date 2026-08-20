@@ -8,7 +8,7 @@
 //
 // Seluruhnya dipasang ke document.body, di luar pohon React milik Design Canvas,
 // supaya tidak ikut ter-render ulang.
-import { ARTICLES, CATEGORIES, FREQ, SEED_SPARING } from './insight-data.js';
+import { ARTICLES, CATEGORIES, FREQ, SEED_SPARING } from '../../data/insight.js';
 
 const KEY = 'si.insight.v2';
 const NARROW = 780;
