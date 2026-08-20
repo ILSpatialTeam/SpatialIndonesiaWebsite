@@ -18,6 +18,9 @@ export const ICON = {
   audio: ['M4 9.5h3.2L12 5.5v13l-4.8-4H4z', 'M16.2 9.2a4 4 0 0 1 0 5.6', 'M18.8 6.6a7.6 7.6 0 0 1 0 10.8'],
   card: [{ t: 'rect', x: 2.6, y: 5, width: 18.8, height: 14, rx: 2.2 }, 'M2.6 15.4 8 10.6l4.2 3.6 3.2-2.6 6 5', { t: 'circle', cx: 8.6, cy: 9.2, r: 1.3 }],
   aurora: ['M3.5 20.5c1.8-4.4 1.6-9.4-.6-13.4', 'M9 21c2.3-5.2 2-11-.4-15.4', 'M14.8 20.6c2.4-5 2.1-10.8-.2-15', 'M20.4 19.6c1.6-3.9 1.4-8.3-.4-11.8'],
+  // spiral berlengan dua dengan inti terang — bentuk yang sama dengan yang
+  // digambar sistemnya, jadi tombolnya menjanjikan apa yang benar-benar muncul
+  galaxy: ['M12 8.4c2.6-.9 5.6.4 6.4 2.9.9 2.9-1.1 6-4.1 6.8-3.6 1-7.4-1.3-8.4-5', 'M12 15.6c-2.6.9-5.6-.4-6.4-2.9-.9-2.9 1.1-6 4.1-6.8 3.6-1 7.4 1.3 8.4 5', { t: 'circle', cx: 12, cy: 12, r: 1.5 }],
   board: [{ t: 'circle', cx: 12, cy: 12, r: 2 }, 'M7.6 7.6a6.2 6.2 0 0 0 0 8.8M16.4 16.4a6.2 6.2 0 0 0 0-8.8', 'M4.7 4.7a10 10 0 0 0 0 14.6M19.3 19.3a10 10 0 0 0 0-14.6'],
   chevL: ['M14.5 6 9 12l5.5 6'],
   chevR: ['M9.5 6 15 12l-5.5 6']

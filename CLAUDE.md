@@ -105,14 +105,14 @@ three.js. Keduanya bicara lewat `core/bus.js`.
 Scene memancarkan, UI mendengarkan. Sisi 3D tidak pernah memanggil UI langsung:
 
 `scene-ready` · `planet-focus` / `planet-free` / `planet-hover` ·
-`agenda` · `sky-lore` / `sky-aim` · `trails` · `aurora` ·
+`agenda` · `sky-lore` / `sky-aim` · `trails` · `aurora` · `milkyway` ·
 `meteor-start` / `meteor-armed` / `meteor-end` / `meteor-hit` / `meteor-shot` /
 `meteor-hud` / `meteor-over` / `meteor-restart` · `insight-open` / `insight-close` ·
 `xr-support` / `xr-end` / `xr-error` · `ar-support` / `ar-start` / `ar-placed`
 
 Elemen `<solar-system>` juga punya API publik yang dipakai HUD:
 `travelTo` · `freeFlight` · `setConstellations` / `skyReport` · `setTrails` /
-`presenceCount` · `setAurora` · `setMeteorMode` / `restartMeteor` / `fireAt` ·
+`presenceCount` · `setAurora` · `setMilkyWay` · `setMeteorMode` / `restartMeteor` / `fireAt` ·
 `agendaNow` · `systemMap` (data peta orbit + panning audio) · `snapshot`
 (kartu pos) · `openArticle` / `closeArticle` · `enterVR` / `enterAR`.
 
@@ -142,7 +142,7 @@ penyesuaian tata letak global.
 
 - **Animasi keyframe dengan `fill: both` menimpa `transform` di media query.**
   Elemen yang dipusatkan dengan `translateX(-50%)` butuh keyframe versinya
-  sendiri per breakpoint (lihat `mtInX`/`mtInY`, `heroIn`).
+  sendiri per breakpoint (lihat `mtInX`/`mtInY` di `meteor-hud.js`).
 - **Kanvas 3D memakai `touch-action: none`.** Apa pun yang perlu digulir di layar
   sentuh harus menerima pointer sendiri, bukan mengandalkan elemen anak
   (`insight-reader.js` memakai kelas `pn-touch` dari jenis pointer, bukan lebar
