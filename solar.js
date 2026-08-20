@@ -12,6 +12,9 @@ const COMET_TRAIL = 96, COMET_SIZE = 2.4;
 // meteor mode: trail samples per rock, where they enter the system from, the
 // starting hull integrity, and the shortest gap between two laser bolts
 const MET_TRAIL = 24, MET_SPAWN_R = 86, MET_HEALTH = 100, MET_COOL = 0.11;
+// naik ke kokpit: lamanya urutan penyalaan sebelum batu pertama dilepas, dan
+// versi pendeknya saat mengulang permainan. Jarak kamera saat mendekat ke pos.
+const MET_ARM = 2.4, MET_REARM = 1.1, MET_FAR = 112, MET_STATION = 64;
 // insight moons: base sprite size for one sparing satellite, and the reveal
 // threshold above which moons start taking pointer hits away from the planet
 const MOON_LIVE = 0.35;
@@ -1700,7 +1703,7 @@ class SolarSystem extends HTMLElement {
     this.met = {
       group, beams,
       pool: [], hits: [], beamPool: [], bursts: [],
-      on: false, over: false, firing: false, cool: 0, lock: null, shake: 0,
+      on: false, over: false, firing: false, cool: 0, lock: null, shake: 0, arm: null,
       health: MET_HEALTH, score: 0, kills: 0, wave: 1,
       gap: 2.6, maxAlive: 3, speed: 4.6, spawnT: 1.4
     };
@@ -1889,14 +1892,14 @@ class SolarSystem extends HTMLElement {
   // screen aim: the crosshair is the barrel
   fireAt(ndc) {
     const M = this.met;
-    if (!M.on || M.over || M.cool > 0) return;
+    if (!M.on || M.over || M.arm || M.cool > 0) return;
     this.ray.setFromCamera(ndc || this.ndc, this.camera);
     this._fireRay(this.ray.ray.origin.clone(), this.ray.ray.direction.clone(), this._muzzles());
   }
 
   _fireFrom(source) {
     const M = this.met;
-    if (!M.on || M.over || M.cool > 0) return;
+    if (!M.on || M.over || M.arm || M.cool > 0) return;
     const o = new THREE.Vector3().setFromMatrixPosition(source.matrixWorld);
     const d = new THREE.Vector3(0, 0, -1).transformDirection(source.matrixWorld).normalize();
     this._fireRay(o, d, [o.clone()]);
@@ -2014,7 +2017,7 @@ class SolarSystem extends HTMLElement {
     M.health = MET_HEALTH;
     M.score = 0; M.kills = 0; M.wave = 1;
     M.gap = 2.6; M.maxAlive = 3; M.speed = 4.6; M.spawnT = 1.4;
-    M.over = false; M.firing = false; M.cool = 0; M.shake = 0; M.lock = null;
+    M.over = false; M.firing = false; M.cool = 0; M.shake = 0; M.lock = null; M.arm = null;
     this.planets.forEach(p => { p.mesh.userData.punch = 0; });
     this.dispatchEvent(new CustomEvent('meteor-aim', { detail: { locked: false }, bubbles: true }));
   }
@@ -2030,15 +2033,20 @@ class SolarSystem extends HTMLElement {
       this._resetMeteorGame();
       M.group.visible = true;
       this.moonPin = null;
-      this.dist = clamp(this.dist, 54, 76);
-      this.pitch = clamp(this.pitch, 0.1, 0.5);
+      // kapal datang dari jauh lalu merapat: jarak dan bidang pandang yang
+      // menganimasikannya, bukan potongan kamera
+      this.dist = MET_FAR;
+      this.pitch = clamp(this.pitch, 0.12, 0.42);
+      M.arm = { t: 0, t0: performance.now(), dur: MET_ARM, from: MET_FAR, to: MET_STATION };
       if (this.comet) this.setComet({ enabled: false });
-      this.dispatchEvent(new CustomEvent('meteor-start', { bubbles: true }));
+      this.dispatchEvent(new CustomEvent('meteor-start', { detail: { arming: MET_ARM }, bubbles: true }));
       this._meteorHud();
     } else {
       this._resetMeteorGame();
       M.group.visible = false;
       if (this.metHud) this.metHud.visible = false;
+      this.camera.fov = this.baseFov || 52;
+      this.camera.updateProjectionMatrix();
       this.dispatchEvent(new CustomEvent('meteor-end', { bubbles: true }));
     }
     if (this.renderer.xr.isPresenting) this._panelVisible(false);
@@ -2049,7 +2057,8 @@ class SolarSystem extends HTMLElement {
     const M = this.met;
     if (!M || !M.on) return;
     this._resetMeteorGame();
-    this.dispatchEvent(new CustomEvent('meteor-restart', { bubbles: true }));
+    M.arm = { t: 0, t0: performance.now(), dur: MET_REARM, from: this.dist, to: MET_STATION };
+    this.dispatchEvent(new CustomEvent('meteor-restart', { detail: { arming: MET_REARM }, bubbles: true }));
     this._meteorHud();
   }
 
@@ -2057,7 +2066,22 @@ class SolarSystem extends HTMLElement {
     const M = this.met;
     const ws = this.world.scale.x;
 
-    if (!M.over) {
+    if (M.arm) {
+      // jamnya jalan di layar maupun di headset; efek kameranya saja yang
+      // hanya berlaku di luar XR, karena proyeksi XR bukan milik kita
+      M.arm.t = clamp((performance.now() - M.arm.t0) / (M.arm.dur * 1000), 0, 1);
+      if (M.arm.t >= 1) {
+        // jaraknya dipatok di sini, bukan diserahkan ke animasi kamera: kalau
+        // loop sempat berhenti (tab pindah), kapal harus tetap berakhir di pos
+        this.dist = M.arm.to;
+        M.arm = null;
+        this.camera.fov = this.baseFov || 52;
+        this.camera.updateProjectionMatrix();
+        this.dispatchEvent(new CustomEvent('meteor-armed', { bubbles: true }));
+      }
+    }
+
+    if (!M.over && !M.arm) {
       M.spawnT -= dt;
       let alive = 0;
       M.pool.forEach(m => { if (m.alive) alive++; });
@@ -2140,6 +2164,10 @@ class SolarSystem extends HTMLElement {
       g.fillStyle = '#ff5a3d';
       g.font = '600 30px Poppins, sans-serif';
       g.fillText('SISTEM RUNTUH', 540, 148);
+    } else if (M.arm) {
+      g.fillStyle = '#ffb066';
+      g.font = '600 28px Poppins, sans-serif';
+      g.fillText('MENYIAPKAN KOKPIT', 380, 148);
     }
     this._metTex.needsUpdate = true;
   }
@@ -2148,7 +2176,7 @@ class SolarSystem extends HTMLElement {
     const M = this.met;
     const hud = this.metHud;
     if (!hud) return;
-    const stamp = M.health + '|' + M.score + '|' + M.wave + '|' + (M.over ? 1 : 0);
+    const stamp = M.health + '|' + M.score + '|' + M.wave + '|' + (M.over ? 1 : 0) + '|' + (M.arm ? 1 : 0);
     if (this._metStamp !== stamp) {
       this._metStamp = stamp;
       this._metHudPaint();
@@ -2694,12 +2722,22 @@ class SolarSystem extends HTMLElement {
         this.lookAt.lerp(focus.pos, this.warp ? 0.14 : 0.06);
       }
     } else if (met) {
-      // a turret, not a drifting orbit: the view only moves when you push the
-      // crosshair against an edge, so the aim under it stays where you left it
-      const ex = Math.abs(this.pointer.x) > 0.62 ? Math.sign(this.pointer.x) * (Math.abs(this.pointer.x) - 0.62) / 0.38 : 0;
-      const ey = Math.abs(this.pointer.y) > 0.62 ? Math.sign(this.pointer.y) * (Math.abs(this.pointer.y) - 0.62) / 0.38 : 0;
-      this.yaw += ex * dt * 1.2;
-      this.pitch = clamp(this.pitch + ey * dt * 0.7, -0.35, 0.95);
+      const A = this.met.arm;
+      if (A) {
+        // kapal merapat ke pos: jaraknya ditarik masuk dengan pelambatan dan
+        // bidang pandang disentak, supaya terasa melaju — bukan sekadar pindah
+        const e = 1 - Math.pow(1 - A.t, 3);
+        this.dist = lerp(A.from, A.to, e);
+        this.camera.fov = (this.baseFov || 52) + Math.sin(Math.min(1, A.t / 0.92) * Math.PI) * 24;
+        this.camera.updateProjectionMatrix();
+      } else {
+        // a turret, not a drifting orbit: the view only moves when you push the
+        // crosshair against an edge, so the aim under it stays where you left it
+        const ex = Math.abs(this.pointer.x) > 0.62 ? Math.sign(this.pointer.x) * (Math.abs(this.pointer.x) - 0.62) / 0.38 : 0;
+        const ey = Math.abs(this.pointer.y) > 0.62 ? Math.sign(this.pointer.y) * (Math.abs(this.pointer.y) - 0.62) / 0.38 : 0;
+        this.yaw += ex * dt * 1.2;
+        this.pitch = clamp(this.pitch + ey * dt * 0.7, -0.35, 0.95);
+      }
       const d = this.dist;
       this.desired.set(Math.sin(this.yaw) * d * Math.cos(this.pitch), d * Math.sin(this.pitch) + 4, Math.cos(this.yaw) * d * Math.cos(this.pitch));
       this.lookAt.lerp(this.tmp.set(0, 0, 0), 0.1);
@@ -2724,7 +2762,7 @@ class SolarSystem extends HTMLElement {
         this.camera.updateProjectionMatrix();
       }
     } else {
-      this.camera.position.lerp(this.desired, focus ? 0.028 : 0.02);
+      this.camera.position.lerp(this.desired, focus ? 0.028 : (met && this.met.arm ? 0.13 : 0.02));
     }
     if (met && this.met.shake > 0) {
       const k = this.met.shake * 0.5;

@@ -38,7 +38,7 @@ html.mt-on [data-ui="arbtn"], html.mt-on [data-ui="mode"], html.mt-on [data-ui="
 html.mt-on .pn-root, html.mt-on [data-ui="cursor"] {
   opacity: 0 !important; pointer-events: none !important; transition: opacity .45s;
 }
-html.mt-on [data-ui="vignette"] { background: radial-gradient(66% 58% at 50% 50%, transparent 34%, rgba(24,8,4,.78) 100%) !important; }
+html.mt-on [data-ui="vignette"] { background: radial-gradient(72% 62% at 50% 50%, transparent 38%, rgba(24,8,4,.5) 100%) !important; }
 html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
 
 .mt-root {
@@ -48,6 +48,84 @@ html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
   font-family: 'Instrument Sans', system-ui, sans-serif; display: none;
 }
 .mt-root.on { display: block; }
+
+/* -- kokpit --
+   Bukan dasbor bergambar: cukup rangka kaca, dua tiang kanopi, dan konsol
+   bawah yang menyala. Semuanya masuk dari tepi layar saat kamu naik, jadi
+   perpindahan modenya terasa seperti duduk di kursi, bukan seperti tombol. */
+.mt-pit { position: absolute; inset: 0; pointer-events: none; }
+.mt-pit .canopy {
+  position: absolute; inset: 0;
+  box-shadow: inset 0 0 116px 14px rgba(10,4,2,.58), inset 0 0 0 1px rgba(255,138,61,.16);
+  -webkit-clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+.mt-root.on .mt-pit .canopy { animation: pitSeal .9s cubic-bezier(.2,.7,.2,1) .28s both; }
+.mt-pit .strut { position: absolute; top: 0; bottom: 0; width: 94px; background: linear-gradient(90deg, rgba(22,18,26,.96), rgba(22,18,26,.5) 62%, transparent); }
+.mt-pit .strut::after { content: ''; position: absolute; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(255,138,61,.42) 22%, rgba(255,138,61,.42) 78%, transparent); }
+.mt-pit .strut.l { left: 0; -webkit-clip-path: polygon(0 0, 100% 0, 62% 100%, 0 100%); clip-path: polygon(0 0, 100% 0, 62% 100%, 0 100%); }
+.mt-pit .strut.l::after { right: 0; }
+.mt-pit .strut.r { right: 0; transform: scaleX(-1); -webkit-clip-path: polygon(0 0, 100% 0, 62% 100%, 0 100%); clip-path: polygon(0 0, 100% 0, 62% 100%, 0 100%); }
+.mt-pit .strut.r::after { right: 0; }
+.mt-root.on .mt-pit .strut.l { animation: strutL .8s cubic-bezier(.2,.7,.2,1) .34s both; }
+.mt-root.on .mt-pit .strut.r { animation: strutR .8s cubic-bezier(.2,.7,.2,1) .34s both; }
+.mt-pit .dash {
+  position: absolute; left: -6%; right: -6%; bottom: -34px; height: 116px;
+  border-radius: 50% 50% 0 0 / 78px 78px 0 0;
+  background: linear-gradient(180deg, rgba(24,19,28,.9), rgba(12,9,14,.99));
+  border-top: 1px solid rgba(255,138,61,.34);
+  box-shadow: 0 -18px 46px rgba(255,110,44,.09);
+}
+.mt-root.on .mt-pit .dash { animation: dashUp .9s cubic-bezier(.2,.7,.2,1) .34s both; }
+.mt-pit .lamp { position: absolute; bottom: 20px; width: 5px; height: 5px; border-radius: 50%; background: #ff8a3d; box-shadow: 0 0 10px rgba(255,138,61,.9); opacity: .75; }
+.mt-pit .lamp.a { left: 34%; animation: lampBlink 2.6s ease-in-out infinite; }
+.mt-pit .lamp.b { right: 34%; background: #9E94F9; box-shadow: 0 0 10px rgba(158,148,249,.9); animation: lampBlink 2.6s ease-in-out .9s infinite; }
+.mt-pit .sheen { position: absolute; inset: 0; background: linear-gradient(114deg, transparent 34%, rgba(200,214,255,.05) 46%, transparent 58%); }
+.mt-root.on .mt-pit .sheen { animation: pitSheen 9s ease-in-out infinite; }
+
+@keyframes pitSeal { from { opacity: 0; transform: scale(1.06); } to { opacity: 1; transform: none; } }
+@keyframes strutL { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes strutR { from { transform: scaleX(-1) translateX(-100%); } to { transform: scaleX(-1); } }
+@keyframes dashUp { from { transform: translateY(120px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes lampBlink { 0%, 100% { opacity: .28; } 50% { opacity: 1; } }
+@keyframes pitSheen { 0%, 100% { transform: translateX(-12%); } 50% { transform: translateX(12%); } }
+
+/* -- penyalaan: kanopi menutup, sistem dicek, lalu siap -- */
+.mt-boot { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.mt-root.armed .mt-boot { display: none; }
+.mt-boot .shut { position: absolute; left: 0; right: 0; height: 52%; background: #08060b; border-color: rgba(255,138,61,.5); }
+.mt-boot .shut.t { top: 0; border-bottom: 1px solid; }
+.mt-boot .shut.b { bottom: 0; border-top: 1px solid; }
+.mt-boot.full .shut.t { animation: shutT .95s cubic-bezier(.4,0,.2,1) both; }
+.mt-boot.full .shut.b { animation: shutB .95s cubic-bezier(.4,0,.2,1) both; }
+.mt-boot.quick .shut { display: none; }
+@keyframes shutT { 0% { transform: translateY(-100%); } 26%, 42% { transform: none; } 100% { transform: translateY(-100%); } }
+@keyframes shutB { 0% { transform: translateY(100%); } 26%, 42% { transform: none; } 100% { transform: translateY(100%); } }
+
+.mt-boot .card { position: relative; width: min(430px, calc(100vw - 44px)); padding: 24px 26px 22px; border: 1px solid rgba(255,138,61,.28); border-radius: 14px; background: rgba(12,9,14,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); text-align: left; }
+.mt-boot.full .card { animation: bootCard .5s cubic-bezier(.2,.7,.2,1) .46s both, bootOut .34s ease 2.06s both; }
+.mt-boot.quick .card { animation: bootCard .3s cubic-bezier(.2,.7,.2,1) both, bootOut .3s ease .74s both; }
+.mt-boot .ship { font-family: var(--mono); font-size: 9.5px; letter-spacing: .3em; color: var(--hot); }
+.mt-boot .ttl { margin: 8px 0 18px; font-family: 'Poppins', sans-serif; font-size: 20px; letter-spacing: .01em; }
+.mt-boot.quick .ttl, .mt-boot.quick .chk, .mt-boot.quick .bar { display: none; }
+.mt-boot .chk { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.mt-boot .chk li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; color: var(--muted); opacity: 0; }
+.mt-boot.full .chk li { animation: chkIn .34s ease both; animation-delay: calc(.62s + var(--i) * .26s); }
+.mt-boot .chk i { font-style: normal; color: var(--hot); }
+.mt-boot .chk li::after { content: ''; position: absolute; }
+.mt-boot .bar { position: relative; height: 1px; margin-top: 20px; background: rgba(243,242,248,.12); overflow: hidden; }
+.mt-boot .bar i { position: absolute; inset: 0 auto 0 0; width: 100%; background: linear-gradient(90deg, var(--hot), var(--iris)); transform-origin: left; }
+.mt-boot.full .bar i { animation: bootBar 1.32s cubic-bezier(.3,.6,.2,1) .5s both; }
+.mt-boot .ready { margin-top: 16px; font-family: 'Poppins', sans-serif; font-size: 15px; letter-spacing: .22em; color: #f3f2f8; opacity: 0; }
+.mt-boot.full .ready { animation: readyIn .5s cubic-bezier(.2,.7,.2,1) 1.72s both; }
+.mt-boot.quick .ready { margin: 0; animation: readyIn .4s cubic-bezier(.2,.7,.2,1) .12s both; }
+@keyframes bootCard { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes bootOut { to { opacity: 0; transform: scale(1.02); } }
+@keyframes chkIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+@keyframes bootBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes readyIn { from { opacity: 0; letter-spacing: .5em; } to { opacity: 1; letter-spacing: .22em; } }
+
+/* HUD dan petunjuk baru muncul setelah kokpit siap */
+.mt-root:not(.armed) .mt-hud, .mt-root:not(.armed) .mt-tip { display: none; }
 
 /* -- panel integritas -- */
 .mt-hud {
@@ -158,6 +236,14 @@ html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
     white-space: normal; line-height: 1.6; font-size: 9.5px; letter-spacing: .1em;
   }
   .mt-wave .v { font-size: 34px; }
+  .mt-pit .strut { width: 58px; }
+  .mt-pit .dash { height: 76px; bottom: -26px; border-radius: 50% 50% 0 0 / 52px 52px 0 0; }
+  .mt-pit .lamp { bottom: 14px; }
+  .mt-pit .canopy { box-shadow: inset 0 0 74px 10px rgba(10,4,2,.55), inset 0 0 0 1px rgba(255,138,61,.16); }
+  .mt-boot .card { padding: 20px 18px 18px; border-radius: 12px; }
+  .mt-boot .ttl { font-size: 17px; margin-bottom: 15px; }
+  .mt-boot .chk li { font-size: 9.5px; letter-spacing: .12em; }
+  .mt-boot .ready { font-size: 13px; }
   .mt-over { padding: 26px 20px 22px; border-radius: 14px; }
   .mt-over h2 { font-size: 23px; }
   .mt-over p { margin: 8px 0 18px; font-size: 12.5px; }
@@ -215,8 +301,38 @@ const over = el('div', { class: 'mt-over' }, [
   ])
 ]);
 
+const pit = el('div', { class: 'mt-pit' }, [
+  el('span', { class: 'canopy' }),
+  el('span', { class: 'strut l' }),
+  el('span', { class: 'strut r' }),
+  el('span', { class: 'dash' }),
+  el('span', { class: 'lamp a' }),
+  el('span', { class: 'lamp b' }),
+  el('span', { class: 'sheen' })
+]);
+
+// daftar periksa sebelum lepas landas — urutannya diatur CSS lewat --i
+const CHECKS = [
+  ['REAKTOR UTAMA', 'AKTIF'],
+  ['MERIAM LASER', 'TERKALIBRASI'],
+  ['PERISAI PLANET', 'ONLINE'],
+  ['PEMINDAI METEOR', 'MENYAPU']
+];
+const boot = el('div', { class: 'mt-boot' }, [
+  el('span', { class: 'shut t' }),
+  el('span', { class: 'shut b' }),
+  el('div', { class: 'card' }, [
+    el('div', { class: 'ship', text: 'SI-01 · PENJAGA ORBIT' }),
+    el('div', { class: 'ttl', text: 'Protokol pertahanan' }),
+    el('ul', { class: 'chk' }, CHECKS.map(([k, v], i) =>
+      el('li', { style: '--i:' + i }, [el('span', { text: k }), el('i', { text: v })]))),
+    el('div', { class: 'bar' }, [el('i')]),
+    el('div', { class: 'ready', text: 'SIAP BERTEMPUR' })
+  ])
+]);
+
 const tap = el('div', { class: 'mt-tap' });
-const root = el('div', { class: 'mt-root' }, [hud, waveBanner, flash, tip, over]);
+const root = el('div', { class: 'mt-root' }, [pit, hud, waveBanner, flash, tip, over, boot]);
 const aim = el('div', { class: 'mt-aim' }, [
   el('span', { class: 'sweep' }), el('span', { class: 'ring' }),
   el('span', { class: 't n' }), el('span', { class: 't s' }),
@@ -289,6 +405,97 @@ const sfx = (() => {
         o.start(); o.stop(c.currentTime + 0.5);
       }
     },
+    // dentum kanopi mengunci
+    thud() {
+      const c = muted ? null : ac();
+      if (!c) return;
+      const src = noise(c, 0.26), g = c.createGain(), f = c.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(420, c.currentTime);
+      f.frequency.exponentialRampToValueAtTime(70, c.currentTime + 0.25);
+      g.gain.setValueAtTime(0.34, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.28);
+      src.connect(f); f.connect(g); g.connect(c.destination);
+      src.start();
+    },
+    // reaktor menyala: sapuan naik yang panjang
+    sweep(f0, f1, dur) {
+      const c = muted ? null : ac();
+      if (!c) return;
+      const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+      o.type = 'sawtooth';
+      f.type = 'lowpass'; f.Q.value = 6;
+      f.frequency.setValueAtTime(f0 * 3, c.currentTime);
+      f.frequency.exponentialRampToValueAtTime(f1 * 3, c.currentTime + dur);
+      o.frequency.setValueAtTime(f0, c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(f1, c.currentTime + dur);
+      g.gain.setValueAtTime(0.0001, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.07, c.currentTime + dur * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+      o.connect(f); f.connect(g); g.connect(c.destination);
+      o.start(); o.stop(c.currentTime + dur + 0.02);
+    },
+    // satu butir daftar periksa tercentang
+    tick(freq) {
+      const c = muted ? null : ac();
+      if (!c) return;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = 'triangle';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.1, c.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.16);
+      o.connect(g); g.connect(c.destination);
+      o.start(); o.stop(c.currentTime + 0.18);
+    },
+    // aba-aba siap bertempur
+    chord() {
+      const c = muted ? null : ac();
+      if (!c) return;
+      [392, 587, 784].forEach((f, i) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'triangle';
+        o.frequency.value = f;
+        const t0 = c.currentTime + i * 0.05;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.09, t0 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.7);
+        o.connect(g); g.connect(c.destination);
+        o.start(t0); o.stop(t0 + 0.72);
+      });
+    },
+    // deru mesin pelan selama kamu duduk di kokpit
+    drone(want) {
+      const c = (want && !muted) ? ac() : ctx;
+      if (!c) return;
+      if (want && !muted) {
+        if (this._drone) return;
+        const g = c.createGain(), f = c.createBiquadFilter();
+        f.type = 'lowpass'; f.frequency.value = 220;
+        g.gain.setValueAtTime(0.0001, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.035, c.currentTime + 1.2);
+        const os = [54, 55.6].map(hz => {
+          const o = c.createOscillator();
+          o.type = 'sawtooth';
+          o.frequency.value = hz;
+          o.connect(f);
+          o.start();
+          return o;
+        });
+        f.connect(g); g.connect(c.destination);
+        this._drone = { os, g };
+        return;
+      }
+      const d = this._drone;
+      if (!d) return;
+      this._drone = null;
+      try {
+        d.g.gain.cancelScheduledValues(c.currentTime);
+        d.g.gain.setValueAtTime(Math.max(d.g.gain.value, 0.0001), c.currentTime);
+        d.g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.5);
+        d.os.forEach(o => o.stop(c.currentTime + 0.55));
+      } catch (e) { d.os.forEach(o => { try { o.stop(); } catch (e2) {} }); }
+    },
     blip(up) {
       const c = muted ? null : ac();
       if (!c) return;
@@ -308,6 +515,7 @@ const sfx = (() => {
 
 muteBtn.addEventListener('click', () => {
   const m = sfx.mute();
+  sfx.drone(!m && on);
   muteBtn.textContent = m ? '✕' : '♪';
   muteBtn.style.borderColor = m ? 'rgba(243,242,248,.16)' : 'rgba(255,138,61,.5)';
   muteBtn.style.color = m ? '' : '#ff8a3d';
@@ -335,21 +543,62 @@ const hudPaint = d => {
   killNum.textContent = String(d.kills).padStart(2, '0');
 };
 
-const start = () => {
+// jadwal suara untuk urutan penyalaan; visualnya diurus CSS lewat delay
+let beats = [];
+const beat = (ms, fn) => beats.push(setTimeout(fn, ms));
+const clearBeats = () => { beats.forEach(clearTimeout); beats = []; };
+
+const bootSound = full => {
+  clearBeats();
+  if (!full) {
+    beat(40, () => sfx.tick(720));
+    beat(170, () => sfx.chord());
+    return;
+  }
+  sfx.thud();                                   // kanopi mengunci
+  beat(320, () => sfx.sweep(70, 380, 1.1));     // reaktor menyala
+  [620, 880, 1140, 1400].forEach((ms, i) => beat(ms, () => sfx.tick(520 + i * 120)));
+  beat(1720, () => sfx.chord());                // siap bertempur
+};
+
+// dipakai untuk masuk mode maupun mengulang permainan: bedanya cuma panjang
+// urutan penyalaan yang dikirim scene
+const start = e => {
+  const arming = (e && e.detail && e.detail.arming) || 0;
+  const full = arming > 1.5;
   on = true;
   document.documentElement.classList.add('mt-on');
   root.classList.add('on');
-  aim.classList.toggle('fine', fine());
-  aim.style.display = fine() ? 'block' : 'none';
+  root.classList.remove('armed');
+  boot.classList.remove('full', 'quick');
+  void boot.offsetWidth;                        // paksa animasinya mulai lagi
+  boot.classList.add(full ? 'full' : 'quick');
+  aim.style.display = 'none';
   over.classList.remove('on');
   setTip();
   waveV.textContent = 'GELOMBANG 01';
+  bootSound(full);
+  // jaring pengaman: kalau scene sempat terhenti (tab pindah ke belakang saat
+  // urutan berjalan), HUD tetap muncul dan tidak meninggalkan kokpit kosong
+  beat(arming * 1000 + 400, armed);
+};
+
+// scene memberi aba-aba saat kokpit benar-benar siap; sampai saat itu HUD,
+// bidikan, dan meteornya sendiri masih ditahan
+const armed = () => {
+  root.classList.add('armed');
+  aim.classList.toggle('fine', fine());
+  aim.style.display = fine() ? 'block' : 'none';
+  sfx.drone(true);
 };
 
 const stop = () => {
   on = false;
+  clearBeats();
+  sfx.drone(false);
   document.documentElement.classList.remove('mt-on');
-  root.classList.remove('on');
+  root.classList.remove('on', 'armed');
+  boot.classList.remove('full', 'quick');
   aim.style.display = 'none';
   over.classList.remove('on');
 };
@@ -357,11 +606,9 @@ const stop = () => {
 /* ---------- kabel ke scene ---------- */
 
 document.addEventListener('meteor-start', start);
+document.addEventListener('meteor-restart', start);
+document.addEventListener('meteor-armed', armed);
 document.addEventListener('meteor-end', stop);
-document.addEventListener('meteor-restart', () => {
-  over.classList.remove('on');
-  sfx.blip(true);
-});
 document.addEventListener('meteor-hud', e => hudPaint(e.detail));
 
 document.addEventListener('meteor-hit', () => {
