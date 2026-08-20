@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.184.0/build/three.module.js';
+import { ARTICLES, CATEGORIES, FREQ } from './insight-data.js';
 
 const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP = 0x2a1fc9;
 // point sprites are sized in world units and ignore the object's scale, so these
@@ -6,6 +7,11 @@ const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP
 const STAR_SIZE = 1.35, DUST_SIZE = 0.38;
 // comet trail: samples kept in the ring buffer, and the head's base sprite size
 const COMET_TRAIL = 96, COMET_SIZE = 2.4;
+// insight moons: base sprite size for one sparing satellite, and the reveal
+// threshold above which moons start taking pointer hits away from the planet
+const MOON_LIVE = 0.35;
+// how close the camera parks to a moon while reading, as a multiple of its radius
+const READ_DOCK = 3.6;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -65,13 +71,11 @@ const PANELS = {
   },
   insight: {
     no: '04', tag: 'Insight', accent: '#a99bf2',
-    title: 'Insight',
-    lead: 'Catatan, tutorial, dan obrolan dari member komunitas.',
-    items: [
-      { k: 'Tutorial', t: 'Judul artikel', d: 'Ringkasan satu sampai dua baris tentang isi tulisan.' },
-      { k: 'Cerita member', t: 'Judul artikel', d: 'Ringkasan satu sampai dua baris tentang isi tulisan.' },
-      { k: 'Industri', t: 'Judul artikel', d: 'Ringkasan satu sampai dua baris tentang isi tulisan.' }
-    ]
+    title: 'Sistem Insight',
+    lead: 'Tiap artikel satu bulan yang mengorbit planet ini. Buka di layar biasa untuk membaca dan ikut sparing.',
+    items: ARTICLES.filter(a => !a.archived).slice(0, 4).map(a => ({
+      k: (CATEGORIES[a.cat] || {}).label || 'Insight', t: a.title, d: a.lead
+    }))
   },
   tim: {
     no: '05', tag: 'Tim', accent: '#f3f2f8',
@@ -175,6 +179,7 @@ class SolarSystem extends HTMLElement {
       color: PAPER, size: STAR_SIZE, map: particleMap, transparent: true, opacity: 0.85,
       sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
     }));
+    this.particleMap = particleMap;
     stars.name = 'stars';
     world.add(stars);
     this.stars = stars;
@@ -236,7 +241,9 @@ class SolarSystem extends HTMLElement {
     sunHaze.scale.set(30, 30, 1);
     sun.add(sunHaze);
     this.sunHaze = sunHaze;
-    sun.add(new THREE.PointLight(ACCENT, 1200, 140));
+    const sunLight = new THREE.PointLight(ACCENT, 1200, 140);
+    sun.add(sunLight);
+    this.sunLight = sunLight;
     const sunHit = new THREE.Mesh(new THREE.SphereGeometry(4.6, 12, 12), new THREE.MeshBasicMaterial({ visible: false }));
     sunHit.userData.planetId = 'inti';
     sun.add(sunHit);
@@ -244,9 +251,11 @@ class SolarSystem extends HTMLElement {
     this.sun = sun;
     this.sunCore = sunCore;
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.42));
+    const amb = new THREE.AmbientLight(0xffffff, 0.42); scene.add(amb);
     const rim = new THREE.DirectionalLight(DEEP, 1.6); rim.position.set(-30, 22, -18); scene.add(rim);
     const cool = new THREE.DirectionalLight(MINT, 0.5); cool.position.set(24, -14, 20); scene.add(cool);
+    this.sysLights = [[amb, 0.42], [rim, 1.6], [cool, 0.5]];
+    this.readDim = 0;
 
     this.planets = PLANETS.map(p => {
       const g = new THREE.Group();
@@ -325,6 +334,7 @@ class SolarSystem extends HTMLElement {
     this.prevPos = camera.position.clone();
     this.speed = 0;
 
+    this._buildMoons();
     this._buildXRUI();
     this._buildLens();
     this._buildComet();
@@ -336,6 +346,7 @@ class SolarSystem extends HTMLElement {
       camera.aspect = w / h;
       const portrait = h > w;
       camera.fov = portrait ? 66 : 52;
+      this.baseFov = camera.fov;
       if (portrait && !this._portraitDone) { this.dist = 74; this._portraitDone = true; }
       camera.updateProjectionMatrix();
     };
@@ -933,9 +944,433 @@ class SolarSystem extends HTMLElement {
   }
 
   _pick() {
+    if (this.read && this.read.slug) return;
     this.ray.setFromCamera(this.ndc, this.camera);
+    if (this.moonHits && this.moonReveal > MOON_LIVE) {
+      const moon = this.ray.intersectObjects(this.moonHits, false)[0];
+      if (moon) return this.openArticle(moon.object.userData.slug);
+    }
     const hit = this.ray.intersectObjects(this.hits, false)[0];
     if (hit) this.travelTo(hit.object.userData.planetId);
+  }
+
+  /* ---------- insight moons ---------- */
+
+  // Every article is a moon of the Insight planet. Orbit radius carries meaning:
+  // live pieces ride close in, the archive drifts out past them.
+  _buildMoons() {
+    const host = this.planets.find(p => p.id === 'insight');
+    if (!host) return;
+    const root = new THREE.Group();
+    root.name = 'insightMoons';
+    host.group.add(root);
+
+    this.moonHost = host;
+    this.moonRoot = root;
+    this.moonReveal = 0;
+    this.moonFocus = null;
+    this.hoverMoon = null;
+    this.moonPin = null;
+    this._moonPos = new THREE.Vector3();
+    this._moonOut = new THREE.Vector3(0, 0, 1);
+    this._moonFocus = { pos: this._moonPos, out: this._moonOut, size: 0.5 };
+
+    let live = 0;
+    this.moons = ARTICLES.map((a, i) => {
+      const cat = CATEGORIES[a.cat] || { color: '#a99bf2' };
+      const col = new THREE.Color(cat.color).multiplyScalar(0.72);
+      const size = 0.15 + clamp(a.read, 2, 14) * 0.014;
+      const r = a.archived ? 5.4 + (i - live) * 0.5 : 2.8 + live++ * 0.52;
+      const inc = ((i % 2) ? 1 : -1) * (0.09 + (i % 3) * 0.055);
+
+      const node = new THREE.Group();
+      node.name = 'moon-' + a.slug;
+      root.add(node);
+
+      const mesh = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(size, 1),
+        new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.1, roughness: 0.62, metalness: 0.12, flatShading: true })
+      );
+      node.add(mesh);
+
+      // "sudah purnama" marker — dark until the reader reports the last line
+      const halo = new THREE.Mesh(
+        new THREE.TorusGeometry(size * 1.9, size * 0.055, 6, 40),
+        new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0 })
+      );
+      halo.rotation.x = Math.PI / 2.2;
+      node.add(halo);
+
+      const hit = new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.46, size * 3.6), 10, 10), new THREE.MeshBasicMaterial({ visible: false }));
+      hit.userData.slug = a.slug;
+      node.add(hit);
+
+      const pts = [];
+      for (let k = 0; k <= 96; k++) {
+        const th = (k / 96) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(th) * r, Math.sin(th) * r * inc, Math.sin(th) * r));
+      }
+      const path = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0 })
+      );
+      root.add(path);
+
+      return {
+        slug: a.slug, data: a, node, mesh, halo, hit, path,
+        r, inc, size, col, read: false,
+        speed: 0.42 / Math.sqrt(r), phase: i * 1.94
+      };
+    });
+    this.moonHits = this.moons.map(m => m.hit);
+    this._buildReadStage();
+  }
+
+  // A lunar surface worth filling a third of the screen with. Drawn once and
+  // reused for every article; only the tint changes.
+  _craterTexture() {
+    const c = makeCanvas(2048, 1024);
+    const g = c.getContext('2d');
+    g.fillStyle = '#8e8a96';
+    g.fillRect(0, 0, c.width, c.height);
+
+    // maria: broad dark plains, the thing that makes a moon readable at a glance
+    for (let i = 0; i < 16; i++) {
+      const x = Math.random() * c.width, y = 120 + Math.random() * (c.height - 240);
+      const r = 90 + Math.random() * 260;
+      const grad = g.createRadialGradient(x, y, 0, x, y, r);
+      grad.addColorStop(0, 'rgba(78,74,88,.5)');
+      grad.addColorStop(0.7, 'rgba(84,80,94,.24)');
+      grad.addColorStop(1, 'rgba(84,80,94,0)');
+      g.fillStyle = grad;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    // craters: a bright rim on one side, a dark floor on the other
+    for (let i = 0; i < 420; i++) {
+      const x = Math.random() * c.width, y = Math.random() * c.height;
+      const r = 3 + Math.pow(Math.random(), 2.6) * 58;
+      const grad = g.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+      grad.addColorStop(0, 'rgba(52,49,60,.42)');
+      grad.addColorStop(0.72, 'rgba(120,116,130,.2)');
+      grad.addColorStop(0.9, 'rgba(206,202,214,.34)');
+      grad.addColorStop(1, 'rgba(206,202,214,0)');
+      g.fillStyle = grad;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    // fine grain so the terminator never looks like clean vector art
+    const img = g.getImageData(0, 0, c.width, c.height);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const n = (Math.random() - 0.5) * 22;
+      d[i] += n; d[i + 1] += n; d[i + 2] += n;
+    }
+    g.putImageData(img, 0, 0);
+
+    const t = new THREE.CanvasTexture(c);
+    t.anisotropy = 8;
+    t.wrapS = THREE.RepeatWrapping;
+    return t;
+  }
+
+  // The reading stage: one high-detail sphere with its own shader, because
+  // three.js layers filter which objects a light reaches only by camera layer —
+  // the system's sun and ambient would still wash this moon out and the phase
+  // has to be driven purely by reading progress.
+  _buildReadStage() {
+    const group = new THREE.Group();
+    group.name = 'readStage';
+    group.visible = false;
+
+    const tex = this._craterTexture();
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const uni = {
+      uMap: { value: tex },
+      uLight: { value: new THREE.Vector3(0, 0, 1) },
+      uEye: { value: new THREE.Vector3() },
+      uTint: { value: new THREE.Color(1, 1, 1) },
+      uAmb: { value: 0.03 }
+    };
+    const mat = new THREE.ShaderMaterial({
+      uniforms: uni,
+      vertexShader: [
+        'varying vec3 vN;',
+        'varying vec2 vUv;',
+        'varying vec3 vW;',
+        'void main() {',
+        '  vUv = uv;',
+        '  vN = normalize(mat3(modelMatrix) * normal);',
+        '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+        '  vW = wp.xyz;',
+        '  gl_Position = projectionMatrix * viewMatrix * wp;',
+        '}'
+      ].join('\n'),
+      fragmentShader: [
+        'uniform sampler2D uMap;',
+        'uniform vec3 uLight;',
+        'uniform vec3 uEye;',
+        'uniform vec3 uTint;',
+        'uniform float uAmb;',
+        'varying vec3 vN;',
+        'varying vec2 vUv;',
+        'varying vec3 vW;',
+        'void main() {',
+        '  vec3 alb = texture2D(uMap, vUv).rgb * uTint;',
+        '  vec3 n = normalize(vN);',
+        '  float lum = dot(alb, vec3(0.3333));',
+        // craters bite into the terminator instead of sitting flat on it
+        '  float d = dot(n, normalize(uLight)) + (lum - 0.5) * 0.30;',
+        '  float lit = smoothstep(-0.05, 0.15, d);',
+        '  vec3 v = normalize(uEye - vW);',
+        '  float limb = 0.55 + 0.45 * pow(max(dot(n, v), 0.0), 0.45);',
+        '  vec3 col = alb * lit * limb * 1.35;',
+        // earthshine keeps the unlit face present instead of a hole in the sky
+        '  col += alb * (1.0 - lit) * vec3(0.030, 0.028, 0.062) + alb * uAmb;',
+        '  col *= vec3(1.0, 0.972, 0.93);',
+        '  gl_FragColor = vec4(col, 1.0);',
+        '  #include <colorspace_fragment>',
+        '}'
+      ].join('\n')
+    });
+
+    const body = new THREE.Group();
+    body.add(new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), mat));
+    group.add(body);
+
+    const sats = [];
+    for (let i = 0; i < 32; i++) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: this.particleMap, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      sp.visible = false;
+      group.add(sp);
+      sats.push({ sprite: sp, on: 0, item: null, r: 1, a: 0, tilt: 0, spin: 0.2, unlock: 0 });
+    }
+
+    this.world.add(group);
+    this.read = { group, body, mat, uni, sats, n: 0, p: 0, shown: 0, slug: null, moon: null };
+  }
+
+  setSparing(slug, list) {
+    const m = this.moons && this.moons.find(x => x.slug === slug);
+    if (!m) return;
+    m.sparing = (list || []).slice(0, 32);
+    if (this.read && this.read.slug === slug) this._layoutSats();
+  }
+
+  _layoutSats() {
+    const R = this.read, m = R.moon;
+    if (!m) return;
+    const list = m.sparing || [];
+    R.n = Math.min(list.length, R.sats.length);
+    R.sats.forEach((s, i) => {
+      if (i >= R.n) { s.sprite.visible = false; s.item = null; return; }
+      const sp = list[i];
+      const f = FREQ[sp.freq] || FREQ.sinyal;
+      s.item = sp;
+      s.sprite.visible = true;
+      s.sprite.material.color.set(f.color);
+      // boosted sparing rides tighter; anomali gets a steep, inclined path so a
+      // dissenting voice visibly cuts across the ring instead of hiding in it
+      s.r = m.size * (2.05 + 1.3 / (1 + (sp.boost || 0) * 0.45)) + (i % 4) * m.size * 0.16;
+      s.tilt = sp.freq === 'anomali' ? 0.62 + (i % 3) * 0.12 : 0.05 + (i % 4) * 0.035;
+      s.a = (i * 2.3999) % (Math.PI * 2);
+      s.spin = 0.09 + (i % 5) * 0.014;
+      s.unlock = typeof sp.at01 === 'number' ? sp.at01 : 0;
+      s.on = 0;
+    });
+  }
+
+  // the reader hands back where each sparing sits along the article, 0..1
+  setSparingCues(cues) {
+    const R = this.read;
+    if (!R || !R.slug) return;
+    R.sats.forEach(s => { if (s.item && cues[s.item.id] !== undefined) s.unlock = cues[s.item.id]; });
+  }
+
+  setReadProgress(p) {
+    if (this.read) this.read.p = clamp(p, 0, 1);
+  }
+
+  // screen position of one sparing satellite, for the hairline the reader draws
+  // from a margin marker up to its light
+  satScreenPos(id) {
+    const R = this.read;
+    if (!R || !R.slug) return null;
+    const s = R.sats.find(x => x.item && x.item.id === id);
+    if (!s || !s.sprite.visible || s.on < 0.2) return null;
+    s.sprite.getWorldPosition(this.tmp);
+    this.camera.getWorldDirection(this.tmp2);
+    const ahead = (this.tmp.x - this.camera.position.x) * this.tmp2.x
+      + (this.tmp.y - this.camera.position.y) * this.tmp2.y
+      + (this.tmp.z - this.camera.position.z) * this.tmp2.z;
+    if (ahead <= 0) return null;
+    this.tmp.project(this.camera);
+    return {
+      x: (this.tmp.x * 0.5 + 0.5) * this.clientWidth,
+      y: (-this.tmp.y * 0.5 + 0.5) * this.clientHeight,
+      on: s.on
+    };
+  }
+
+  markRead(slug, on) {
+    const m = this.moons && this.moons.find(x => x.slug === slug);
+    if (m) m.read = on !== false;
+  }
+
+  pinMoon(slug) { this.moonPin = slug || null; }
+
+  openArticle(slug) {
+    const m = this.moons && this.moons.find(x => x.slug === slug);
+    if (!m || this.renderer.xr.isPresenting) return;
+    if (this.active !== 'insight') this.travelTo('insight');
+    this.moonFocus = slug;
+    this.dockDist = READ_DOCK;
+    this.yaw = -Math.PI * 0.52;
+    this.pitch = 0.12;
+    m.node.getWorldPosition(this._moonPos);
+
+    const R = this.read;
+    R.slug = slug; R.moon = m; R.p = 0; R.shown = 0;
+    R.group.visible = true;
+    R.uni.uTint.value.copy(new THREE.Color(0xffffff).lerp(m.col, 0.34));
+    R.body.rotation.y = m.phase;
+    this._layoutSats();
+
+    // the dive: a fast tween with a field-of-view punch, not the usual slow drift
+    this.warp = { t: 0, dur: 1.5, from: this.camera.position.clone() };
+    this.dispatchEvent(new CustomEvent('insight-open', { detail: { slug }, bubbles: true }));
+  }
+
+  closeArticle(silent) {
+    if (!this.moonFocus) return;
+    this.moonFocus = null;
+    this.dockDist = 8.6;
+    const R = this.read;
+    if (R) { R.slug = null; R.moon = null; R.group.visible = false; R.sats.forEach(s => { s.sprite.visible = false; s.on = 0; }); }
+    this.warp = null;
+    this.camera.fov = this.baseFov || 52;
+    this.camera.updateProjectionMatrix();
+    if (!silent) this.dispatchEvent(new CustomEvent('insight-close', { bubbles: true }));
+  }
+
+  // one satellite lifting off the surface and settling into the ring
+  launchSparing(slug, freq, onArrive) {
+    const m = this.moons && this.moons.find(x => x.slug === slug);
+    if (!m || this.renderer.xr.isPresenting) { if (onArrive) onArrive(); return; }
+    if (!this.launch) {
+      const f = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: this.particleMap, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      f.visible = false;
+      this.world.add(f);
+      this.launch = { sprite: f, t: 1, from: new THREE.Vector3(), ctrl: new THREE.Vector3(), to: new THREE.Vector3(), moon: null, done: null };
+    }
+    const L = this.launch;
+    const host = this.moonHost;
+    const base = this.tmp.copy(host.group.position).add(m.node.position);
+    // lift off the limb facing the reader, then arc out into orbit
+    const up = this.tmp2.copy(this.camera.position).sub(base).normalize();
+    L.from.copy(base).addScaledVector(up, m.size * 1.02);
+    L.to.copy(base).addScaledVector(up, m.size * 2.9).add(new THREE.Vector3(0, m.size * 1.4, 0));
+    L.ctrl.copy(L.from).addScaledVector(up, m.size * 1.2).add(new THREE.Vector3(0, m.size * 3.4, 0));
+    L.sprite.material.color.set((FREQ[freq] || FREQ.sinyal).color);
+    L.sprite.visible = true;
+    L.t = 0; L.dur = 1.25; L.moon = m; L.done = onArrive || null;
+  }
+
+  _updateLaunch(dt) {
+    const L = this.launch;
+    if (!L || L.t >= 1) return;
+    L.t = Math.min(1, L.t + dt / L.dur);
+    const e = L.t * L.t * (3 - 2 * L.t), u = 1 - e;
+    L.sprite.position.set(0, 0, 0)
+      .addScaledVector(L.from, u * u)
+      .addScaledVector(L.ctrl, 2 * u * e)
+      .addScaledVector(L.to, e * e);
+    const sc = (L.moon ? L.moon.size : 0.2) * (1.4 + Math.sin(e * Math.PI) * 1.1) * this.world.scale.x;
+    L.sprite.scale.set(sc, sc, 1);
+    L.sprite.material.opacity = clamp(L.t < 0.1 ? L.t / 0.1 : 1 - Math.pow(e, 3), 0, 1);
+    if (L.t >= 1) {
+      L.sprite.visible = false;
+      if (L.done) { const d = L.done; L.done = null; d(); }
+    }
+  }
+
+  _updateRead(t, dt) {
+    const R = this.read;
+    if (!R || !R.slug) return;
+    const m = R.moon;
+    R.group.position.copy(this.moonHost.group.position).add(m.node.position);
+    R.body.scale.setScalar(m.size);
+    R.body.rotation.y += dt * 0.012;
+
+    // phase angle: 0.88*pi is a hairline crescent, 0 is purnama
+    R.shown = lerp(R.shown, R.p, 0.06);
+    const th = (1 - R.shown) * Math.PI * 0.88;
+    const toCam = this.tmp.copy(this.camera.position).sub(R.group.position).normalize();
+    const side = this.tmp2.crossVectors(toCam, this.camera.up).normalize();
+    R.uni.uLight.value.copy(toCam).multiplyScalar(Math.cos(th))
+      .addScaledVector(side, Math.sin(th))
+      .addScaledVector(this.camera.up, 0.16)
+      .normalize();
+    R.uni.uEye.value.copy(this.camera.position);
+    R.uni.uAmb.value = 0.008 + R.shown * 0.014;
+
+    const ws = this.world.scale.x;
+    for (let i = 0; i < R.n; i++) {
+      const s = R.sats[i];
+      s.on = lerp(s.on, R.shown >= s.unlock - 0.004 ? 1 : 0, 0.05);
+      const a = s.a + t * s.spin;
+      s.sprite.position.set(Math.cos(a) * s.r, Math.sin(a * 2) * s.r * s.tilt, Math.sin(a) * s.r);
+      const sc = m.size * (0.5 + Math.sin(t * 3 + i) * 0.05) * s.on * ws;
+      s.sprite.scale.set(sc, sc, 1);
+      s.sprite.material.opacity = s.on * 0.95;
+    }
+  }
+
+  _updateMoons(t) {
+    if (!this.moons) return;
+    const near = this.active === 'insight';
+    this.moonReveal = lerp(this.moonReveal, near ? 1 : 0, near ? 0.055 : 0.08);
+    const rev = this.moonReveal;
+    const hovered = this.hoverMoon || this.moonPin;
+    const reading = !!(this.read && this.read.slug);
+
+    this.moons.forEach(m => {
+      const a = t * m.speed + m.phase;
+      m.node.position.set(Math.cos(a) * m.r, Math.sin(a) * m.r * m.inc, Math.sin(a) * m.r);
+      m.mesh.rotation.y += 0.006;
+      m.mesh.rotation.x += 0.0028;
+
+      const sel = this.moonFocus === m.slug;
+      const hov = hovered === m.slug;
+      // reading takes over the frame: the stage sphere stands in for this moon,
+      // and every orbital annotation gets out of the way
+      m.mesh.visible = !(reading && sel);
+      m.halo.visible = !reading;
+      m.path.visible = !reading;
+      if (reading) return;
+
+      const want = (0.4 + rev * 0.6) * (sel ? 1.55 : hov ? 1.28 : 1);
+      m.node.scale.setScalar(lerp(m.node.scale.x, want, 0.12));
+      m.mesh.material.emissiveIntensity = lerp(m.mesh.material.emissiveIntensity, sel ? 0.42 : hov ? 0.28 : 0.08 + rev * 0.06, 0.1);
+      m.path.material.opacity = lerp(m.path.material.opacity, rev * (sel ? 0.34 : hov ? 0.24 : 0.14), 0.08);
+      m.halo.material.opacity = lerp(m.halo.material.opacity, m.read ? 0.2 + rev * 0.45 : 0, 0.07);
+      m.halo.rotation.z += 0.005;
+    });
+
+    if (this.moonFocus) {
+      const m = this.moons.find(x => x.slug === this.moonFocus);
+      if (m) {
+        m.node.getWorldPosition(this._moonPos);
+        this.moonHost.group.getWorldPosition(this.tmp2);
+        this._moonOut.copy(this._moonPos).sub(this.tmp2);
+        if (this._moonOut.lengthSq() < 1e-4) this._moonOut.set(0, 0, 1);
+        this._moonOut.normalize();
+        this._moonFocus.size = reading ? m.size : Math.max(0.42, m.size * 2.7);
+      }
+    }
   }
 
   /* ---------- comet ---------- */
@@ -1119,10 +1554,11 @@ class SolarSystem extends HTMLElement {
 
   travelTo(id) {
     if (!PANELS[id]) return;
+    this.closeArticle();
     const prev = this.active;
     this.active = id;
     if (prev !== id) this._cometHop(prev, id);
-    this.dockDist = id === 'inti' ? 6.2 : 7.2;
+    this.dockDist = id === 'inti' ? 6.2 : (id === 'insight' ? 8.6 : 7.2);
     if (this.renderer.xr.isPresenting) this._setPanel(id);
     this.navBtns.forEach(b => {
       if (b.userData.kind === 'nav') this._setBtn(b, b.userData.planetId === id ? 'active' : 'idle');
@@ -1131,6 +1567,7 @@ class SolarSystem extends HTMLElement {
   }
 
   freeFlight() {
+    this.closeArticle();
     this.active = null;
     this._panelVisible(false);
     this.navBtns.forEach(b => { if (b.userData.kind === 'nav') this._setBtn(b, 'idle'); });
@@ -1276,7 +1713,7 @@ class SolarSystem extends HTMLElement {
   _reserved() {
     const now = performance.now();
     if (this._resCache && now - this._resAt < 260) return this._resCache;
-    const sel = '[data-ui="header"],[data-ui="flightplan"],[data-ui="readout"],[data-ui="xrline"],[data-ui="cursorpick"],[data-ui="hints"],[data-intro],[data-panel]';
+    const sel = '[data-ui="header"],[data-ui="flightplan"],[data-ui="readout"],[data-ui="xrline"],[data-ui="cursorpick"],[data-ui="hints"],[data-intro],[data-panel],[data-insight-panel]';
     const rects = [];
     document.querySelectorAll(sel).forEach(el => {
       const cs = getComputedStyle(el);
@@ -1453,12 +1890,19 @@ class SolarSystem extends HTMLElement {
     const dt = clamp(t - (this._lastT === undefined ? t - 0.016 : this._lastT), 0, 0.05);
     this._lastT = t;
 
+    const hush = 1 - clamp((this.readDim || 0) * 1.25, 0, 1);
     this.planets.forEach(p => {
       const a = t * p.speed + p.phase;
       p.group.position.set(Math.cos(a) * p.orbit, Math.sin(a * 1.7) * p.orbit * 0.035, Math.sin(a) * p.orbit);
       p.mesh.rotation.y += 0.004;
       p.mesh.rotation.x += 0.0016;
+      // the host planet keeps its moons, so shrink its body instead of the group
+      if (p.id === 'insight') p.mesh.scale.setScalar(Math.max(hush, 0.001) * (p.mesh.userData.hoverScale || 1));
+      else p.group.scale.setScalar(Math.max(hush, 0.001));
+      if (hush < 0.999) p.path.material.opacity = p.path.material.opacity * hush;
     });
+    this._updateMoons(t);
+    this._updateRead(t, dt);
     this.sunCore.rotation.y = t * 0.05;
     this.sunWire.rotation.y = -t * 0.07;
     this.sunWire.rotation.x = Math.sin(t * 0.2) * 0.12;
@@ -1469,11 +1913,17 @@ class SolarSystem extends HTMLElement {
     this.sunHaze.scale.set(30 * (2 - pulse), 30 * (2 - pulse), 1);
     // a corona tuned for a black sky reads as a white wash over a lit room
     const gain = this.mode === 'ar' ? 0.4 : 1;
-    this.sunGlow.material.opacity = (0.9 + Math.sin(t * 1.4) * 0.1) * gain;
-    this.sunHaze.material.opacity = gain;
-    this.sunCore.material.emissiveIntensity = 2.4 + Math.sin(t * 1.4) * 0.35;
-    this.stars.material.opacity = 0.8 + Math.sin(t * 0.9) * 0.12 + Math.sin(t * 2.3) * 0.05;
-    this.dust.material.opacity = 0.5 + Math.sin(t * 1.1 + 2) * 0.12;
+    // reading falls into the moon's own night: the stage sphere carries its light
+    // in its shader, so the rest of the system can go dark without losing it
+    this.readDim = lerp(this.readDim, (this.read && this.read.slug) ? 1 : 0, 0.05);
+    const dim = 1 - this.readDim * 0.84;
+    if (this.sunLight) this.sunLight.intensity = 1200 * (1 - this.readDim * 0.82);
+    if (this.sysLights) this.sysLights.forEach(([l, base]) => { l.intensity = base * (1 - this.readDim * 0.76); });
+    this.sunGlow.material.opacity = (0.9 + Math.sin(t * 1.4) * 0.1) * gain * dim;
+    this.sunHaze.material.opacity = gain * dim;
+    this.sunCore.material.emissiveIntensity = (2.4 + Math.sin(t * 1.4) * 0.35) * (1 - this.readDim * 0.86);
+    this.stars.material.opacity = (0.8 + Math.sin(t * 0.9) * 0.12 + Math.sin(t * 2.3) * 0.05) * (1 - this.readDim * 0.38);
+    this.dust.material.opacity = (0.5 + Math.sin(t * 1.1 + 2) * 0.12) * (1 - this.readDim * 0.7);
 
     // shrink the sprites along with the system, otherwise each point keeps its
     // full-size footprint and the cloud blows out to a white smear in AR/VR
@@ -1487,32 +1937,57 @@ class SolarSystem extends HTMLElement {
     }
 
     this._updateComet(dt, t);
+    this._updateLaunch(dt);
 
     this.ray.setFromCamera(this.ndc, this.camera);
-    const hit = this.ray.intersectObjects(this.hits, false)[0];
+    // once the moons are out, they take the pointer before the planet body does
+    let moonId = null;
+    if (this.moonHits && this.moonReveal > MOON_LIVE) {
+      const mh = this.ray.intersectObjects(this.moonHits, false)[0];
+      if (mh) moonId = mh.object.userData.slug;
+    }
+    if (moonId !== this.hoverMoon) {
+      this.hoverMoon = moonId;
+      this.dispatchEvent(new CustomEvent('insight-hover', { detail: { slug: moonId }, bubbles: true }));
+    }
+    const hit = moonId ? null : this.ray.intersectObjects(this.hits, false)[0];
     const hoverId = hit ? hit.object.userData.planetId : null;
     if (hoverId !== this.hover) {
       this.hover = hoverId;
-      this._cursor(hoverId ? 'pointer' : 'grab');
       this.dispatchEvent(new CustomEvent('planet-hover', { detail: { id: hoverId }, bubbles: true }));
     }
+    this._cursor(hoverId || moonId ? 'pointer' : 'grab');
     this.planets.forEach(p => {
       const target = this.hover === p.id ? 1.18 : 1;
-      p.mesh.scale.setScalar(lerp(p.mesh.scale.x, target, 0.12));
+      p.mesh.userData.hoverScale = lerp(p.mesh.userData.hoverScale || 1, target, 0.12);
+      if (p.id !== 'insight') p.mesh.scale.setScalar(p.mesh.userData.hoverScale);
       p.path.material.opacity = lerp(p.path.material.opacity, this.active === p.id || this.hover === p.id ? 0.4 : 0.09, 0.08);
     });
 
-    const focus = this.active ? this._focusOf(this.active) : null;
+    const focus = this.moonFocus ? this._moonFocus : (this.active ? this._focusOf(this.active) : null);
 
     if (focus) {
-      const radial = this.tmp.copy(focus.pos);
+      const radial = this.tmp.copy(focus.out || focus.pos);
       if (radial.length() < 0.01) radial.set(0, 0, 1);
       radial.normalize();
       const off = focus.size * this.dockDist;
       const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw);
       const rx = radial.x * cy - radial.z * sy, rz = radial.x * sy + radial.z * cy;
-      this.desired.set(focus.pos.x + rx * off, focus.pos.y + off * (0.35 + this.pitch * 0.5), focus.pos.z + rz * off);
-      this.lookAt.lerp(focus.pos, 0.06);
+      const reading = !!(this.read && this.read.slug);
+      const wide = this.clientWidth >= 780;
+      const lift = reading ? 0.12 + this.pitch * 0.3 : (this.active === 'insight' ? 0.22 : 0.35) + this.pitch * 0.5;
+      this.desired.set(focus.pos.x + rx * off, focus.pos.y + off * lift, focus.pos.z + rz * off);
+      // the reading column owns the right of the screen (the top, on a phone), so
+      // aim off-target and let the moon settle into the space that is left
+      const bx = reading ? (wide ? 0.62 : 0) : (wide && this.active === 'insight' ? 0.34 : 0);
+      const by = reading ? (wide ? 0.1 : -0.34) : 0;
+      if (bx || by) {
+        this.tmp2.set(rz, 0, -rx).normalize().multiplyScalar(off * bx);
+        this.tmp2.y += off * by;
+        this.lookAt.lerp(this.tmp.copy(focus.pos).add(this.tmp2), this.warp ? 0.14 : 0.06);
+      } else {
+        this.lookAt.lerp(focus.pos, this.warp ? 0.14 : 0.06);
+      }
     } else {
       const yaw = this.yaw + t * 0.014;
       const d = this.dist;
@@ -1521,7 +1996,21 @@ class SolarSystem extends HTMLElement {
     }
 
     this.prevPos.copy(this.camera.position);
-    this.camera.position.lerp(this.desired, focus ? 0.028 : 0.02);
+    if (this.warp) {
+      // the dive: a fast tween with a field-of-view punch, so arriving at a moon
+      // feels like falling toward it rather than drifting into a dock
+      this.warp.t = Math.min(1, this.warp.t + dt / this.warp.dur);
+      this.camera.position.lerpVectors(this.warp.from, this.desired, 1 - Math.pow(1 - this.warp.t, 3));
+      this.camera.fov = (this.baseFov || 52) + Math.sin(Math.min(1, this.warp.t / 0.86) * Math.PI) * 30;
+      this.camera.updateProjectionMatrix();
+      if (this.warp.t >= 1) {
+        this.warp = null;
+        this.camera.fov = this.baseFov || 52;
+        this.camera.updateProjectionMatrix();
+      }
+    } else {
+      this.camera.position.lerp(this.desired, focus ? 0.028 : 0.02);
+    }
     this.camera.lookAt(this.lookAt);
     this.speed = lerp(this.speed, this.camera.position.distanceTo(this.prevPos) * 620, 0.15);
 
@@ -1529,7 +2018,7 @@ class SolarSystem extends HTMLElement {
     const distToTarget = focus ? this.camera.position.distanceTo(focus.pos) : this.camera.position.length();
     this._hud('speed', Math.round(this.speed).toString().padStart(3, '0'));
     this._hud('distance', (distToTarget * 1.4e3).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' km');
-    this._hud('mode', this.active ? (distToTarget > focus.size * this.dockDist * 1.6 ? 'MENUJU TUJUAN' : 'MENGORBIT') : 'ORBIT BEBAS');
+    this._hud('mode', focus ? (distToTarget > focus.size * this.dockDist * 1.6 ? 'MENUJU TUJUAN' : (this.moonFocus ? 'MEMBACA ORBIT' : 'MENGORBIT')) : 'ORBIT BEBAS');
 
     this._present();
   }

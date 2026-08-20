@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #121116; }
   body { font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -28,6 +28,7 @@
   @keyframes pulseRing { 0%, 100% { opacity: .5; transform: scale(1); } 50% { opacity: .9; transform: scale(1.12); } }
 </style>
 <script type="module" src="./solar.js"></script>
+<script type="module" src="./insight-reader.js"></script>
 </helmet>
 <div data-ui="arlayer" style="position: relative; width: 100%; height: 100dvh; background: #121116; color: #f3f2f8; overflow: hidden; font-size: 14px;">
 
@@ -315,23 +316,23 @@
       <span style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">Planet 04 · Insight</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Insight</h2>
-    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Catatan, tutorial, dan obrolan dari member komunitas.</p>
+    <h2 style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Sistem Insight</h2>
+    <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Tiap tulisan adalah satu bulan yang mengorbit planet ini.</p>
     <div style="display: flex; flex-direction: column; gap: 14px;">
       <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Tutorial</span>
-        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Teknis</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Kenapa 72 FPS Jadi Garis Hidup di VR</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Di headset, frame drop bukan sekadar tersendat — itu yang bikin orang mual.</span>
       </a>
       <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Cerita member</span>
-        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Desain</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Antarmuka yang Tidak Bisa Disentuh</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Zona nyaman, ukuran target, dan umpan balik ketika tidak ada permukaan untuk ditekan.</span>
       </a>
       <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
         <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Industri</span>
-        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Judul artikel</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Ringkasan satu sampai dua baris tentang isi tulisan.</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">WebXR: Jalan Tercepat Masuk Spatial</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Hambatan terbesar bukan harga headset, tapi jarak antara karyamu dan penontonnya.</span>
       </a>
     </div>
   </div>
