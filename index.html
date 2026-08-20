@@ -527,8 +527,14 @@ class Component extends DCLogic {
     this._hover = e => { this.hoverId = e.detail && e.detail.id; };
     this._support = e => {
       const d = e.detail || {};
+      this.vrReady = !!d.ok;
+      this.xrButtons();
       if (d.ok) return this.xrLine('Headset terdeteksi — mode VR siap dipakai');
       if (d.reason === 'blocked') return this.xrLine('Mode VR terkunci di tampilan sematan ini. Buka halaman langsung di browser headset.');
+      // di headset, penyebab paling sering bukan "tidak didukung" tapi halaman
+      // yang dibuka lewat http biasa: WebXR hanya hidup di konteks aman
+      if (!isSecureContext) return this.xrLine('Mode VR butuh HTTPS. Buka lewat https:// (localhost juga dihitung aman), bukan http://alamat-IP.');
+      if (d.reason === 'unsupported') return this.xrLine('Browser ini belum menyalakan WebXR. Di Vision Pro visionOS 1: Settings → Apps → Safari → Advanced → Feature Flags → WebXR. Di visionOS 2 ke atas sudah aktif bawaan.');
       this.xrLine('Belum ada headset terdeteksi. Buka dari headset untuk mode VR penuh.');
     };
     this._xrEnd = () => {
@@ -539,8 +545,7 @@ class Component extends DCLogic {
       this.st(this.q('[data-ui="arreplace"]'), { display: 'none' });
       this.st(this.q('[data-ui="header"]'), { display: 'flex' });
       this.st(this.q('[data-ui="readout"]'), { display: 'block' });
-      this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
-      this.st(this.q('[data-ui="arbtn"]'), { display: this.arReady || this.isPhone ? 'flex' : 'none' });
+      this.xrButtons();
       this.qa('[data-planet-label]').forEach(l => this.st(l, { display: 'flex' }));
       this.st(this.q('[data-intro]'), { display: 'block' });
       this.applyLayout();
@@ -574,12 +579,11 @@ class Component extends DCLogic {
     this._arSupport = e => {
       const ok = !!(e.detail && e.detail.ok);
       this.arReady = ok;
-      this.st(this.q('[data-ui="arbtn"]'), { display: ok || this.isPhone ? 'flex' : 'none' });
       this.st(this.q('[data-ui="header"]'), { display: 'flex' });
       this.st(this.q('[data-ui="readout"]'), { display: 'block' });
-      this.st(this.q('[data-ui="vrbtn"]'), { display: this.isPhone ? 'none' : 'flex' });
+      this.xrButtons();
       if (ok) this.xrLine('Perangkat mendukung AR — ketuk Mode AR untuk melihat tata surya di ruanganmu.');
-      else if (this.isPhone) this.xrLine('Ketuk Mode AR untuk mencoba melihat tata surya di ruanganmu.');
+      else if (this.isPhone && !this.vrReady) this.xrLine('Ketuk Mode AR untuk mencoba melihat tata surya di ruanganmu.');
     };
     this._arStart = e => {
       this.arActive = true;
@@ -670,6 +674,18 @@ class Component extends DCLogic {
   }
 
   scene() { return document.querySelector('solar-system'); }
+
+  // Dukungan yang dilaporkan WebXR selalu menang atas tebakan bentuk perangkat.
+  // Vision Pro melapor pointer kasar dengan jendela Safari yang sempit, jadi
+  // heuristik "ini ponsel" sempat menyembunyikan tombol VR justru di headset.
+  xrButtons() {
+    // headset yang bilang "bisa" selalu dapat tombolnya; di layar biasa tombol
+    // tetap ditawarkan, dan hanya ponsel tanpa VR yang dialihkan ke AR
+    const vr = this.vrReady === true || !this.isPhone;
+    const ar = this.arReady === true || (this.isPhone && this.vrReady !== true);
+    this.st(this.q('[data-ui="vrbtn"]'), { display: vr ? 'flex' : 'none' });
+    this.st(this.q('[data-ui="arbtn"]'), { display: ar ? 'flex' : 'none' });
+  }
 
   meteorBtn() {
     const on = !!this.meteorOn, m = !!this.mobile;
@@ -901,10 +917,7 @@ class Component extends DCLogic {
       ? { display: 'flex', padding: '0 13px', minHeight: '42px', fontSize: '12px', gap: '7px' }
       : { display: 'flex', padding: '10px 16px', minHeight: '0', fontSize: '13px', gap: '9px' });
     this.meteorBtn();
-    if (this.isPhone) {
-      st(q('[data-ui="vrbtn"]'), { display: 'none' });
-      st(q('[data-ui="arbtn"]'), { display: 'flex' });
-    }
+    this.xrButtons();
     qa('[data-ui="readoutInner"] > div > span:first-child').forEach(s => st(s, { fontSize: m ? '8.5px' : '9.5px', whiteSpace: 'nowrap' }));
     const free = q('[data-ui="freeflight"]');
     if (free) free.textContent = m ? 'ORBIT BEBAS' : 'KEMBALI KE ORBIT BEBAS';
@@ -1028,11 +1041,27 @@ class Component extends DCLogic {
         if (s && s.replaceAR) s.replaceAR();
       },
       onEnterVR: async () => {
+        if (!navigator.xr) {
+          if (!isSecureContext) return this.xrLine('Mode VR butuh HTTPS. Buka situs lewat https:// — http://alamat-IP membuat WebXR dimatikan browser.');
+          return this.xrLine('WebXR tidak tersedia di browser ini. Di Vision Pro visionOS 1, nyalakan Settings → Apps → Safari → Advanced → Feature Flags → WebXR.');
+        }
+        if (!isSecureContext) {
+          return this.xrLine('Mode VR butuh koneksi HTTPS. Buka situs lewat https://');
+        }
         try {
           await this.scene().enterVR();
-          this.xrLine('Sesi VR aktif — arahkan controller ke planet, atau pandang targetnya dan tahan sebentar.');
+          this.xrLine('Sesi VR aktif — pinch atau tarik trigger untuk memilih, atau pandang targetnya dan tahan sebentar.');
         } catch (err) {
-          this.xrLine('Mode VR belum bisa dijalankan di perangkat ini. Coba dari headset dengan WebXR.');
+          const n = err && err.name;
+          // kalau tadi WebXR sendiri bilang tidak ada sesi immersive-vr yang
+          // didukung, itu penjelasan yang lebih jujur daripada nama galatnya
+          if (this.vrReady === false) this.xrLine('Belum ada headset yang siap di perangkat ini' + (n ? ' (' + n + ')' : '') + '. Buka halaman ini dari browser di dalam headset.');
+          else if (n === 'NotSupportedError') this.xrLine('Headset ini menolak sesi immersive-vr. Pastikan halaman dibuka di tab Safari biasa (bukan tersemat) dan tidak ada sesi lain yang aktif.');
+          else if (n === 'SecurityError') this.xrLine('Sesi VR diblokir. Buka halaman langsung di browser headset lewat https://, bukan di dalam iframe atau aplikasi lain.');
+          else if (n === 'NotAllowedError') this.xrLine('Izin sesi VR ditolak. Ketuk tombol sekali lagi lalu setujui permintaan headset.');
+          else if (n === 'InvalidStateError') this.xrLine('Sesi XR lain masih berjalan. Tutup dulu, lalu coba lagi.');
+          // apa pun sisanya: tampilkan apa adanya supaya bisa dibaca di headset
+          else this.xrLine('Mode VR gagal: ' + (n ? n + ' — ' : '') + ((err && err.message) || 'tidak diketahui'));
         }
       },
       onSubmit: e => {

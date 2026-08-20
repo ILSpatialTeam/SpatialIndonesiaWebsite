@@ -2241,7 +2241,22 @@ class SolarSystem extends HTMLElement {
   async enterVR() {
     if (!navigator.xr) throw new Error('WebXR tidak tersedia');
     const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'] });
-    this.renderer.xr.setReferenceSpaceType('local-floor');
+    // 'local-floor' cuma diminta sebagai opsional, jadi tidak semua headset
+    // memberikannya (Vision Pro salah satunya, tergantung versi). Kalau ruang
+    // lantai ditolak, setSession three.js ikut gagal dan sesi mati sebelum
+    // sempat menggambar — jadi tanyakan dulu, baru putuskan jenis ruangnya.
+    let space = 'local-floor';
+    try {
+      await session.requestReferenceSpace('local-floor');
+    } catch (e) {
+      space = 'local';
+    }
+    this.xrFloor = space === 'local-floor';
+    this.renderer.xr.setReferenceSpaceType(space);
+    // kanvas halaman memang transparan, tapi di dalam headset latar itu harus
+    // padat — kalau tidak, langitnya ikut kosong
+    this._prevClearAlpha = this.renderer.getClearAlpha();
+    this.renderer.setClearColor(INK, 1);
     await this.renderer.xr.setSession(session);
     this._bindXRControllers();
     this.mode = 'vr';
@@ -2368,9 +2383,6 @@ class SolarSystem extends HTMLElement {
   /* ---------- XR frame ---------- */
 
   _xrFrame() {
-    this.world.scale.setScalar(0.03);
-    this.world.position.set(0, 1.32, -1.5);
-
     const cam = this.renderer.xr.getCamera ? this.renderer.xr.getCamera() : this.camera;
     cam.getWorldPosition(this.tmp);
     cam.getWorldDirection(this.tmp2);
@@ -2378,6 +2390,11 @@ class SolarSystem extends HTMLElement {
     if (!this.xrHome.set) { this.xrHome.yaw = yaw; this.xrHome.y = this.tmp.y; this.xrHome.set = true; }
     this.xrHome.yaw = lerp(this.xrHome.yaw, yaw, 0.012);
     this.xrHome.y = lerp(this.xrHome.y, this.tmp.y, 0.02);
+
+    // di ruang lantai, 1,32 m adalah tinggi meja yang enak dipandang; tanpa
+    // lantai, titik nol ada di kepala — jadi ukur turun dari mata sendiri
+    this.world.scale.setScalar(0.03);
+    this.world.position.set(0, this.xrFloor === false ? this.xrHome.y - 0.28 : 1.32, -1.5);
 
     const place = (obj, angle, radius, dy) => {
       const a = this.xrHome.yaw + angle;
@@ -2424,8 +2441,11 @@ class SolarSystem extends HTMLElement {
         armed = true;
         this._fireFrom(c);
       });
-      // no controller at all: the gaze reticle doubles as the gunsight
-      if (!armed && !this.hasController && this.met.cool <= 0) {
+      // Vision Pro cuma memunculkan penunjuk saat kamu mencubit, jadi patokannya
+      // bukan "pernah ada controller" melainkan ada tidaknya penunjuk hidup
+      // sekarang: begitu tak ada, reticle tatapan yang jadi pembidiknya
+      const live = (this.controllers || []).some(c => c.userData.connected === true);
+      if (!armed && !live && this.met.cool <= 0) {
         const o = new THREE.Vector3().setFromMatrixPosition(cam.matrixWorld);
         const d = new THREE.Vector3(0, 0, -1).transformDirection(cam.matrixWorld).normalize();
         this.ray.set(o, d);
