@@ -117,8 +117,8 @@ document.addEventListener('trails', e => {
   if (d.on) signal(d.count + ' penjelajah terakhir meninggalkan jejaknya di sini. Yang paling terang baru saja lewat.');
 });
 
-// galaksi menyala sejak awal, jadi keadaan tombolnya datang dari scene —
-// bukan ditebak di sini
+// keadaan tombol galaksi datang dari scene, bukan ditebak di sini — termasuk
+// keadaan awalnya, yang dipancarkan sekali saat sistemnya dibangun
 document.addEventListener('milkyway', e => {
   galaxyBtn.classList.toggle('on', !!(e.detail && e.detail.on));
 });

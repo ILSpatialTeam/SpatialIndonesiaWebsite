@@ -47,13 +47,13 @@ const COARSE = matchMedia('(pointer: coarse)').matches;
 // jadi *cahaya* adalah jumlah: banyak titik kecil yang saling tumpang tindih.
 // Titik tidak punya segitiga dan semuanya satu draw call, jadi yang dibayar
 // hanya memori buffer — murah, bahkan di ponsel.
-const GRAINS = COARSE ? 18000 : 46000;
+const GRAINS = COARSE ? 30000 : 82000;
 // Kabut inilah yang sebenarnya dibayar: satu partikel selebar 50 piksel menutup
 // dua ribu kali lebih banyak piksel daripada bintang selebar satu. Diukur dengan
 // EXT_disjoint_timer_query, satu bingkai sempat 18,8 ms tanpa batas ukuran.
 // Jumlahnya ditekan dan kecerahannya dinaikkan sebagai gantinya — cahaya
 // totalnya setara, ongkosnya tidak.
-const HAZE = 0.15;           // bagian partikel yang jadi kabut, bukan bintang
+const HAZE = 0.28;           // bagian partikel yang jadi kabut, bukan bintang
 const BULGE = 0.08;          // bagian partikel yang jadi tonjolan inti
 const HOT = 0.012;           // simpul pembentuk bintang, jingga terang
 const LOOSE = 0.3;           // partikel yang tidak ikut lengan mana pun
@@ -93,12 +93,12 @@ export function createMilkyWay(ctx) {
       if (Math.random() < BULGE) {
         const b = Math.sqrt(Math.random());        // memadat ke tengah
         const r = 6 + 14 * b;
-        const haze = Math.random() < 0.4;
+        const haze = Math.random() < 0.5;
         aR[i] = r;
         aA[i] = Math.random() * Math.PI * 2;
         aY[i] = (Math.random() + Math.random() - 1) * r * 0.45;
-        aS[i] = haze ? rnd(7, 20) : rnd(0.45, 1.25);
-        aB[i] = (haze ? rnd(0.10, 0.21) : rnd(0.22, 0.55)) * (1 - b * 0.5);
+        aS[i] = haze ? rnd(6, 13) : rnd(0.45, 1.25);
+        aB[i] = (haze ? rnd(0.16, 0.32) : rnd(0.24, 0.6)) * (1 - b * 0.5);
         aT[i] = Math.random() * 0.1;               // emas
         continue;
       }
@@ -146,8 +146,8 @@ export function createMilkyWay(ctx) {
       aR[i] = r;
       aA[i] = loose ? Math.random() * Math.PI * 2 : ridge + off;
       aY[i] = (Math.random() + Math.random() + Math.random() - 1.5) * flare;
-      aS[i] = haze ? rnd(5, 14) : (hot ? 1.3 : rnd(0.45, 1.0));
-      aB[i] = (haze ? rnd(0.12, 0.27) : (hot ? 0.9 : rnd(0.22, 0.72))) * env * (dusty ? 0.4 : 1);
+      aS[i] = haze ? rnd(4, 9) : (hot ? 1.3 : rnd(0.45, 1.0));
+      aB[i] = (haze ? rnd(0.15, 0.30) : (hot ? 0.9 : rnd(0.24, 0.78))) * env * (dusty ? 0.4 : 1);
       aT[i] = tone;
     }
     return { aR, aA, aY, aS, aB, aT, pos };
@@ -177,7 +177,12 @@ export function createMilkyWay(ctx) {
         tGlow: { value: ctx.particleMap },
         uTime: { value: 0 },
         uSize: { value: 1 },
-        uCap: { value: COARSE ? 30 : 56 },
+        // Batas ini yang sebenarnya menentukan ongkos, bukan jumlah partikel:
+        // pada zoom terjauh seluruh piringan masuk layar sekaligus, dan dengan
+        // batas 56 satu bingkai sempat 5,5 ms hanya untuk galaksi. Di 34 ia
+        // turun ke sekitar 1 ms tanpa perubahan yang terlihat — kabutnya toh
+        // lembut.
+        uCap: { value: COARSE ? 24 : 34 },
         uFade: { value: 0 }
       },
       vertexShader: [
@@ -244,7 +249,10 @@ export function createMilkyWay(ctx) {
     grains.frustumCulled = false;
     group.add(grains);
 
-    M = { group, grains, mat, on: true, fade: 0, gain: 1, hush: 1 };
+    // Mati secara bawaan: galaksinya menutupi hampir seluruh layar, dan yang
+    // pertama harus terbaca saat halaman dibuka adalah tata suryanya sendiri.
+    // Ini efek yang dinyalakan, bukan yang dimatikan.
+    M = { group, grains, mat, on: false, fade: 0, gain: 1, hush: 1 };
 
     // Saat rasi bintang dinyalakan, garis-garisnyalah yang harus terbaca.
     ctx.bus.on('sky-lore', e => { if (M) M.hush = e.detail && e.detail.on ? 0.5 : 1; });
