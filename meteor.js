@@ -55,8 +55,9 @@ html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
   display: flex; align-items: center; gap: 22px; padding: 12px 20px;
   border: 1px solid rgba(255,138,61,.34); border-radius: 14px;
   background: rgba(18,17,22,.66); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  animation: mtIn .5s cubic-bezier(.2,.7,.2,1) both;
+  animation: mtInX .5s cubic-bezier(.2,.7,.2,1) both;
 }
+@keyframes mtInX { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%); } }
 .mt-hud .lab { font-size: 9px; letter-spacing: .22em; color: var(--muted); display: block; margin-bottom: 6px; white-space: nowrap; }
 .mt-hp { min-width: 260px; }
 .mt-bar { position: relative; height: 9px; border-radius: 999px; background: rgba(243,242,248,.1); overflow: hidden; }
@@ -70,6 +71,7 @@ html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
 .mt-hud.crit .mt-num.hp { color: var(--burn); }
 .mt-num.score { color: var(--hot); }
 .mt-num.wave { color: var(--paper); }
+.mt-statsrow { display: flex; align-items: center; gap: 22px; }
 .mt-sep { width: 1px; height: 28px; background: rgba(243,242,248,.12); }
 .mt-mute {
   pointer-events: auto; width: 30px; height: 30px; display: grid; place-items: center;
@@ -93,6 +95,9 @@ html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
 .mt-aim.fire .ring { animation: mtKick .12s ease-out; }
 
 /* -- umpan balik -- */
+.mt-tap { position: fixed; left: 0; top: 0; width: 74px; height: 74px; margin: -37px 0 0 -37px; border: 1px solid rgba(255,138,61,.9); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 70; }
+.mt-tap.on { animation: mtTap .42s cubic-bezier(.2,.7,.2,1); }
+@keyframes mtTap { 0% { opacity: .95; transform: scale(.3); } 100% { opacity: 0; transform: scale(1); } }
 .mt-flash { position: absolute; inset: 0; opacity: 0; background: radial-gradient(circle at 50% 50%, transparent 24%, rgba(255,58,26,.55) 100%); }
 .mt-flash.on { animation: mtHit .5s ease-out; }
 .mt-wave { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); text-align: center; opacity: 0; }
@@ -131,21 +136,36 @@ html.mt-on, html.mt-on body, html.mt-on * { cursor: none !important; }
 @keyframes mtWave { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.9); } 18% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 74% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.04); } }
 
 @media (max-width: 780px) {
-  .mt-hud { top: calc(70px + env(safe-area-inset-top)); gap: 12px; padding: 9px 13px; border-radius: 12px; }
-  .mt-hp { min-width: 128px; }
-  .mt-num { font-size: 14px; }
-  .mt-hud .lab { font-size: 8px; letter-spacing: .16em; }
+  /* kartu HUD melar selebar layar dan statistiknya turun satu baris — dijejalkan
+     dalam satu baris, labelnya sendiri sudah lebih lebar dari layar ponsel */
+  .mt-hud {
+    top: calc(78px + env(safe-area-inset-top)); left: 10px; right: 10px; transform: none;
+    flex-wrap: wrap; gap: 7px 10px; padding: 9px 13px; border-radius: 12px;
+    /* animasi masuknya ikut diganti: keyframe versi lebar menahan
+       translateX(-50%) lewat fill mode, dan itu mengalahkan transform di sini */
+    animation-name: mtInY;
+  }
+  @keyframes mtInY { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  .mt-hp { flex: 1 1 110px; min-width: 0; }
+  .mt-num { font-size: 13px; }
+  .mt-num.hp { margin-left: auto; }
+  .mt-hud .lab { font-size: 7.5px; letter-spacing: .11em; margin-bottom: 4px; }
+  .mt-sep { display: none; }
+  .mt-statsrow { flex: 1 0 100%; justify-content: space-between; gap: 8px; }
   .mt-mute { display: none; }
-  .mt-tip { bottom: calc(20px + env(safe-area-inset-bottom)); font-size: 9.5px; letter-spacing: .12em; }
+  .mt-tip {
+    left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); transform: none;
+    white-space: normal; line-height: 1.6; font-size: 9.5px; letter-spacing: .1em;
+  }
   .mt-wave .v { font-size: 34px; }
+  .mt-over { padding: 26px 20px 22px; border-radius: 14px; }
+  .mt-over h2 { font-size: 23px; }
+  .mt-over p { margin: 8px 0 18px; font-size: 12.5px; }
+  .mt-stats { gap: 16px; margin-bottom: 20px; }
+  .mt-stats b { font-size: 21px; }
+  .mt-stats span { font-size: 8px; letter-spacing: .14em; }
+  .mt-acts button { padding: 12px 10px; font-size: 11.5px; letter-spacing: .04em; }
 }
-`;
-
-// keyframes mtIn dipakai .mt-hud yang cuma bergeser di sumbu X — biarkan
-// transform-nya diurus masing-masing lewat aturan di bawah ini
-const CSS_FIX = `
-.mt-hud { animation-name: mtInX; }
-@keyframes mtInX { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%); } }
 `;
 
 /* ---------- rangka ---------- */
@@ -159,13 +179,17 @@ const waveNum = el('span', { class: 'mt-num wave', text: '01' });
 const killNum = el('span', { class: 'mt-num wave', text: '00' });
 const muteBtn = el('button', { class: 'mt-mute', text: '♪', title: 'Suara' });
 
+const statsRow = el('div', { class: 'mt-statsrow' }, [
+  el('div', {}, [el('span', { class: 'lab', text: 'SKOR' }), scoreNum]),
+  el('div', {}, [el('span', { class: 'lab', text: 'GELOMBANG' }), waveNum]),
+  el('div', {}, [el('span', { class: 'lab', text: 'TERTEMBAK' }), killNum])
+]);
+
 const hud = el('div', { class: 'mt-hud' }, [
   el('div', { class: 'mt-hp' }, [el('span', { class: 'lab', text: 'INTEGRITAS SISTEM' }), barWrap]),
   hpNum,
   el('span', { class: 'mt-sep' }),
-  el('div', {}, [el('span', { class: 'lab', text: 'SKOR' }), scoreNum]),
-  el('div', {}, [el('span', { class: 'lab', text: 'GELOMBANG' }), waveNum]),
-  el('div', {}, [el('span', { class: 'lab', text: 'TERTEMBAK' }), killNum]),
+  statsRow,
   muteBtn
 ]);
 
@@ -191,6 +215,7 @@ const over = el('div', { class: 'mt-over' }, [
   ])
 ]);
 
+const tap = el('div', { class: 'mt-tap' });
 const root = el('div', { class: 'mt-root' }, [hud, waveBanner, flash, tip, over]);
 const aim = el('div', { class: 'mt-aim' }, [
   el('span', { class: 'sweep' }), el('span', { class: 'ring' }),
@@ -199,8 +224,8 @@ const aim = el('div', { class: 'mt-aim' }, [
   el('span', { class: 'dot' })
 ]);
 
-document.head.appendChild(el('style', { text: CSS + CSS_FIX }));
-document.body.append(root, aim);
+document.head.appendChild(el('style', { text: CSS }));
+document.body.append(root, aim, tap);
 
 /* ---------- suara ---------- */
 // disintesis, bukan berkas: laser dan ledakan harus terdengar seketika dan
@@ -355,6 +380,15 @@ document.addEventListener('meteor-shot', e => {
   aim.classList.remove('fire');
   void aim.offsetWidth;
   aim.classList.add('fire');
+  // di layar sentuh tidak ada bidikan yang mengikuti jari, jadi titik tembaknya
+  // ditandai di tempat ketukan tadi
+  if (!fine()) {
+    tap.style.left = ax + 'px';
+    tap.style.top = ay + 'px';
+    tap.classList.remove('on');
+    void tap.offsetWidth;
+    tap.classList.add('on');
+  }
 });
 
 document.addEventListener('meteor-aim', e => {
@@ -387,7 +421,10 @@ document.addEventListener('ar-start', () => { if (on) { const s = scene(); if (s
 /* ---------- bidikan ---------- */
 
 let ax = innerWidth / 2, ay = innerHeight / 2, cx = ax, cy = ay, raf = 0;
-addEventListener('pointermove', e => { ax = e.clientX; ay = e.clientY; }, { passive: true });
+const track = e => { ax = e.clientX; ay = e.clientY; };
+addEventListener('pointermove', track, { passive: true });
+addEventListener('pointerdown', track, { passive: true, capture: true });
+addEventListener('pointerup', track, { passive: true, capture: true });
 
 const follow = () => {
   raf = requestAnimationFrame(follow);

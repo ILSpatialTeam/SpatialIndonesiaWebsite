@@ -1974,6 +1974,8 @@ class SolarSystem extends HTMLElement {
     this.dispatchEvent(new CustomEvent('meteor-over', {
       detail: { score: M.score, wave: M.wave, kills: M.kills }, bubbles: true
     }));
+    // angka terakhir ikut disegarkan, termasuk papan kaca di dalam headset
+    this._meteorHud();
   }
 
   _resetMeteorGame() {

@@ -239,9 +239,23 @@ html.pn-read [data-ui="vignette"] { opacity: 0 !important; pointer-events: none 
   .pn-p > blockquote { font-size: 21px; }
   .pn-gut { position: static; width: auto; flex-direction: row; align-items: center; gap: 16px; margin-top: 9px; justify-content: flex-start; }
   .pn-add { opacity: 1; }
-  .pn-tel { right: 20px; top: 84px; }
+  /* Di layar sentuh, kolom teks tidak bisa jadi satu-satunya bidang yang
+     menerima sentuhan: sapuan yang jatuh di margin atas/bawah tembus ke kanvas
+     (touch-action: none) sehingga bacaan tidak ikut bergulir sama sekali. Saat
+     membaca, seluruh layar diserahkan ke bacaan; memutar pandangan tetap bisa
+     dilakukan setelah menutup artikel. */
+  .pn-root[data-view="read"] .pn-doc { pointer-events: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  /* telemetri fase pindah ke kaki layar — di atas ia bertabrakan dengan
+     tombol kembali dan kepala situs */
+  .pn-tel {
+    right: 16px; left: 16px; top: auto; bottom: calc(12px + env(safe-area-inset-bottom));
+    gap: 10px; padding: 9px 14px; font-size: 9.5px; letter-spacing: .14em;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(8,7,12,.78); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .pn-tel .bar { flex: 1 1 auto; width: auto; }
   .pn-topfade { left: 0; height: 76px; }
-  .pn-back { left: 20px; top: 84px; }
+  .pn-back { left: 20px; top: 84px; padding: 6px 10px; margin: -6px -10px; border-radius: 999px; background: rgba(8,7,12,.6); }
   .pn-links { display: none; }
 }
 `;
