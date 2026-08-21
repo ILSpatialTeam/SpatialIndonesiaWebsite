@@ -77,6 +77,22 @@ itu ke `src/`, dan jangan menghapus tombol tersembunyi itu karena tampak tak
 terpakai. Hal yang sama berlaku untuk `[data-hud="mode"]` dan `[data-hud="xr"]`:
 HUD baru mencerminkan isinya lewat `MutationObserver`.
 
+### Permukaan planet datang dari gambar, bukan dari model
+
+Tiap planet memakai peta permukaan asli di `assets/planets/*.jpg`, dipetakan ke
+`SphereGeometry` biasa — peta planet selalu ekuirektangular, dan itu persis tata
+UV yang sudah dihasilkan SphereGeometry. Berkas model 3D (`assets/3d/Planets.fbx`)
+**tidak dimuat**: isinya cuma bola ber-UV yang bisa dibuat satu baris, sementara
+memuatnya menuntut FBXLoader beserta ongkosnya.
+
+Teksturnya dimuat belakangan lewat `skinTexture()` di `core/texture.js` dan
+sengaja tidak ditunggu — bolanya tampil dulu dengan warna paletnya. Kalau
+gambarnya gagal dimuat, yang tersisa tetap tata surya yang utuh.
+
+Cahaya matahari memakai `decay` 0,9, bukan 2. Dengan hukum kuadrat terbalik yang
+jujur, planet terluar menerima sepersepuluh cahaya planet terdalam — benar secara
+fisika, celaka sebagai menu. Jangan "memperbaiki"-nya kembali ke 2.
+
 ### Menambah fitur 3D
 
 Loop utama berbunyi `this.systems.update(t, dt)` dan tidak menyebut satu pun nama

@@ -20,7 +20,7 @@ src/
     math.js  texture.js  dom.js  audio.js
 
   data/               fakta, tanpa perilaku
-    planets.js          planet, warna, ikon, urutan navigasi
+    planets.js          planet, warna, ikon, peta permukaan, urutan navigasi
     agenda.js           agenda & jejak pengunjung  ← nanti dari API
     insight.js          artikel & sparing
     panels.js           isi panel headset (dirakit dari dua data di atas)

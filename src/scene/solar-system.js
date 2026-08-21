@@ -9,7 +9,7 @@
 // baris pendaftaran di bawah, bukan menyunting loop atau kelas ini.
 import * as THREE from '../core/three.js';
 import { clamp, lerp } from '../core/math.js';
-import { makeCanvas, glowTexture, wrapText as wrap } from '../core/texture.js';
+import { makeCanvas, glowTexture, wrapText as wrap, skinTexture } from '../core/texture.js';
 import { createBus } from '../core/bus.js';
 import { createContext } from '../core/context.js';
 import { createRegistry } from '../core/registry.js';
@@ -150,7 +150,16 @@ class SolarSystem extends HTMLElement {
     sunHaze.scale.set(30, 30, 1);
     sun.add(sunHaze);
     this.sunHaze = sunHaze;
-    const sunLight = new THREE.PointLight(ACCENT, 1200, 140);
+    // Peredupan cahaya dibuat jauh lebih landai daripada aslinya (pangkat 0,9,
+    // bukan kuadrat). Dengan hukum kuadrat terbalik yang jujur, Gabung di orbit
+    // 35,5 menerima cahaya **sepersepuluh** Program di orbit 11 — benar secara
+    // fisika, dan celaka sebagai menu: separuh pilihan jadi hampir tak terlihat.
+    // Sejak planetnya memakai peta permukaan sungguhan dan bukan warna solid,
+    // selisih itu langsung terasa. Yang dipertahankan cuma arah cahayanya —
+    // itulah yang membuat batas siang-malam di Bumi terbaca.
+    const SUN_LUX = 44, SUN_DECAY = 0.9;
+    const sunLight = new THREE.PointLight(ACCENT, SUN_LUX, 260, SUN_DECAY);
+    this.sunLux = SUN_LUX;
     sun.add(sunLight);
     this.sunLight = sunLight;
     const sunHit = new THREE.Mesh(new THREE.SphereGeometry(4.6, 12, 12), new THREE.MeshBasicMaterial({ visible: false }));
@@ -169,36 +178,62 @@ class SolarSystem extends HTMLElement {
     this.planets = PLANETS.map(p => {
       const g = new THREE.Group();
       g.name = p.id;
-      let mesh;
-      const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.42, metalness: 0.32, flatShading: p.kind !== 'glow' });
+      // Bola ber-UV standar, bukan model yang dimuat.
+      //
+      // Peta permukaan planet selalu ekuirektangular (lebar : tinggi = 2 : 1),
+      // dan itu persis tata UV yang sudah dihasilkan SphereGeometry. Jadi berkas
+      // model tidak memberi apa pun yang belum kita punya — yang berharga dari
+      // paket 3D itu cuma teksturnya.
+      const mat = new THREE.MeshStandardMaterial({
+        color: p.color,          // dipakai sampai teksturnya selesai dimuat
+        roughness: 0.88,         // permukaan berbatu memantul baur, bukan kilap
+        metalness: 0.02
+      });
       mat.name = p.id + 'Material';
-      if (p.kind === 'ringed') {
-        mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(p.size, 2), mat);
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(p.size * 1.9, 0.03, 6, 90), new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.6 }));
-        ring.rotation.set(Math.PI / 2.3, 0.3, 0);
-        g.add(ring);
-      } else if (p.kind === 'dodeca') {
-        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(p.size, 0), mat);
-      } else if (p.kind === 'wire') {
-        mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(p.size, 1), mat);
-        g.add(new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(p.size * 1.45, 1)), new THREE.LineBasicMaterial({ color: p.color, transparent: true, opacity: 0.35 })));
-      } else if (p.kind === 'torus') {
-        mesh = new THREE.Mesh(new THREE.TorusGeometry(p.size, p.size * 0.36, 14, 60), mat);
-        mesh.rotation.x = 0.9;
-      } else if (p.kind === 'cluster') {
-        mesh = new THREE.Mesh(new THREE.OctahedronGeometry(p.size, 0), mat);
-        for (let i = 0; i < 4; i++) {
-          const m = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.22), mat);
-          const a = (i / 4) * Math.PI * 2;
-          m.position.set(Math.cos(a) * p.size * 1.9, Math.sin(a * 2) * 0.5, Math.sin(a) * p.size * 1.9);
-          g.add(m);
-        }
-      } else {
-        mesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 32, 32), new THREE.MeshStandardMaterial({ color: p.color, emissive: p.color, emissiveIntensity: 0.45, roughness: 0.3 }));
-        g.add(new THREE.Mesh(new THREE.SphereGeometry(p.size * 1.7, 24, 24), new THREE.MeshBasicMaterial({ color: p.color, transparent: true, opacity: 0.1 })));
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(p.size, 40, 28), mat);
+
+      // Kemiringan sumbu ditaruh di kelompok terpisah, bukan di bolanya. Loop
+      // utama memutar `mesh.rotation.y`, dan kalau kemiringannya ikut menempel
+      // di bola yang sama, putarannya jadi mengelilingi sumbu tegak — bukan
+      // sumbu yang miring. Planet yang miring tapi berputar tegak terlihat
+      // salah tanpa orang bisa menunjuk salahnya di mana.
+      const body = new THREE.Group();
+      body.rotation.z = p.tilt || 0;
+      body.add(mesh);
+      g.add(body);
+
+      skinTexture(p.skin, tex => {
+        mat.map = tex;
+        // Warna paletnya tidak dibuang, cuma ditipiskan jadi semburat. Alasannya
+        // sama dengan yang sudah diputuskan untuk ikon planet di `planets.js`:
+        // berkas aslinya penuh jingga dan biru muda yang bukan warna kita.
+        // Bedanya di sini semburat itu ringan saja — matahari kita memang ungu,
+        // jadi sebagian besar warnanya datang dari cahayanya, bukan dari cat.
+        mat.color.set(p.color).lerp(new THREE.Color(0xffffff), 0.86);
+        mat.needsUpdate = true;
+      });
+
+      if (p.ring) {
+        // Tekstur cincinnya berupa cakram dilihat dari atas dengan latar hitam,
+        // bukan pita memanjang — jadi yang paling tepat memakainya adalah satu
+        // bidang datar, bukan TorusGeometry. Hitamnya dipakai langsung sebagai
+        // peta alfa, jadi tidak perlu berkas PNG beralfa yang jauh lebih berat.
+        const rmat = new THREE.MeshBasicMaterial({
+          transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide
+        });
+        const ring = new THREE.Mesh(new THREE.PlaneGeometry(p.size * 5, p.size * 5), rmat);
+        ring.name = p.id + 'Ring';
+        ring.rotation.x = -Math.PI / 2;
+        body.add(ring);
+        skinTexture('ring', tex => {
+          rmat.map = tex;
+          rmat.alphaMap = tex;
+          rmat.opacity = 0.9;
+          rmat.needsUpdate = true;
+        });
       }
+
       mesh.name = p.id + 'Body';
-      g.add(mesh);
 
       const hit = new THREE.Mesh(new THREE.SphereGeometry(Math.max(2.6, p.size * 3), 12, 12), new THREE.MeshBasicMaterial({ visible: false }));
       hit.userData.planetId = p.id;
@@ -2116,8 +2151,12 @@ class SolarSystem extends HTMLElement {
       // planet Event mengikuti agenda, bukan jam internal
       const a = (p.id === 'event' && this.sysAgenda) ? this.sysAgenda.angle : t * p.speed + p.phase;
       p.group.position.set(Math.cos(a) * p.orbit, Math.sin(a * 1.7) * p.orbit * 0.035, Math.sin(a) * p.orbit);
-      p.mesh.rotation.y += 0.004;
-      p.mesh.rotation.x += 0.0016;
+      // Hanya sumbu Y. Dulu ada putaran di sumbu X juga, dan untuk bentuk
+      // abstrak itu tidak apa-apa — tapi planet sungguhan tidak berguling
+      // kutub-ke-kutub. Kemiringan sumbunya sekarang ditangani kelompok
+      // pembungkus di `planets.js`, jadi putaran Y ini sudah mengelilingi sumbu
+      // yang benar-benar miring.
+      p.mesh.rotation.y += 0.0026;
       // the host planet keeps its moons, so shrink its body instead of the group
       if (p.id === 'insight') p.mesh.scale.setScalar(Math.max(hush, 0.001) * (p.mesh.userData.hoverScale || 1));
       else p.group.scale.setScalar(Math.max(hush, 0.001));
@@ -2141,7 +2180,7 @@ class SolarSystem extends HTMLElement {
     // in its shader, so the rest of the system can go dark without losing it
     this.readDim = lerp(this.readDim, (this.read && this.read.slug) ? 1 : 0, 0.05);
     const dim = 1 - this.readDim * 0.84;
-    if (this.sunLight) this.sunLight.intensity = 1200 * (1 - this.readDim * 0.82);
+    if (this.sunLight) this.sunLight.intensity = this.sunLux * (1 - this.readDim * 0.82);
     if (this.sysLights) this.sysLights.forEach(([l, base]) => { l.intensity = base * (1 - this.readDim * 0.76); });
     this.sunGlow.material.opacity = (0.9 + Math.sin(t * 1.4) * 0.1) * gain * dim;
     this.sunHaze.material.opacity = gain * dim;
