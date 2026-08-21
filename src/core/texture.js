@@ -30,3 +30,26 @@ export function wrapText(ctx, text, maxW) {
   if (line) out.push(line);
   return out;
 }
+
+// Peta permukaan planet.
+//
+// Dimuat belakangan dan sengaja tidak ditunggu: bolanya sudah muncul dengan
+// warna paletnya, lalu permukaannya menyusul beberapa ratus milidetik kemudian.
+// Menunda tampilnya seluruh tata surya demi setengah megabita gambar bukan
+// pertukaran yang baik — dan kalau gambarnya gagal dimuat, yang tersisa tetap
+// tata surya yang utuh, bukan layar kosong.
+const skinLoader = new THREE.TextureLoader();
+const skinCache = new Map();
+
+export function skinTexture(name, onReady) {
+  if (!name) return;
+  const cached = skinCache.get(name);
+  if (cached) { onReady(cached); return; }
+  skinLoader.load(`assets/planets/${name}.jpg`, tex => {
+    // peta warna harus dibaca sebagai sRGB, kalau tidak hasilnya pucat
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    skinCache.set(name, tex);
+    onReady(tex);
+  }, undefined, () => { /* biarkan warna paletnya yang bertahan */ });
+}

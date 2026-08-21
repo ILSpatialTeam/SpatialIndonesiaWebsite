@@ -6,14 +6,36 @@
 
 export const ACCENT = 0x6a5ae0, MINT = 0xa99bf2, PAPER = 0xf3f2f8, INK = 0x121116, DEEP = 0x2a1fc9;
 
+// Tiap menu memakai permukaan planet sungguhan (`skin` → assets/planets/<nama>.jpg).
+// Urutannya sengaja mengikuti urutan asli tata surya, jadi menu yang makin jauh
+// dari matahari juga planet yang makin jauh — susunannya jadi bisa dibaca orang
+// yang hafal tata surya, bukan acak.
+//
+//   Program  → Merkurius  planet tercepat mengelilingi matahari (88 hari), dan
+//                         `speed` di sini memang yang paling tinggi
+//   Karya    → Venus      benda paling terang di langit setelah matahari dan
+//                         bulan — karya adalah yang paling terlihat dari luar
+//   Event    → Bumi       satu-satunya tempat orang benar-benar berkumpul
+//   Insight  → Mars       tujuan berikutnya; tempat gagasan diuji
+//   Tim      → Jupiter    terbesar, dan punya bulan paling banyak
+//   Gabung   → Saturnus   cincinnya adalah lingkaran yang mengelilingi;
+//                         bergabung berarti masuk ke dalamnya
+//
+// `size` tidak memakai perbandingan asli — Jupiter sungguhan 28× Merkurius dan
+// itu akan menghancurkan tata letak. Yang dipertahankan cuma *urutannya*:
+// Merkurius < Mars < Venus < Bumi < Saturnus < Jupiter.
+//
+// `color` tetap ada dan tetap dipakai: label, orrery, radar, dan penanda 3D
+// mengambil warnanya dari sini, dan sebelum teksturnya selesai dimuat bolanya
+// tampil dengan warna itu.
 export const PLANETS = [
-  { id: 'program', label: 'Program', orbit: 11, size: 0.9, color: MINT, speed: 0.085, phase: 0.4, kind: 'ringed' },
-  { id: 'karya', label: 'Karya', orbit: 15.5, size: 1.15, color: ACCENT, speed: 0.062, phase: 2.1, kind: 'dodeca' },
-  { id: 'event', label: 'Event', orbit: 20, size: 0.85, color: PAPER, speed: 0.048, phase: 4.0, kind: 'wire' },
+  { id: 'program', label: 'Program', orbit: 11, size: 0.7, color: MINT, speed: 0.085, phase: 0.4, skin: 'mercury', tilt: 0.03 },
+  { id: 'karya', label: 'Karya', orbit: 15.5, size: 0.98, color: ACCENT, speed: 0.062, phase: 2.1, skin: 'venus', tilt: 0.05 },
+  { id: 'event', label: 'Event', orbit: 20, size: 1.02, color: PAPER, speed: 0.048, phase: 4.0, skin: 'earth', tilt: 0.41 },
   // deep blue reads as the far end of the brand gradient
-  { id: 'insight', label: 'Insight', orbit: 25, size: 1.0, color: DEEP, speed: 0.038, phase: 5.4, kind: 'torus' },
-  { id: 'tim', label: 'Tim', orbit: 30, size: 0.8, color: PAPER, speed: 0.03, phase: 1.2, kind: 'cluster' },
-  { id: 'gabung', label: 'Gabung', orbit: 35.5, size: 1.3, color: ACCENT, speed: 0.024, phase: 3.3, kind: 'glow' }
+  { id: 'insight', label: 'Insight', orbit: 25, size: 0.8, color: DEEP, speed: 0.038, phase: 5.4, skin: 'mars', tilt: 0.44 },
+  { id: 'tim', label: 'Tim', orbit: 30, size: 1.5, color: PAPER, speed: 0.03, phase: 1.2, skin: 'jupiter', tilt: 0.05 },
+  { id: 'gabung', label: 'Gabung', orbit: 35.5, size: 1.3, color: ACCENT, speed: 0.024, phase: 3.3, skin: 'saturn', tilt: 0.47, ring: true }
 ];
 
 // Penanda planet. Ikonnya dipakai sebagai siluet berwarna palet — berkas
