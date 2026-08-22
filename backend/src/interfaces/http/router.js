@@ -11,7 +11,7 @@ import { noStore } from './middleware/cache.js';
 import { checkConnection } from '../../infrastructure/db/pool.js';
 
 export function buildRouter(container) {
-  const { services, tokens, cache, uploadDir } = container;
+  const { services, tokens, cache, uploadDir, presenceHub } = container;
   const requireAuth = makeRequireAuth(tokens);
   const r = Router();
 
@@ -41,7 +41,7 @@ export function buildRouter(container) {
   );
   // Publik dipasang terakhir supaya rutenya yang bercorak umum (mis. `/:id`)
   // tidak pernah menelan `/auth` atau `/admin`.
-  r.use('/', publicRoutes(makePublicController(services)));
+  r.use('/', publicRoutes(makePublicController({ ...services, presenceHub })));
 
   return r;
 }

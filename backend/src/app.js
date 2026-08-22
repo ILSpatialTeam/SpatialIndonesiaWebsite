@@ -128,7 +128,19 @@ export function createApp({ container = buildContainer() } = {}) {
     })
   );
 
-  app.use(compression());
+  app.use(compression({
+    // SSE tidak boleh dikompresi.
+    //
+    // Kompresi bekerja dengan menahan data sampai buffer-nya cukup penuh untuk
+    // dikirim. Untuk response biasa itu tepat; untuk aliran yang mengirim
+    // beberapa puluh byte tiap beberapa detik, artinya pesannya tertahan di
+    // server sampai entah kapan — dan gejalanya adalah fitur presence yang
+    // tampak mati total tanpa satu pun error di mana pun.
+    filter: (req, res) => {
+      if (res.getHeader('Content-Type') === 'text/event-stream') return false;
+      return compression.filter(req, res);
+    }
+  }));
   app.use(cookieParser());
   // Batas ukuran badan permintaan. Artikel panjang butuh ruang, tapi 1 MB
   // sudah jauh di atas tulisan terpanjang yang masuk akal — dan tanpa batas,

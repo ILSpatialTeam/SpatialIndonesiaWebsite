@@ -14,6 +14,7 @@
 //    mendengarkan. Bundel rilis membuat urutan itu terasa; dalam mode berkas
 //    terpisah ia tersamarkan oleh jeda jaringan.
 import { segarkan, segarkanJejak, rekamKunjungan } from './data/remote.js';
+import { mulaiLive } from './data/live.js';
 import './ui/organisms/insight-reader.js';
 import './ui/organisms/meteor-hud.js';
 import './ui/organisms/panel-content.js';
@@ -28,3 +29,8 @@ segarkanJejak();
 // Lintasan pengunjung ini dikumpulkan selama sesi dan dikirim sekali saat ia
 // pergi — jejaknya lalu ikut menyala untuk pengunjung berikutnya.
 rekamKunjungan();
+
+// Presence live dibuka paling akhir. Koneksinya bertahan selama tab terbuka,
+// dan tidak ada satu pun bagian situs yang menunggunya — kalau server tidak
+// bisa dihubungi, tata suryanya tetap jalan tanpa pengunjung lain terlihat.
+mulaiLive();

@@ -85,5 +85,6 @@ export const TAG = Object.freeze({
   agenda: 'agenda',
   presence: 'presence',
   taxonomy: 'taxonomy',
-  settings: 'settings'
+  settings: 'settings',
+  sky: 'sky'
 });

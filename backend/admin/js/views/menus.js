@@ -2,6 +2,7 @@ import { api } from '../api.js';
 import {
   el, pasang, kosongkan, toast, toastGalat, drawer, bidang, input, textarea, select, lencana, tandaiGalat
 } from '../ui.js';
+import { t } from '../i18n.js';
 
 // Pengelolaan tujuh menu.
 //
@@ -14,7 +15,7 @@ export async function tampilanMenu(wadah) {
   const isi = el('div');
 
   async function muat() {
-    pasang(kosongkan(isi), el('p', { class: 'redup' }, 'Memuat…'));
+    pasang(kosongkan(isi), el('p', { class: 'redup' }, t('umum.memuat')));
     try {
       const menus = await api.get('/admin/menus');
       pasang(kosongkan(isi),
@@ -28,8 +29,8 @@ export async function tampilanMenu(wadah) {
   pasang(kosongkan(wadah),
     el('div', { class: 'halaman-kepala' },
       el('div', {},
-        el('h1', {}, 'Menu tata surya'),
-        el('p', { class: 'redup' }, 'Tujuh menu: satu inti (matahari) dan enam planet.'))),
+        el('h1', {}, t('menu.judul')),
+        el('p', { class: 'redup' }, t('menu.subjudul')))),
     isi
   );
   await muat();
@@ -80,16 +81,16 @@ function pratinjauOrbit(m, orbitMaks) {
 // Angka orbit diterjemahkan jadi kalimat. "speed 0.085" tidak memberi tahu
 // apa-apa; "paling cepat mengorbit" langsung dimengerti.
 function keteranganOrbit(m, semua) {
-  if (m.kind !== 'planet') return 'Matahari — pusat tata surya, tanpa orbit.';
+  if (m.kind !== 'planet') return t('menu.matahari');
   const planet = semua.filter((x) => x.kind === 'planet');
   const urutJarak = [...planet].sort((a, b) => a.orbit - b.orbit);
   const urutLaju = [...planet].sort((a, b) => b.speed - a.speed);
   const bagian = [];
-  if (urutJarak[0]?.id === m.id) bagian.push('paling dekat matahari');
-  else if (urutJarak[urutJarak.length - 1]?.id === m.id) bagian.push('paling jauh');
-  else bagian.push(`urutan ke-${urutJarak.findIndex((x) => x.id === m.id) + 1} dari matahari`);
-  if (urutLaju[0]?.id === m.id) bagian.push('mengorbit paling cepat');
-  if (m.hasRing) bagian.push('bercincin');
+  if (urutJarak[0]?.id === m.id) bagian.push(t('menu.palingDekat'));
+  else if (urutJarak[urutJarak.length - 1]?.id === m.id) bagian.push(t('menu.palingJauh'));
+  else bagian.push(t('menu.urutanKe', { n: urutJarak.findIndex((x) => x.id === m.id) + 1 }));
+  if (urutLaju[0]?.id === m.id) bagian.push(t('menu.palingCepat'));
+  if (m.hasRing) bagian.push(t('menu.bercincin'));
   return `${bagian.join(', ')}.`;
 }
 
@@ -107,8 +108,9 @@ function kartuMenu(m, semua, muat) {
         el('span', { class: 'kartu-no' }, m.no),
         el('div', {},
           el('h3', {}, m.label),
-          el('span', { class: 'redup kecil' }, m.kind === 'core' ? 'Inti' : `Planet · ${m.skin ?? '—'}`))),
-      m.isActive ? null : lencana('disembunyikan', 'redup')),
+          el('span', { class: 'redup kecil' },
+            m.kind === 'core' ? t('menu.inti') : `${t('menu.planet')} · ${m.skin ?? '—'}`))),
+      m.isActive ? null : lencana(t('menu.disembunyikan'), 'redup')),
 
     pratinjauOrbit(m, orbitMaks),
     el('p', { class: 'kartu-orbit-teks redup kecil' }, keteranganOrbit(m, semua)),
@@ -121,33 +123,32 @@ function kartuMenu(m, semua, muat) {
     // mengenali menu, bukan membacanya — bacanya di formulir sunting.
     el('div', { class: 'kartu-butir' },
       dinamis
-        ? el('span', { class: 'redup kecil' },
-            m.id === 'event' ? 'Isi panel dirakit dari agenda' : 'Isi panel dirakit dari daftar artikel')
+        ? el('span', { class: 'redup kecil' }, t(m.id === 'event' ? 'menu.dariAgenda' : 'menu.dariArtikel'))
         : butir.length
           ? el('span', { class: 'redup kecil' },
-              `${butir.length} butir · ${butir.slice(0, 2).map((b) => b.k || b.t).filter(Boolean).join(', ')}${butir.length > 2 ? '…' : ''}`)
-          : el('span', { class: 'redup kecil' }, 'Belum ada butir'),
-      m.links?.length ? el('span', { class: 'redup kecil' }, `${m.links.length} tautan`) : null),
+              `${t('menu.jumlahItem', { n: butir.length })} · ${butir.slice(0, 2).map((b) => b.k || b.t).filter(Boolean).join(', ')}${butir.length > 2 ? '…' : ''}`)
+          : el('span', { class: 'redup kecil' }, t('menu.belumAdaItem')),
+      m.links?.length ? el('span', { class: 'redup kecil' }, t('menu.jumlahTautan', { n: m.links.length })) : null),
 
     el('div', { class: 'kartu-aksi' },
-      el('button', { class: 'btn btn-kecil btn-utama', onclick: () => bukaMenu(m, muat) }, 'Sunting'),
+      el('button', { class: 'btn btn-kecil btn-utama', onclick: () => bukaMenu(m, muat) }, t('aksi.sunting')),
       el('button', {
         class: 'btn btn-kecil',
-        title: m.isActive ? 'Sembunyikan dari situs' : 'Tampilkan di situs',
+        title: t(m.isActive ? 'menu.sembunyikanDariSitus' : 'menu.tampilkanDiSitus'),
         onclick: async () => {
           try {
             await api.patch(`/admin/menus/${m.id}`, { isActive: !m.isActive });
-            toast(m.isActive ? 'Menu disembunyikan.' : 'Menu ditampilkan.', 'sukses');
+            toast(t(m.isActive ? 'menu.disembunyikanPesan' : 'menu.ditampilkanPesan'), 'sukses');
             muat();
           } catch (err) { toastGalat(err); }
         }
-      }, m.isActive ? 'Sembunyikan' : 'Tampilkan'))
+      }, t(m.isActive ? 'aksi.sembunyikan' : 'aksi.tampilkan')))
   );
 }
 
 function bukaMenu(m, setelahSimpan) {
   const form = el('form', { class: 'form' });
-  const { tutup } = drawer(`Menu: ${m.label}`, form, { lebar: 'min(760px, 94vw)' });
+  const { tutup } = drawer(t('menu.form.judul', { nama: m.label }), form, { lebar: 'min(760px, 94vw)' });
 
   // Butir panel disunting sebagai daftar yang bisa ditambah dan dikurangi,
   // lalu dikirim utuh. Server mengganti seluruh isinya — tidak ada diff per
@@ -157,10 +158,10 @@ function bukaMenu(m, setelahSimpan) {
     const baris = el(
       'div',
       { class: 'butir' },
-      input({ class: 'kendali kendali-kecil', placeholder: 'Label', value: b.k ?? '', dataset: { f: 'k' } }),
-      input({ class: 'kendali kendali-kecil', placeholder: 'Judul (opsional)', value: b.t ?? '', dataset: { f: 't' } }),
-      textarea({ class: 'kendali kendali-kecil', placeholder: 'Deskripsi', rows: 2, value: b.d ?? '', dataset: { f: 'd' } }),
-      el('button', { type: 'button', class: 'btn-ikon', title: 'Hapus butir', onclick: () => baris.remove() }, '×')
+      input({ class: 'kendali kendali-kecil', placeholder: t('menu.form.labelItem'), value: b.k ?? '', dataset: { f: 'k' } }),
+      input({ class: 'kendali kendali-kecil', placeholder: t('menu.form.judulItem'), value: b.t ?? '', dataset: { f: 't' } }),
+      textarea({ class: 'kendali kendali-kecil', placeholder: t('menu.form.deskripsiItem'), rows: 2, value: b.d ?? '', dataset: { f: 'd' } }),
+      el('button', { type: 'button', class: 'btn-ikon', title: t('menu.form.hapusItem'), onclick: () => baris.remove() }, '×')
     );
     daftarButir.append(baris);
   };
@@ -171,9 +172,9 @@ function bukaMenu(m, setelahSimpan) {
     const baris = el(
       'div',
       { class: 'butir butir-2' },
-      input({ class: 'kendali kendali-kecil', placeholder: 'Label', value: l.label ?? '', dataset: { f: 'label' } }),
+      input({ class: 'kendali kendali-kecil', placeholder: t('menu.form.labelItem'), value: l.label ?? '', dataset: { f: 'label' } }),
       input({ class: 'kendali kendali-kecil', placeholder: 'https://…', value: l.url ?? '', dataset: { f: 'url' } }),
-      el('button', { type: 'button', class: 'btn-ikon', title: 'Hapus tautan', onclick: () => baris.remove() }, '×')
+      el('button', { type: 'button', class: 'btn-ikon', title: t('menu.form.hapusTautan'), onclick: () => baris.remove() }, '×')
     );
     daftarTautan.append(baris);
   };
@@ -182,24 +183,22 @@ function bukaMenu(m, setelahSimpan) {
   const planetBidang = el(
     'fieldset',
     { class: 'kotak' },
-    el('legend', {}, 'Parameter orbit'),
-    el('p', { class: 'redup kecil' },
-      'Angka-angka ini langsung menggerakkan planetnya di layar. Orbit yang terlalu ' +
-      'berdekatan akan ditolak supaya lintasannya tidak bersilangan.'),
+    el('legend', {}, t('menu.form.orbit')),
+    el('p', { class: 'redup kecil' }, t('menu.form.orbitCatatan')),
     el('div', { class: 'baris-3' },
-      bidang('Orbit', input({ name: 'orbit', type: 'number', step: '0.5', value: m.orbit ?? '' }), { nama: 'orbit' }),
-      bidang('Ukuran', input({ name: 'size', type: 'number', step: '0.01', value: m.size ?? '' }), { nama: 'size' }),
-      bidang('Laju', input({ name: 'speed', type: 'number', step: '0.001', value: m.speed ?? '' }), { nama: 'speed' })),
+      bidang(t('menu.form.jarakOrbit'), input({ name: 'orbit', type: 'number', step: '0.5', value: m.orbit ?? '' }), { nama: 'orbit' }),
+      bidang(t('menu.form.ukuran'), input({ name: 'size', type: 'number', step: '0.01', value: m.size ?? '' }), { nama: 'size' }),
+      bidang(t('menu.form.kecepatan'), input({ name: 'speed', type: 'number', step: '0.001', value: m.speed ?? '' }), { nama: 'speed' })),
     el('div', { class: 'baris-3' },
-      bidang('Fase', input({ name: 'phase', type: 'number', step: '0.1', value: m.phase ?? '' }), { nama: 'phase' }),
-      bidang('Kemiringan', input({ name: 'tilt', type: 'number', step: '0.01', value: m.tilt ?? '' }), { nama: 'tilt' }),
-      bidang('Tekstur', input({ name: 'skin', value: m.skin ?? '', placeholder: 'earth' }),
-        { nama: 'skin', petunjuk: 'assets/planets/<nama>.jpg' })),
+      bidang(t('menu.form.fase'), input({ name: 'phase', type: 'number', step: '0.1', value: m.phase ?? '' }), { nama: 'phase' }),
+      bidang(t('menu.form.kemiringan'), input({ name: 'tilt', type: 'number', step: '0.01', value: m.tilt ?? '' }), { nama: 'tilt' }),
+      bidang(t('menu.form.tekstur'), input({ name: 'skin', value: m.skin ?? '', placeholder: 'earth' }),
+        { nama: 'skin', petunjuk: t('menu.form.teksturCatatan') })),
     el('div', { class: 'baris-2' },
-      bidang('Warna (hex)', input({ name: 'colorHex', type: 'color', value: `#${(m.color ?? 0).toString(16).padStart(6, '0')}` }),
+      bidang(t('menu.form.warnaPlanet'), input({ name: 'colorHex', type: 'color', value: `#${(m.color ?? 0).toString(16).padStart(6, '0')}` }),
         { nama: 'color' }),
-      bidang('Bercincin', select(
-        [{ value: 'false', label: 'Tidak', selected: !m.hasRing }, { value: 'true', label: 'Ya', selected: m.hasRing }],
+      bidang(t('menu.form.cincin'), select(
+        [{ value: 'false', label: t('umum.tidak'), selected: !m.hasRing }, { value: 'true', label: t('umum.ya'), selected: m.hasRing }],
         { name: 'hasRing' }
       ), { nama: 'hasRing' }))
   );
@@ -207,34 +206,33 @@ function bukaMenu(m, setelahSimpan) {
 
   pasang(form,
     el('div', { class: 'baris-3' },
-      bidang('Label menu', input({ name: 'label', value: m.label, required: true }), { nama: 'label' }),
-      bidang('Nomor', input({ name: 'no', value: m.no, required: true, maxLength: 6 }), { nama: 'no' }),
-      bidang('Tag', input({ name: 'tag', value: m.tag, required: true }), { nama: 'tag' })),
+      bidang(t('menu.form.label'), input({ name: 'label', value: m.label, required: true }), { nama: 'label' }),
+      bidang(t('menu.form.nomor'), input({ name: 'no', value: m.no, required: true, maxLength: 6 }), { nama: 'no' }),
+      bidang(t('menu.form.tag'), input({ name: 'tag', value: m.tag, required: true }), { nama: 'tag' })),
     el('div', { class: 'baris-2' },
-      bidang('Warna aksen', input({ name: 'accent', type: 'color', value: m.accent }), { nama: 'accent' }),
-      bidang('Ditampilkan', select(
-        [{ value: 'true', label: 'Ya', selected: m.isActive }, { value: 'false', label: 'Tidak', selected: !m.isActive }],
+      bidang(t('menu.form.warna'), input({ name: 'accent', type: 'color', value: m.accent }), { nama: 'accent' }),
+      bidang(t('menu.form.tampil'), select(
+        [{ value: 'true', label: t('umum.ya'), selected: m.isActive }, { value: 'false', label: t('umum.tidak'), selected: !m.isActive }],
         { name: 'isActive' }
       ), { nama: 'isActive' })),
-    bidang('Judul panel', input({ name: 'title', value: m.title, required: true }), { nama: 'title' }),
-    bidang('Lead panel', textarea({ name: 'lead', value: m.lead, rows: 2 }), { nama: 'lead' }),
+    bidang(t('menu.form.judulPanel'), input({ name: 'title', value: m.title, required: true }), { nama: 'title' }),
+    bidang(t('menu.form.leadPanel'), textarea({ name: 'lead', value: m.lead, rows: 2 }), { nama: 'lead' }),
     el('fieldset', { class: 'kotak' },
-      el('legend', {}, 'Butir panel'),
+      el('legend', {}, t('menu.form.item')),
       m.id === 'event' || m.id === 'insight'
         ? el('p', { class: 'redup kecil' },
-            'Panel ini isinya dirakit otomatis dari ' +
-            (m.id === 'event' ? 'agenda' : 'daftar artikel') + ' — butir manual di bawah tidak ditampilkan.')
+            t('menu.form.itemOtomatis', { sumber: t(m.id === 'event' ? 'nav.agenda' : 'nav.artikel').toLowerCase() }))
         : null,
       daftarButir,
-      el('button', { type: 'button', class: 'btn btn-kecil', onclick: () => tambahButir() }, '+ Tambah butir')),
+      el('button', { type: 'button', class: 'btn btn-kecil', onclick: () => tambahButir() }, t('menu.form.tambahItem'))),
     el('fieldset', { class: 'kotak' },
-      el('legend', {}, 'Tautan'),
+      el('legend', {}, t('menu.form.tautan')),
       daftarTautan,
-      el('button', { type: 'button', class: 'btn btn-kecil', onclick: () => tambahTautan() }, '+ Tambah tautan')),
+      el('button', { type: 'button', class: 'btn btn-kecil', onclick: () => tambahTautan() }, t('menu.form.tambahTautan'))),
     planetBidang,
     el('div', { class: 'form-aksi' },
-      el('button', { type: 'button', class: 'btn', onclick: tutup }, 'Batal'),
-      el('button', { type: 'submit', class: 'btn btn-utama' }, 'Simpan perubahan'))
+      el('button', { type: 'button', class: 'btn', onclick: tutup }, t('aksi.batal')),
+      el('button', { type: 'submit', class: 'btn btn-utama' }, t('aksi.simpanPerubahan')))
   );
 
   const kumpulkan = (wadah, medan) =>
@@ -272,7 +270,7 @@ function bukaMenu(m, setelahSimpan) {
     tombol.disabled = true;
     try {
       await api.patch(`/admin/menus/${m.id}`, muatan);
-      toast('Menu disimpan.', 'sukses');
+      toast(t('umum.tersimpan'), 'sukses');
       tutup();
       setelahSimpan();
     } catch (err) {

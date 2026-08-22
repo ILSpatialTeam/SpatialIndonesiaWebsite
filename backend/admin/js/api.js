@@ -10,6 +10,8 @@
 //      halaman login tiap seperempat jam di tengah menulis artikel.
 //   3. Galat dari server diubah jadi Error ber-`details`, jadi form bisa
 //      menyorot field yang salah alih-alih menampilkan satu pesan umum.
+import { t } from './i18n.js';
+
 const BASE = '/api/v1';
 
 const bacaCookie = (nama) =>
@@ -63,7 +65,7 @@ async function kirim(metode, jalur, { body, formData, ulangi = true } = {}) {
       return kirim(metode, jalur, { body, formData, ulangi: false });
     } catch {
       window.dispatchEvent(new CustomEvent('sesi-habis'));
-      throw new ApiError(401, { error: { message: 'Sesi habis. Masuk lagi.' } });
+      throw new ApiError(401, { error: { message: t('login.sesiHabis') } });
     }
   }
 

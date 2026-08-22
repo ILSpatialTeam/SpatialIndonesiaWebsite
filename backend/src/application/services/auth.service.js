@@ -37,17 +37,17 @@ export class AuthService {
       // termasuk yang tidak pernah terdaftar.
       this.monitor?.catat({
         kind: 'login_failed',
-        message: `Login gagal untuk ${email}`,
+        message: `Failed sign-in attempt for ${email}`,
         actorEmail: String(email).slice(0, 160),
         ipHash: ipHash, userAgent, requestId,
-        meta: { alasan: user ? 'kata sandi salah' : 'akun tidak ada' }
+        meta: { reason: user ? 'wrong password' : 'unknown account' }
       });
       throw new UnauthorizedError('Email atau kata sandi salah.');
     }
     if (!user.is_active) {
       this.monitor?.catat({
         kind: 'forbidden',
-        message: `Login ke akun nonaktif: ${user.email}`,
+        message: `Sign-in attempt on a disabled account: ${user.email}`,
         actorEmail: user.email, ipHash, userAgent, requestId
       });
       throw new ForbiddenError('Akun ini dinonaktifkan.');
@@ -60,7 +60,7 @@ export class AuthService {
     });
     this.monitor?.catat({
       kind: 'login_ok',
-      message: `${user.email} masuk`,
+      message: `${user.email} signed in`,
       actorEmail: user.email, ipHash, userAgent, requestId
     });
 
@@ -117,9 +117,9 @@ export class AuthService {
       this.monitor?.catat({
         kind: 'session_revoked',
         severity: 'critical',
-        message: `Refresh token yang sudah dirotasi dipakai lagi untuk ${sesi.email} — seluruh keluarga sesi dicabut`,
+        message: `Rotated refresh token replayed for ${sesi.email} — the whole session family was revoked`,
         actorEmail: sesi.email, ipHash, userAgent, requestId,
-        meta: { familyId: sesi.family_id, sesiDicabut: dicabut }
+        meta: { familyId: sesi.family_id, sessionsRevoked: dicabut }
       });
       throw new UnauthorizedError('Sesi ditutup karena terdeteksi dipakai dari dua tempat. Masuk lagi, dan pertimbangkan mengganti kata sandi.');
     }
@@ -166,7 +166,7 @@ export class AuthService {
     await this.users.update(userId, { passwordHash: await this.hasher.hash(newPassword) });
     this.monitor?.catat({
       kind: 'password_changed',
-      message: `${user.email} mengganti kata sandi`,
+      message: `${user.email} changed their password`,
       actorEmail: user.email
     });
     // Ganti kata sandi membatalkan semua sesi lain. Itulah yang diharapkan

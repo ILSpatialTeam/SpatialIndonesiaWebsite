@@ -27,7 +27,20 @@ export function publicRoutes(c) {
   r.get('/agenda/state', publicCache(60), ah(c.agendaState));
   r.get('/settings', publicCache(300), ah(c.settings));
 
+  // Langit komunitas. Daftarnya boleh di-cache lama — bintang bertambah
+  // beberapa per hari, bukan per detik. Tapi "bintang milikku" tidak: ia
+  // bergantung pada siapa yang bertanya.
+  r.get('/sky/stars', publicCache(120), ah(c.skyStars));
+  r.get('/sky/mine', noStore, ah(c.myStar));
+  r.post('/sky/stars', noStore, limitKiriman, validate({ body: S.starBody }), ah(c.placeStar));
+
   r.get('/presence', noStore, ah(c.presence));
+
+  // Aliran presence live. TIDAK memakai limitBaca: koneksinya memang dibuka
+  // lama dan hanya satu per pengunjung, jadi menghitungnya sebagai request
+  // biasa tidak berarti apa-apa. Batasnya dijaga kapasitas hub (200 tamu).
+  r.get('/presence/live', noStore, c.livePresence);
+  r.post('/presence/here', noStore, validate({ body: S.hereBody }), c.hereNow);
   r.post('/presence', noStore, limitKiriman, validate({ body: S.presenceBody }), ah(c.recordPresence));
 
   r.post(

@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { el, pasang, kosongkan, tabel, lencana, tanggalID, select, ikon, toastGalat } from '../ui.js';
+import { t, localeIntl } from '../i18n.js';
 
 // Halaman pemantauan: keamanan, kesehatan database, dan jejak perubahan.
 //
@@ -12,16 +13,18 @@ import { el, pasang, kosongkan, tabel, lencana, tanggalID, select, ikon, toastGa
 const WARNA_TINGKAT = { aman: 'hijau', waspada: 'perhatian', kritis: 'bahaya' };
 const WARNA_BERAT = { info: 'redup', notice: 'netral', warning: 'perhatian', critical: 'bahaya' };
 
-const LABEL_JENIS = {
-  login_failed: 'Login gagal', login_ok: 'Login berhasil', logout: 'Keluar',
-  account_locked: 'Akun dikunci', rate_limited: 'Batas laju', csrf_rejected: 'CSRF ditolak',
-  cors_rejected: 'Origin ditolak', unauthorized: 'Tanpa sesi', forbidden: 'Akses ditolak',
-  validation_failed: 'Data tidak valid', upload_rejected: 'Unggahan ditolak',
-  server_error: 'Galat server', not_found: 'Rute tidak ada',
-  password_changed: 'Kata sandi diganti', session_revoked: 'Sesi dicabut'
-};
+// Nama jenis event dibaca dari kamus, bukan dari peta lokal. Menyimpan dua
+// daftar berarti menambah jenis baru di satu tempat lalu bingung kenapa
+// namanya tidak muncul.
+const JENIS_EVENT = [
+  'login_failed', 'login_ok', 'logout', 'account_locked', 'rate_limited',
+  'csrf_rejected', 'cors_rejected', 'unauthorized', 'forbidden',
+  'validation_failed', 'upload_rejected', 'server_error', 'not_found',
+  'password_changed', 'session_revoked'
+];
+const namaJenis = (kind) => t(`event.kind.${kind}`);
 
-const jam = (iso) => new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+const jam = (iso) => new Date(iso).toLocaleTimeString(localeIntl(), { hour: '2-digit', minute: '2-digit' });
 const waktu = (iso) => `${tanggalID(iso)} ${jam(iso)}`;
 
 export async function tampilanPemantauan(wadah) {
@@ -29,7 +32,7 @@ export async function tampilanPemantauan(wadah) {
   const isi = el('div');
 
   async function muat() {
-    pasang(kosongkan(isi), el('p', { class: 'redup' }, 'Memuat…'));
+    pasang(kosongkan(isi), el('p', { class: 'redup' }, t('umum.memuat')));
     try {
       const [m, db] = await Promise.all([
         api.get('/admin/monitor', { jam: keadaan.jam }),
@@ -47,23 +50,20 @@ export async function tampilanPemantauan(wadah) {
         indeksPanel(db.indeks, db.kueriLambat));
     } catch (err) {
       pasang(kosongkan(isi), el('p', { class: 'galat' },
-        err.status === 403
-          ? 'Halaman pemantauan hanya untuk akun owner.'
-          : err.message));
+        err.status === 403 ? t('monitor.hanyaOwner') : err.message));
     }
   }
 
   pasang(kosongkan(wadah),
     el('div', { class: 'halaman-kepala' },
       el('div', {},
-        el('h1', {}, 'Pemantauan'),
-        el('p', { class: 'redup' },
-          'Keamanan, kesehatan database, dan setiap perubahan data — dalam satu layar.')),
+        el('h1', {}, t('monitor.judul')),
+        el('p', { class: 'redup' }, t('monitor.subjudul'))),
       select(
         [
-          { value: '24', label: '24 jam terakhir', selected: true },
-          { value: '168', label: '7 hari terakhir' },
-          { value: '720', label: '30 hari terakhir' }
+          { value: '24', label: t('monitor.periode24'), selected: true },
+          { value: '168', label: t('monitor.periode7') },
+          { value: '720', label: t('monitor.periode30') }
         ],
         { onchange: (e) => { keadaan.jam = Number(e.target.value); muat(); } }
       )),
@@ -73,15 +73,17 @@ export async function tampilanPemantauan(wadah) {
 
 // ── penilaian ───────────────────────────────────────────────────────────────
 function kartuStatus(m) {
-  const t = m.status.tingkat;
-  return el('div', { class: `pantau-status pantau-${t}` },
+  const tingkat = m.status.tingkat;
+  return el('div', { class: `pantau-status pantau-${tingkat}` },
     el('div', { class: 'pantau-status-kiri' },
       el('span', { class: 'pantau-cincin' }, el('span', { class: 'pantau-inti' })),
       el('div', {},
-        el('strong', {}, t === 'aman' ? 'Tidak ada indikasi masalah' : t === 'waspada' ? 'Perlu diperiksa' : 'Butuh tindakan sekarang'),
-        el('div', { class: 'redup kecil' }, `Berdasarkan ${m.periodeJam} jam terakhir`))),
+        el('strong', {}, t(`monitor.status.${tingkat}`)),
+        el('div', { class: 'redup kecil' }, t('monitor.status.dasar', { n: m.periodeJam })))),
+    // Server mengirim { kode, n }; kalimatnya dirakit di sini agar ikut bahasa
+    // yang dipilih pengguna.
     el('ul', { class: 'pantau-catatan' },
-      m.status.catatan.map((c) => el('li', {}, c))));
+      m.status.catatan.map((c) => el('li', {}, t(`monitor.catatan.${c.kode}`, { n: c.n })))));
 }
 
 function kotakAngka(m) {
@@ -93,10 +95,13 @@ function kotakAngka(m) {
       catatan ? el('span', { class: 'stat-catatan' }, catatan) : null);
 
   return el('div', { class: 'stat-kisi' },
-    kotak('Galat server', k.galat_server, k.galat_server ? 'Periksa daftar kejadian' : 'Tidak ada', k.galat_server ? 'perhatian' : 'netral'),
-    kotak('Login gagal', k.login_gagal, `${k.sumber_unik} sumber berbeda`, k.login_gagal >= 20 ? 'perhatian' : 'netral'),
-    kotak('Kena batas laju', k.dibatasi, k.dibatasi ? 'Permintaan ditahan' : 'Tidak ada', k.dibatasi >= 30 ? 'perhatian' : 'netral'),
-    kotak('Total kejadian', k.total, `${k.peringatan} peringatan · ${k.kritis} kritis`));
+    kotak(t('monitor.errorServer'), k.galat_server,
+      t(k.galat_server ? 'monitor.errorServerCek' : 'monitor.tidakAda'), k.galat_server ? 'perhatian' : 'netral'),
+    kotak(t('monitor.loginGagal'), k.login_gagal,
+      t('monitor.sumberBerbeda', { n: k.sumber_unik }), k.login_gagal >= 20 ? 'perhatian' : 'netral'),
+    kotak(t('monitor.kenaRateLimit'), k.dibatasi,
+      t(k.dibatasi ? 'monitor.requestDitahan' : 'monitor.tidakAda'), k.dibatasi >= 30 ? 'perhatian' : 'netral'),
+    kotak(t('monitor.totalEvent'), k.total, t('monitor.ringkasBerat', { w: k.peringatan, c: k.kritis })));
 }
 
 // ── grafik ──────────────────────────────────────────────────────────────────
@@ -105,13 +110,13 @@ function kotakAngka(m) {
 function grafik(deret) {
   const maks = Math.max(1, ...deret.map((d) => d.total));
   return el('div', { class: 'panel' },
-    el('h2', {}, 'Kejadian per hari'),
+    el('h2', {}, t('monitor.grafikJudul')),
     el('div', { class: 'grafik' },
       deret.map((d) => {
         const tinggi = Math.round((d.total / maks) * 100);
         return el('div', {
           class: 'grafik-batang',
-          title: `${tanggalID(d.hari)} · ${d.total} kejadian${d.berat ? `, ${d.berat} berat` : ''}`
+          title: `${tanggalID(d.hari)} · ${t('event.jumlah', { n: d.total })}${d.berat ? ` · ${t('monitor.berat', { n: d.berat })}` : ''}`
         },
           el('span', {
             class: d.berat ? 'grafik-isi grafik-berat' : 'grafik-isi',
@@ -122,43 +127,43 @@ function grafik(deret) {
       })),
     el('div', { class: 'grafik-kaki redup kecil' },
       el('span', {}, tanggalID(deret[0]?.hari)),
-      el('span', {}, `puncak ${maks}`),
+      el('span', {}, t('monitor.puncak', { n: maks })),
       el('span', {}, tanggalID(deret[deret.length - 1]?.hari))));
 }
 
 function sumberPanel(sumber) {
   return el('div', { class: 'panel' },
-    el('h2', {}, 'Sumber paling aktif'),
+    el('h2', {}, t('monitor.sumberJudul')),
     el('p', { class: 'redup kecil' },
-      'Alamat IP tidak pernah disimpan mentah — yang tercatat hanya sidik ber-garam, cukup untuk mengenali sumber yang sama.'),
+      t('monitor.sumberCatatan')),
     sumber.length
       ? el('ul', { class: 'jejak' },
           sumber.map((s) => el('li', {},
             el('code', {}, s.ip_hash.slice(0, 10)),
-            s.berat ? lencana(`${s.berat} berat`, 'perhatian') : null,
-            el('span', { class: 'redup kecil' }, (s.jenis || []).map((j) => LABEL_JENIS[j] ?? j).join(', ')),
+            s.berat ? lencana(t('monitor.berat', { n: s.berat }), 'perhatian') : null,
+            el('span', { class: 'redup kecil' }, (s.jenis || []).map((j) => namaJenis(j)).join(', ')),
             el('span', { class: 'redup kecil jejak-kanan' }, `${s.jumlah}× · ${jam(s.terakhir)}`))))
-      : el('p', { class: 'redup' }, 'Belum ada kejadian dari sumber mana pun.'));
+      : el('p', { class: 'redup' }, t('monitor.sumberKosong')));
 }
 
 // ── kejadian ────────────────────────────────────────────────────────────────
 function kejadianPanel(terbaru) {
   return el('div', { class: 'panel' },
     el('div', { class: 'panel-kepala' },
-      el('h2', {}, 'Kejadian terakhir'),
-      el('a', { href: '#/kejadian', class: 'btn btn-kecil' }, 'Lihat semua')),
+      el('h2', {}, t('monitor.eventTerakhir')),
+      el('a', { href: '#/kejadian', class: 'btn btn-kecil' }, t('aksi.lihatSemua'))),
     tabel(
       [
-        { judul: 'Waktu', lebar: '150px', sel: (e) => waktu(e.created_at) },
-        { judul: 'Tingkat', lebar: '100px', sel: (e) => lencana(e.severity, WARNA_BERAT[e.severity]) },
-        { judul: 'Jenis', lebar: '150px', sel: (e) => LABEL_JENIS[e.kind] ?? e.kind },
-        { judul: 'Keterangan', sel: (e) => el('div', {},
+        { judul: t('monitor.kolomWaktu'), lebar: '150px', sel: (e) => waktu(e.created_at) },
+        { judul: t('monitor.kolomTingkat'), lebar: '100px', sel: (e) => lencana(e.severity, WARNA_BERAT[e.severity]) },
+        { judul: t('monitor.kolomJenis'), lebar: '150px', sel: (e) => namaJenis(e.kind) },
+        { judul: t('monitor.kolomKeterangan'), sel: (e) => el('div', {},
             el('span', {}, e.message),
             e.path ? el('div', { class: 'redup kecil' }, `${e.method} ${e.path}`) : null) },
-        { judul: 'Akun', lebar: '190px', sel: (e) => e.actor_email || '—' }
+        { judul: t('monitor.kolomAkun'), lebar: '190px', sel: (e) => e.actor_email || '—' }
       ],
       terbaru,
-      { kosong: 'Belum ada kejadian tercatat.' }));
+      { kosong: t('monitor.eventKosong') }));
 }
 
 // ── database ────────────────────────────────────────────────────────────────
@@ -172,38 +177,38 @@ function databasePanel(db) {
 
   return el('div', { class: 'panel' },
     el('div', { class: 'panel-kepala' },
-      el('h2', {}, 'Status database'),
-      lencana(d.cacheHitRatio >= 95 ? 'sehat' : 'perhatikan', d.cacheHitRatio >= 95 ? 'hijau' : 'perhatian')),
+      el('h2', {}, t('monitor.db.judul')),
+      lencana(t(d.cacheHitRatio >= 95 ? 'monitor.db.sehat' : 'monitor.db.perhatikan'), d.cacheHitRatio >= 95 ? 'hijau' : 'perhatian')),
     el('div', { class: 'db-kisi' },
-      baris('Versi', d.versi),
-      baris('Ukuran', d.ukuran),
-      baris('Koneksi', `${d.koneksi} / ${d.koneksiMaks}`, `${d.koneksiPersen}% terpakai`),
-      baris('Uptime', `${d.uptimeJam} jam`),
-      baris('Rasio cache', d.cacheHitRatio === null ? '—' : `${d.cacheHitRatio}%`,
-        d.cacheHitRatio !== null && d.cacheHitRatio < 95 ? 'di bawah 95%' : 'baca dilayani dari memori'),
-      baris('Deadlock', d.deadlock, d.deadlock ? 'perlu diperiksa' : 'tidak ada'),
-      baris('Transaksi', d.commit.toLocaleString('id-ID'), `${d.rollback} dibatalkan`),
-      baris('Baris ditulis', d.tulis.toLocaleString('id-ID'), 'sejak Postgres menyala')));
+      baris(t('monitor.db.versi'), d.versi),
+      baris(t('monitor.db.ukuran'), d.ukuran),
+      baris(t('monitor.db.koneksi'), `${d.koneksi} / ${d.koneksiMaks}`, t('monitor.db.terpakai', { n: d.koneksiPersen })),
+      baris(t('monitor.db.uptime'), t('monitor.db.jam', { n: d.uptimeJam })),
+      baris(t('monitor.db.cacheRatio'), d.cacheHitRatio === null ? '—' : `${d.cacheHitRatio}%`,
+        t(d.cacheHitRatio !== null && d.cacheHitRatio < 95 ? 'monitor.db.cacheRendah' : 'monitor.db.cacheBaik')),
+      baris(t('monitor.db.deadlock'), d.deadlock, t(d.deadlock ? 'monitor.db.perluDiperiksa' : 'monitor.tidakAda')),
+      baris(t('monitor.db.transaksi'), d.commit.toLocaleString(localeIntl()), t('monitor.db.rollback', { n: d.rollback })),
+      baris(t('monitor.db.barisDitulis'), d.tulis.toLocaleString(localeIntl()), t('monitor.db.sejakMenyala'))));
 }
 
 function tabelPanel(daftar) {
   return el('div', { class: 'panel' },
-    el('h2', {}, 'Tabel'),
+    el('h2', {}, t('monitor.tabel.judul')),
     tabel(
       [
-        { judul: 'Tabel', sel: (t) => el('code', {}, t.tabel) },
-        { judul: 'Baris', lebar: '90px', sel: (t) => t.baris.toLocaleString('id-ID') },
-        { judul: 'Ukuran', lebar: '90px', sel: (t) => t.ukuran },
+        { judul: t('monitor.tabel.nama'), sel: (r) => el('code', {}, r.tabel) },
+        { judul: t('monitor.tabel.baris'), lebar: '90px', sel: (r) => r.baris.toLocaleString(localeIntl()) },
+        { judul: t('monitor.tabel.ukuran'), lebar: '90px', sel: (r) => r.ukuran },
         {
-          judul: 'Baris mati',
-          lebar: '160px',
-          // Baris mati adalah versi lama yang belum dibersihkan autovacuum.
+          judul: t('monitor.tabel.mati'),
+          lebar: '170px',
+          // Dead row adalah versi lama yang belum dibersihkan autovacuum.
           // Rasio tinggi berarti tabelnya membengkak tanpa datanya bertambah.
-          sel: (t) => t.rasioMati > 50
-            ? lencana(`${t.rasioMati}% — perlu vacuum`, 'perhatian')
-            : el('span', { class: 'redup' }, t.rasioMati ? `${t.rasioMati}%` : '—')
+          sel: (r) => r.rasioMati > 50
+            ? lencana(t('monitor.tabel.perluVacuum', { n: r.rasioMati }), 'perhatian')
+            : el('span', { class: 'redup' }, r.rasioMati ? `${r.rasioMati}%` : '—')
         },
-        { judul: 'Vacuum terakhir', lebar: '150px', sel: (t) => t.last_autovacuum ? waktu(t.last_autovacuum) : '—' }
+        { judul: t('monitor.tabel.vacuumTerakhir'), lebar: '150px', sel: (r) => r.last_autovacuum ? waktu(r.last_autovacuum) : '—' }
       ],
       daftar));
 }
@@ -211,19 +216,20 @@ function tabelPanel(daftar) {
 function indeksPanel(indeks, lambat) {
   const belum = indeks.filter((i) => i.dipakai === 0);
   return el('div', { class: 'panel' },
-    el('h2', {}, 'Kueri & indeks'),
+    el('h2', {}, t('monitor.query.judul')),
     lambat.length
       ? el('div', {},
-          el('p', { class: 'galat kecil' }, `${lambat.length} kueri berjalan lebih dari 5 detik:`),
+          el('p', { class: 'galat kecil' }, t('monitor.query.lambat', { n: lambat.length })),
           el('ul', { class: 'jejak' },
             lambat.map((q) => el('li', {},
               lencana(`${q.berjalan_detik}s`, 'perhatian'),
               el('code', {}, q.kueri.slice(0, 90))))))
-      : el('p', { class: 'redup kecil' }, 'Tidak ada kueri yang berjalan lama.'),
+      : el('p', { class: 'redup kecil' }, t('monitor.query.aman')),
     belum.length
-      ? el('p', { class: 'redup kecil' },
-          `${belum.length} indeks belum pernah terpakai (${belum.map((i) => i.indeks).slice(0, 4).join(', ')}${belum.length > 4 ? ', …' : ''}). ` +
-          'Wajar untuk indeks yang baru dibuat; kalau bertahan berminggu-minggu, ia hanya menambah ongkos tulis.')
+      ? el('p', { class: 'redup kecil' }, t('monitor.query.indexNganggur', {
+          n: belum.length,
+          daftar: belum.map((i) => i.indeks).slice(0, 4).join(', ') + (belum.length > 4 ? ', …' : '')
+        }))
       : null);
 }
 
@@ -233,18 +239,18 @@ export async function tampilanKejadian(wadah) {
   const isi = el('div');
 
   async function muat() {
-    pasang(kosongkan(isi), el('p', { class: 'redup' }, 'Memuat…'));
+    pasang(kosongkan(isi), el('p', { class: 'redup' }, t('umum.memuat')));
     try {
       const { items, total } = await api.get('/admin/monitor/events', keadaan);
       pasang(kosongkan(isi),
-        el('p', { class: 'redup kecil' }, `${total} kejadian`),
+        el('p', { class: 'redup kecil' }, t('event.jumlah', { n: total })),
         tabel(
           [
-            { judul: 'Waktu', lebar: '150px', sel: (e) => waktu(e.created_at) },
-            { judul: 'Tingkat', lebar: '100px', sel: (e) => lencana(e.severity, WARNA_BERAT[e.severity]) },
-            { judul: 'Jenis', lebar: '150px', sel: (e) => LABEL_JENIS[e.kind] ?? e.kind },
+            { judul: t('monitor.kolomWaktu'), lebar: '150px', sel: (e) => waktu(e.created_at) },
+            { judul: t('monitor.kolomTingkat'), lebar: '100px', sel: (e) => lencana(e.severity, WARNA_BERAT[e.severity]) },
+            { judul: t('monitor.kolomJenis'), lebar: '150px', sel: (e) => namaJenis(e.kind) },
             {
-              judul: 'Keterangan',
+              judul: t('monitor.kolomKeterangan'),
               sel: (e) => el('div', {},
                 el('span', {}, e.message),
                 e.path ? el('div', { class: 'redup kecil' }, `${e.method} ${e.path} → ${e.status ?? '—'}`) : null,
@@ -252,11 +258,11 @@ export async function tampilanKejadian(wadah) {
                   ? el('div', { class: 'redup kecil' }, JSON.stringify(e.meta).slice(0, 160))
                   : null)
             },
-            { judul: 'Sumber', lebar: '110px', sel: (e) => e.ip_hash ? el('code', {}, e.ip_hash.slice(0, 8)) : '—' },
-            { judul: 'Akun', lebar: '180px', sel: (e) => e.actor_email || '—' }
+            { judul: t('monitor.kolomSumber'), lebar: '110px', sel: (e) => e.ip_hash ? el('code', {}, e.ip_hash.slice(0, 8)) : '—' },
+            { judul: t('monitor.kolomAkun'), lebar: '180px', sel: (e) => e.actor_email || '—' }
           ],
           items,
-          { kosong: 'Tidak ada kejadian yang cocok.' }),
+          { kosong: t('event.kosong') }),
         halamanNav(total, keadaan, muat));
     } catch (err) { toastGalat(err); }
   }
@@ -264,17 +270,17 @@ export async function tampilanKejadian(wadah) {
   pasang(kosongkan(wadah),
     el('div', { class: 'halaman-kepala' },
       el('div', {},
-        el('h1', {}, 'Kejadian keamanan'),
-        el('p', { class: 'redup' }, 'Setiap penolakan, kegagalan, dan galat yang tercatat sistem.'))),
+        el('h1', {}, t('event.judul')),
+        el('p', { class: 'redup' }, t('event.subjudul')))),
     el('div', { class: 'saring' },
       select(
-        [{ value: '', label: 'Semua tingkat', selected: true },
-         { value: 'critical', label: 'Kritis' }, { value: 'warning', label: 'Peringatan' },
-         { value: 'notice', label: 'Perhatian' }, { value: 'info', label: 'Info' }],
+        [{ value: '', label: t('event.semuaTingkat'), selected: true },
+         { value: 'critical', label: 'critical' }, { value: 'warning', label: 'warning' },
+         { value: 'notice', label: 'notice' }, { value: 'info', label: 'info' }],
         { onchange: (e) => { keadaan.severity = e.target.value; keadaan.offset = 0; muat(); } }),
       select(
-        [{ value: '', label: 'Semua jenis', selected: true },
-         ...Object.entries(LABEL_JENIS).map(([v, l]) => ({ value: v, label: l }))],
+        [{ value: '', label: t('event.semuaJenis'), selected: true },
+         ...JENIS_EVENT.map((v) => ({ value: v, label: namaJenis(v) }))],
         { onchange: (e) => { keadaan.kind = e.target.value; keadaan.offset = 0; muat(); } })),
     isi);
   await muat();
@@ -284,13 +290,13 @@ function halamanNav(total, keadaan, muat) {
   if (total <= keadaan.limit) return null;
   const sampai = Math.min(keadaan.offset + keadaan.limit, total);
   return el('div', { class: 'halaman-nav' },
-    el('span', { class: 'redup kecil' }, `${keadaan.offset + 1}–${sampai} dari ${total}`),
+    el('span', { class: 'redup kecil' }, t('umum.dari', { a: keadaan.offset + 1, b: sampai, total })),
     el('button', {
       class: 'btn btn-kecil', disabled: keadaan.offset === 0,
       onclick: () => { keadaan.offset = Math.max(0, keadaan.offset - keadaan.limit); muat(); }
-    }, '‹ Sebelumnya'),
+    }, t('aksi.sebelumnya')),
     el('button', {
       class: 'btn btn-kecil', disabled: sampai >= total,
       onclick: () => { keadaan.offset += keadaan.limit; muat(); }
-    }, 'Berikutnya ›'));
+    }, t('aksi.berikutnya')));
 }
