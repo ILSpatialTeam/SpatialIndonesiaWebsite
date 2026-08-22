@@ -135,6 +135,35 @@ export const components = {
         at: { type: 'string', format: 'date' }
       }
     },
+    SkyStar: {
+      type: 'object',
+      description:
+        'Satu bintang di langit komunitas. Koordinatnya memakai sistem yang sama ' +
+        'dengan rasi bawaan: right ascension dalam jam (0–24), declination dalam ' +
+        'derajat (-90–90). Tidak ada jejak siapa yang menaruhnya di jawaban publik.',
+      properties: {
+        id: { type: 'string', format: 'uuid' },
+        ra: { type: 'number', example: 5.5, minimum: 0, maximum: 23.999 },
+        dec: { type: 'number', example: -12.25, minimum: -90, maximum: 90 },
+        name: { type: 'string', example: 'Rian' },
+        city: { type: 'string', nullable: true, example: 'Bandung' },
+        note: { type: 'string', nullable: true, maxLength: 60 },
+        at: { type: 'string', format: 'date' }
+      }
+    },
+    PresenceGuest: {
+      type: 'object',
+      description:
+        'Satu pengunjung yang sedang membuka situs. Tidak ada nama, tidak ada ' +
+        'avatar — hanya id sesi, warna yang diturunkan dari id itu, dan planet ' +
+        'yang sedang ia lihat.',
+      properties: {
+        id: { type: 'string', example: 'Kf3nQ2xA', description: '8 karakter base64url, hidup selama sesi saja.' },
+        planet: { type: 'string', nullable: true, example: 'karya' },
+        dari: { type: 'string', nullable: true, description: 'Planet asal, supaya klien bisa menggambar busur perpindahan.' },
+        warna: { type: 'string', example: '#5ad1c0' }
+      }
+    },
     AgendaEvent: {
       type: 'object',
       properties: {

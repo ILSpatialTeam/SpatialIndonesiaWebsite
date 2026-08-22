@@ -1,3 +1,5 @@
+import { t, localeIntl } from './i18n.js';
+
 // Perkakas DOM kecil. Bukan kerangka kerja — dashboard ini tidak butuh satu.
 //
 // `el()` membangun elemen dari objek properti, dan yang penting: teks selalu
@@ -77,7 +79,10 @@ const IKON = {
   kunci: 'M7 11V8a5 5 0 0 1 10 0v3M5.5 11h13a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z',
   tutup: 'M6 6l12 12M18 6L6 18',
   tambah: 'M12 5v14M5 12h14',
-  buku: 'M4 5a1 1 0 0 1 1-1h5a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H5a1 1 0 0 1-1-1ZM20 5a1 1 0 0 0-1-1h-5a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h5a1 1 0 0 0 1-1Z'
+  buku: 'M4 5a1 1 0 0 1 1-1h5a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H5a1 1 0 0 1-1-1ZM20 5a1 1 0 0 0-1-1h-5a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h5a1 1 0 0 0 1-1Z',
+  // Kubah langit dengan satu bintang di dalamnya — bukan bintang lima sudut,
+  // supaya tidak tertukar dengan ikon "favorit" yang lazim di tempat lain.
+  langit: 'M3 18a9 9 0 0 1 18 0M3 18h18M12 7.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9ZM6.5 13.5h.01M17.5 13.5h.01'
 };
 
 const NS_SVG = 'http://www.w3.org/2000/svg';
@@ -128,21 +133,31 @@ export function toast(pesan, jenis = 'info') {
     el('div', { class: 'toast-wrap', 'aria-live': 'polite', 'aria-atomic': 'true' })
   );
   wadahToast.setAttribute('aria-live', jenis === 'galat' ? 'assertive' : 'polite');
-  const t = el('div', { class: `toast toast-${jenis}`, role: jenis === 'galat' ? 'alert' : 'status' }, pesan);
-  wadahToast.append(t);
-  setTimeout(() => t.classList.add('keluar'), 3200);
-  setTimeout(() => t.remove(), 3600);
+  // Variabelnya BUKAN `t`: nama itu sudah dipakai fungsi terjemahan yang
+  // diimpor di atas, dan menimpanya di sini membuat setiap t('…') di dalam
+  // fungsi ini memanggil sebuah elemen DOM.
+  const kotak = el('div', { class: `toast toast-${jenis}`, role: jenis === 'galat' ? 'alert' : 'status' }, pesan);
+  wadahToast.append(kotak);
+  setTimeout(() => kotak.classList.add('keluar'), 3200);
+  setTimeout(() => kotak.remove(), 3600);
 }
 
+// Pesan diambil dari KODE error, bukan dari kalimat yang dikirim server.
+// Server tidak tahu bahasa apa yang dipilih pengguna, jadi kalimatnya akan
+// selalu muncul dalam satu bahasa. Kodenya netral bahasa.
+//
+// `details` tetap ditampilkan apa adanya: isinya menyebut field mana yang
+// bermasalah, dan itu informasi yang tidak bisa direkonstruksi dari kode saja.
 export const toastGalat = (err) => {
-  const detail = err.details ? ` (${Object.values(err.details).join(' · ')})` : '';
-  toast(err.message + detail, 'galat');
+  const dasar = t(`galat.${err?.code ?? 'INTERNAL_ERROR'}`);
+  const detail = err?.details ? ` — ${Object.values(err.details).join(' · ')}` : '';
+  toast(dasar + detail, 'galat');
 };
 
 // ── konfirmasi ──────────────────────────────────────────────────────────────
 // Pengganti confirm() bawaan, yang di sebagian browser memblokir dan terlihat
 // asing. Mengembalikan Promise<boolean>.
-export function konfirmasi(pesan, { tombol = 'Hapus', bahaya = true } = {}) {
+export function konfirmasi(pesan, { tombol, bahaya = true } = {}) {
   return new Promise((selesai) => {
     // Pendengar Esc dilepas di SETIAP jalan keluar, bukan hanya saat Esc
     // ditekan. Versi sebelumnya melepasnya di dalam handler Esc itu sendiri,
@@ -164,8 +179,8 @@ export function konfirmasi(pesan, { tombol = 'Hapus', bahaya = true } = {}) {
         el(
           'div',
           { class: 'modal-aksi' },
-          el('button', { class: 'btn', onclick: () => tutup(false) }, 'Batal'),
-          el('button', { class: bahaya ? 'btn btn-bahaya' : 'btn btn-utama', onclick: () => tutup(true) }, tombol)
+          el('button', { class: 'btn', onclick: () => tutup(false) }, t('aksi.batal')),
+          el('button', { class: bahaya ? 'btn btn-bahaya' : 'btn btn-utama', onclick: () => tutup(true) }, tombol ?? t('aksi.hapus'))
         )
       )
     );
@@ -224,7 +239,7 @@ export function drawer(judul, isi, { lebar = '640px' } = {}) {
       },
       el('header', { class: 'drawer-kepala' },
         el('h2', {}, judul),
-        el('button', { class: 'btn-ikon', title: 'Tutup', 'aria-label': 'Tutup panel', onclick: tutup }, '×')),
+        el('button', { class: 'btn-ikon', title: t('aksi.tutup'), 'aria-label': t('aksi.tutup'), onclick: tutup }, '×')),
       el('div', { class: 'drawer-isi' }, isi)
     )
   );
@@ -257,8 +272,8 @@ export function drawer(judul, isi, { lebar = '640px' } = {}) {
 }
 
 // ── tabel ───────────────────────────────────────────────────────────────────
-export function tabel(kolom, baris, { kosong = 'Belum ada data.' } = {}) {
-  if (!baris.length) return el('p', { class: 'kosong' }, kosong);
+export function tabel(kolom, baris, { kosong } = {}) {
+  if (!baris.length) return el('p', { class: 'kosong' }, kosong ?? t('umum.kosong'));
   return el(
     'div',
     { class: 'tabel-bungkus' },
@@ -273,11 +288,14 @@ export function tabel(kolom, baris, { kosong = 'Belum ada data.' } = {}) {
 
 export const lencana = (teks, jenis = '') => el('span', { class: `lencana lencana-${jenis || 'netral'}` }, teks);
 
+// Format tanggal mengikuti bahasa yang dipilih. Nama bulan tidak lagi ditulis
+// tangan: Intl sudah tahu "Agu" di Indonesia dan "Aug" di Inggris, dan daftar
+// bulan buatan sendiri hanya akan salah begitu bahasa ketiga ditambahkan.
 export const tanggalID = (iso) => {
   if (!iso) return '—';
-  const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  const d = new Date(iso);
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+  return new Date(iso).toLocaleDateString(localeIntl(), {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
 };
 
 // ── form ────────────────────────────────────────────────────────────────────

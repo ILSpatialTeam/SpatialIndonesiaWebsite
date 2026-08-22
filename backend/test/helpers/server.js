@@ -63,7 +63,7 @@ export async function bersihkan() {
   await pool.query(`
     TRUNCATE sparings, articles, article_categories, sparing_frequencies,
              menu_links, menu_items, menus, agenda_events, presence_visits,
-             site_settings, join_submissions, media_assets,
+             site_settings, join_submissions, media_assets, sky_stars,
              admin_sessions, admin_users, audit_logs, security_events
     RESTART IDENTITY CASCADE`);
   await pool.query('ALTER TABLE audit_logs ENABLE TRIGGER USER');

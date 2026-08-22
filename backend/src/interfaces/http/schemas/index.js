@@ -38,11 +38,32 @@ export const presenceBody = z.object({
   path: z.array(idSlug).min(1).max(12)
 });
 
+// Laporan posisi dari klien presence live. `id` diberikan server lewat SSE.
+export const hereBody = z.object({
+  id: z.string().regex(/^[A-Za-z0-9_-]{8}$/, 'Id presence tidak valid.'),
+  planet: idSlug.nullish()
+});
+
 export const joinBody = z.object({
   name: z.string().trim().min(2).max(80),
   email: z.string().trim().email('Alamat email tidak valid.').max(160),
   focus: z.string().trim().max(80).optional().default(''),
   message: z.string().trim().max(1000).optional().default('')
+});
+
+// ── langit komunitas ────────────────────────────────────────────────────────
+export const starBody = z.object({
+  // Right ascension dalam jam, declination dalam derajat — sama dengan sistem
+  // koordinat rasi bawaan di frontend.
+  ra: z.coerce.number().min(0).max(23.999),
+  dec: z.coerce.number().min(-90).max(90),
+  name: z.string().trim().min(2, 'Nama minimal 2 huruf.').max(24),
+  city: z.string().trim().max(40).optional().default(''),
+  note: z.string().trim().max(60).optional().default('')
+});
+
+export const starQuery = pagination.extend({
+  status: z.enum(['pending', 'approved', 'rejected']).optional()
 });
 
 // ── autentikasi ─────────────────────────────────────────────────────────────

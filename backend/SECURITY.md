@@ -20,16 +20,19 @@ sungguhan.
 
 | # | Uji | Hasil | Cara menguji ulang |
 |---|-----|-------|--------------------|
-| A | Injeksi SQL lewat parameter kueri | **Aman** — ditolak 422 oleh validasi sebelum menyentuh database; tabel utuh | `curl --get --data-urlencode "category=' OR '1'='1" $API/articles` |
+| A | Injeksi SQL lewat parameter query | **Aman** — ditolak 422 oleh validasi sebelum menyentuh database; tabel utuh | `curl --get --data-urlencode "category=' OR '1'='1" $API/articles` |
 | B | XSS lewat kiriman publik (sparing) | **Aman** — `<script>` dan atribut kejadian dibuang saat simpan | lihat §3 |
 | C | Path traversal pada `/uploads` | **Aman** — 404 untuk `../.env`, `..%2f..%2f.env`, `....//` | `curl $HOST/uploads/../.env` |
 | D | Mass assignment (menaikkan peran sendiri) | **Aman** — Zod membuang field tak dikenal sebelum service melihatnya | `POST /auth/change-password` dengan `"role":"owner"` |
 | E | JWT `alg: none` | **Aman** — 401; algoritma dikunci ke HS256 | lihat §2 |
 | F | Pemisahan peran editor vs owner | **Aman** — editor 403 di `/admin/users`, `/admin/monitor`; 200 di `/admin/articles` | buat akun editor, panggil rute owner |
 | G | Rotasi refresh token | **Aman** — token lama 401 setelah dipakai sekali | `POST /auth/refresh` dua kali dengan cookie yang sama |
-| H | Pembatas laju login | **Aman** — 429 pada percobaan ke-10 dalam 15 menit | 12× login gagal beruntun |
+| H | Rate limit login | **Aman** — 429 pada percobaan ke-10 dalam 15 menit | 12× login gagal beruntun |
 | I | Daftar putih CORS | **Aman** — origin asing 403, origin sendiri lolos | `curl -H "Origin: https://jahat.example" $API/bootstrap` |
 | J | CSRF pada tulisan lewat cookie | **Aman** — 403 tanpa header `X-CSRF-Token` | `POST /admin/articles` dengan cookie tanpa header |
+| K | XSS lewat bintang langit komunitas | **Aman** — tag dibuang saat simpan, lalu divalidasi ulang; `<b><i></i></b>` ditolak 422 | `test/integration/sky.test.js` |
+| L | Bintang kedua dari sumber yang sama | **Aman** — 409, unique index atas hash IP; baris kedua tidak tersimpan | `test/integration/sky.test.js` |
+| M | Kebocoran identitas di daftar bintang publik | **Aman** — jawaban hanya memuat `id, ra, dec, name, city, note, at`; tidak ada `ip_hash` atau `status` | `test/integration/sky.test.js` |
 
 ## 2. Lapisan yang terpasang
 
@@ -38,8 +41,9 @@ sungguhan.
 Algoritma, issuer, dan audience diverifikasi eksplisit — `alg: none` dan token
 yang ditandatangani algoritma lain ditolak.
 
-Login setara-waktu: kalau email tidak terdaftar, kata sandi tetap diaduk
-terhadap hash palsu, sehingga lama respons tidak membocorkan akun mana yang ada.
+Login-nya setara-waktu: kalau email tidak terdaftar, password tetap di-hash
+terhadap nilai palsu, sehingga lama respons tidak membocorkan akun mana yang
+benar-benar ada.
 
 **Cookie** (terverifikasi dari respons `Set-Cookie`):
 
@@ -52,19 +56,19 @@ terhadap hash palsu, sehingga lama respons tidak membocorkan akun mana yang ada.
 `si_refresh` sengaja dibatasi path-nya: ia tidak ikut terkirim di permintaan
 API biasa, sehingga peluangnya bocor jauh lebih kecil.
 
-**Kata sandi.** bcrypt 12 putaran (~250 ms). Minimal 12 karakter, tanpa
+**Password.** bcrypt 12 putaran (~250 ms). Minimal 12 karakter, tanpa
 kewajiban simbol — panjang lebih menentukan, dan aturan "harus ada simbol"
-justru mendorong pola yang mudah ditebak. Mengganti kata sandi mencabut semua
+justru mendorong pola yang mudah ditebak. Mengganti password mencabut semua
 sesi lain.
 
 **Header** (terverifikasi): CSP tanpa satu pun host luar (`script-src 'self'`),
 `frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`,
 `Referrer-Policy: strict-origin-when-cross-origin`. HSTS aktif hanya di produksi.
 
-**Pembatas laju:** baca 300/menit · login 10/15 menit (percobaan berhasil tidak
+**Rate limit:** baca 300/menit · login 10/15 menit (percobaan berhasil tidak
 dihitung) · kiriman publik 8/10 menit · tulis admin 120/menit. Ditambah batas
 kedua di database untuk sparing (5/jam per sumber) yang **selamat dari restart
-proses** — penghitung di memori bisa dikosongkan hanya dengan membuat server
+proses** — counter in-memory bisa dikosongkan hanya dengan membuat server
 gagal.
 
 **Injeksi.** Seluruh nilai lewat parameter `$1`. Satu-satunya interpolasi ke
@@ -76,18 +80,18 @@ grep -rno 'query(`[^`]*\${[a-zA-Z_.]*' src/ | sed 's/.*\${//' | sort -u
 # → AMAN KOLOM PILIH
 ```
 
-**XSS.** HTML dari editor disanitasi **saat simpan**, bukan saat tampil.
+**XSS.** HTML dari editor di-sanitize **saat simpan**, bukan saat tampil.
 Membalik urutannya berarti satu jalur render yang lupa memanggil sanitizer sudah
 cukup jadi lubang. Daftar putih tag sempit; `javascript:` dan `data:` ditutup;
 tautan keluar otomatis dapat `rel="noopener noreferrer nofollow"`.
 
 **Privasi.** IP tidak pernah disimpan mentah di tabel mana pun — hanya hash
-SHA-256 ber-garam, cukup untuk mengenali sumber yang sama, tidak cukup untuk
+SHA-256 ber-salt, cukup untuk mengenali sumber yang sama, tidak cukup untuk
 mengidentifikasi orang. Log ter-redaksi pada `authorization`, `cookie`,
 `set-cookie`, dan setiap field bernama `password*`.
 
-**Jejak.** Setiap perubahan admin tercatat di `audit_logs` beserta medan yang
-berubah dan nilai lama/barunya. Setiap penolakan dan galat tercatat di
+**Audit log.** Setiap perubahan admin tercatat di `audit_logs` beserta medan yang
+berubah dan nilai lama/barunya. Setiap penolakan dan error tercatat di
 `security_events`. Keduanya bisa dibaca di halaman **Pemantauan**.
 
 ## 3. Temuan
@@ -104,15 +108,15 @@ Tidak dinaikkan versi karena perbaikannya major dan Quill 2.0.2 (versi yang
 disarankan `npm audit`) justru lebih lama. Pantau rilis Quill berikutnya.
 
 ### T-2 · Rendah · **Sudah diperbaiki**
-**Validasi panjang berjalan sebelum sanitasi.** Nama pengirim
+**Validasi panjang berjalan sebelum sanitize.** Nama pengirim
 `<img src=x onerror=alert(1)>` berpanjang 26 karakter sehingga lolos Zod, lalu
 jadi string kosong setelah tagnya dibuang, dan yang menolaknya adalah CHECK
 constraint database — dengan pesan "Nilai melanggar aturan data" yang tidak
 memberi tahu pengirim apa pun.
 
-Bukan celah keamanan (data buruk tetap ditolak), tapi pesan galat yang
+Bukan celah keamanan (data buruk tetap ditolak), tapi pesan error yang
 membingungkan dan pemeriksaan yang terjadi satu lapis terlalu dalam. Sekarang
-`ParticipationService` memvalidasi ulang setelah sanitasi dan mengembalikan
+`ParticipationService` memvalidasi ulang setelah sanitize dan mengembalikan
 pesan yang bisa ditindak. Berlaku untuk sparing dan formulir Gabung.
 
 ### T-3 · Sedang · **Sudah diperbaiki**
@@ -130,7 +134,7 @@ tapi kalau token yang sudah dirotasi dipakai lagi, jawabannya hanya 401 —
 padahal itu sinyal terkuat bahwa sesi dicuri: pemilik aslinya sudah lanjut ke
 token berikutnya, jadi yang memakai token lama pasti pihak lain.
 
-Sesi kini punya `family_id`. Saat replay terdeteksi, **seluruh keluarga sesi
+Session kini punya `family_id`. Saat replay terdeteksi, **seluruh keluarga sesi
 dicabut** (pemilik asli ikut terlempar keluar — memang itu yang diinginkan) dan
 dicatat sebagai kejadian `critical`.
 
@@ -158,6 +162,48 @@ yang berisik, bukan kebocoran. Kalau jadi masalah, tambahkan pemeriksaan bahwa
 lintasannya masuk akal (tidak ada planet yang sama berturut-turut — sudah
 dilakukan) atau jadikan endpoint ini butuh token sesi ringan.
 
+### T-8 · Rendah · Diterima dengan mitigasi
+**Koneksi SSE `/presence/live` sengaja tidak kena rate limit baca.** Endpoint
+ini memang membuka koneksi yang bertahan lama, jadi menghitungnya sebagai
+permintaan biasa akan memblokir pengunjung yang perilakunya normal.
+
+Yang membatasi gantinya adalah **jumlah**: maksimum 200 koneksi bersamaan per
+instance, setelah itu server menolak dan menutup. Tiap koneksi hanya memegang
+satu objek kecil di memori dan satu handle soket, jadi 200 koneksi adalah beban
+yang wajar. Batas jumlah file descriptor pada proses tetap menjadi pagar
+terakhir dan harus dipertimbangkan saat menyetel ulimit di server.
+
+Sisa risikonya: satu pihak bisa memakai seluruh 200 slot itu dari satu mesin
+dan membuat presence tampak penuh bagi pengunjung berikutnya. Dampaknya
+terbatas pada fitur presence — situsnya, API-nya, dan databasenya tidak
+terpengaruh sama sekali, karena presence tidak menyentuh database. Kalau ini
+jadi masalah nyata, batasi jumlah koneksi per IP hash, bukan per instance.
+
+### T-9 · Rendah · Diterima dengan mitigasi
+**Langit komunitas adalah konten publik yang ditulis pengunjung.** Nama, kota,
+dan satu kalimat catatan tampil untuk semua orang. Yang menjaganya:
+
+- HTML dibuang saat simpan (`stripTags`), lalu **divalidasi ulang** — masukan
+  yang seluruhnya tag akan lolos pemeriksaan panjang di tepi lalu jadi kosong;
+  pola yang sama dengan T-2.
+- Panjangnya sempit dengan sengaja: nama 24 karakter, kota 40, catatan 60.
+  Batasan itu bukan kenyamanan, melainkan pengaman — kalau dibiarkan bebas,
+  dalam sebulan langitnya jadi papan iklan.
+- Satu bintang per sumber, dijaga unique index atas salted hash alamat IP.
+- Moderasi bisa dinyalakan kapan saja lewat setting `sky.moderation`, tanpa
+  deploy ulang. Antreannya ada di dashboard.
+
+**Kelemahan yang harus disebut apa adanya:** aturan "satu orang satu bintang"
+sebenarnya adalah "satu alamat IP satu bintang". Siapa pun yang punya banyak
+alamat — VPN, jaringan seluler, cloud — bisa menaruh banyak bintang. Sebaliknya,
+di belakang CGNAT beberapa orang yang berbeda berbagi satu alamat, dan yang
+kedua akan ditolak 409 padahal ia berhak. Tidak ada cara memperbaiki keduanya
+sekaligus tanpa meminta orang membuat akun, dan itu ongkos yang jauh lebih besar
+daripada masalahnya. Nyalakan moderasi kalau penyalahgunaannya mulai terlihat.
+
+Alamat IP mentahnya sendiri **tidak pernah disimpan** — hanya hash SHA-256
+bergaram, dengan `IP_HASH_SALT` yang terpisah dari secret JWT (lihat T-6).
+
 ## 4. Wajib dikerjakan sebelum produksi
 
 | # | Hal | Kenapa |
@@ -167,8 +213,8 @@ dilakukan) atau jadikan endpoint ini butuh token sesi ringan.
 | 2b | Isi `IP_HASH_SALT` | Wajib di produksi (proses menolak jalan tanpanya). Harus **berbeda** dari JWT secret — lihat T-6 |
 | 3 | `COOKIE_SECURE=true` | Proses menolak jalan tanpa ini di produksi — pastikan HTTPS sudah ada |
 | 4 | Isi `CORS_ORIGINS` dengan domain frontend saja | Hapus `localhost:8899` dan `localhost:5500` |
-| 5 | Ganti kata sandi role Postgres `spatial_app` | `spatial_dev_password` hanya untuk mesin lokal |
-| 6 | Pasang HTTPS + reverse proxy, sesuaikan `trust proxy` | `app.set('trust proxy', 1)` mengasumsikan **satu** proxy di depan; salah hitung membuat pembatas laju bisa dikelabui lewat header palsu |
+| 5 | Ganti password role Postgres `spatial_app` | `spatial_dev_password` hanya untuk mesin lokal |
+| 6 | Pasang HTTPS + reverse proxy, sesuaikan `trust proxy` | `app.set('trust proxy', 1)` mengasumsikan **satu** proxy di depan; salah hitung membuat rate limit bisa dikelabui lewat header palsu |
 | 7 | Pastikan `/uploads` dilayani proxy tanpa eksekusi skrip | Sudah ada `nosniff`, tapi lapis kedua di nginx murah |
 
 ## 5. Yang sengaja belum ada
@@ -176,14 +222,14 @@ dilakukan) atau jadikan endpoint ini butuh token sesi ringan.
 Disebutkan supaya tidak dikira terlupa:
 
 - **2FA untuk akun admin.** Layak ditambah kalau jumlah admin bertambah;
-  untuk satu-dua orang, kata sandi panjang + sesi yang bisa dicabut sudah
+  untuk satu-dua orang, password panjang + sesi yang bisa dicabut sudah
   sepadan.
 - **Penguncian akun setelah N kegagalan.** Sengaja tidak dipakai: ia berubah
   jadi cara mengunci admin dari luar (denial of service) hanya dengan menebak
-  kata sandinya berkali-kali. Pembatas laju per-IP memberi perlindungan yang
+  passwordnya berkali-kali. Rate limit per IP memberi perlindungan yang
   sama tanpa efek samping itu.
 - **Enkripsi kolom di database.** Tidak ada rahasia yang disimpan selain hash
-  kata sandi dan hash token, dan keduanya memang tidak bisa dibalik.
+  password dan hash token, dan keduanya memang tidak bisa dibalik.
 - **Web Application Firewall.** Lapisan infrastruktur, bukan aplikasi.
 - **Pemindaian dependensi otomatis di CI.** Belum ada CI. `npm audit` di
   `DEVELOPMENT.md` menyebutnya sebagai langkah manual sebelum rilis.

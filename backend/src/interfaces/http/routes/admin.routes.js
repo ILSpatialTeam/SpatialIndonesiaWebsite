@@ -100,6 +100,11 @@ export function adminRoutes(c, { requireAuth, uploadDir }) {
   r.post('/media', upload.single('file'), ah(c.mediaUpload));
   r.delete('/media/:id', validate({ params: S.uuidParam }), ah(c.mediaDelete));
 
+  // ── langit komunitas ──────────────────────────────────────────────────────
+  r.get('/sky', validate({ query: S.starQuery }), ah(c.skyList));
+  r.patch('/sky/:id', validate({ params: S.uuidParam, body: S.moderationBody }), ah(c.skyModerate));
+  r.delete('/sky/:id', validate({ params: S.uuidParam }), ah(c.skyDelete));
+
   // ── jejak audit ───────────────────────────────────────────────────────────
   r.get('/audit', validate({ query: S.auditQuery }), ah(c.auditList));
 

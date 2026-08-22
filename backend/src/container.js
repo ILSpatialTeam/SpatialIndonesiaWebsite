@@ -23,6 +23,7 @@ import {
   PgAdminUserRepository, PgSessionRepository, PgAuditRepository
 } from './infrastructure/repositories/admin.pg.js';
 import { PgSettingsRepository, PgMediaRepository } from './infrastructure/repositories/misc.pg.js';
+import { PgSkyRepository } from './infrastructure/repositories/sky.pg.js';
 import {
   PgSecurityEventRepository, PgHealthRepository
 } from './infrastructure/repositories/observability.pg.js';
@@ -39,6 +40,8 @@ import { CurationService } from './application/services/curation.service.js';
 import { UserAdminService } from './application/services/user-admin.service.js';
 import { MediaService } from './application/services/media.service.js';
 import { MonitoringService } from './application/services/monitoring.service.js';
+import { PresenceHub } from './application/services/presence-hub.service.js';
+import { SkyService } from './application/services/sky.service.js';
 
 export const UPLOAD_DIR = fileURLToPath(new URL('../uploads/', import.meta.url));
 
@@ -59,7 +62,8 @@ export function buildContainer({ database = db } = {}) {
     settings: new PgSettingsRepository(database),
     media: new PgMediaRepository(database),
     security: new PgSecurityEventRepository(database),
-    health: new PgHealthRepository(database)
+    health: new PgHealthRepository(database),
+    sky: new PgSkyRepository(database)
   };
 
   const hasher = new BcryptPasswordHasher();
@@ -73,9 +77,13 @@ export function buildContainer({ database = db } = {}) {
   // kejadian keamanan harus terjadi di tempat kejadiannya (auth tahu login
   // gagal, middleware tahu CSRF ditolak), bukan disimpulkan belakangan dari log.
   const monitoring = new MonitoringService({ ...repos, cache });
+  // Hub presence hidup selama proses berjalan dan menyimpan keadaannya di
+  // memori — bukan repository, jadi ia dibuat di sini seperti cache.
+  const presenceHub = new PresenceHub();
 
   const services = {
     monitoring,
+    presenceHub,
     content: new ContentService({ ...repos, cache }),
     participation: new ParticipationService({ ...repos, cache }),
     auth: new AuthService({ ...repos, hasher, tokens, monitor: monitoring, refreshTtlDays: env.REFRESH_TOKEN_TTL_DAYS }),
@@ -83,8 +91,9 @@ export function buildContainer({ database = db } = {}) {
     menuAdmin: new MenuAdminService({ ...repos, cache }),
     curation: new CurationService({ ...repos, cache }),
     userAdmin: new UserAdminService({ ...repos, hasher }),
-    media: new MediaService({ ...repos, uploadDir: UPLOAD_DIR, publicUrl: env.PUBLIC_URL })
+    media: new MediaService({ ...repos, uploadDir: UPLOAD_DIR, publicUrl: env.PUBLIC_URL }),
+    sky: new SkyService({ ...repos, cache })
   };
 
-  return { cache, repos, hasher, tokens, services, uploadDir: UPLOAD_DIR };
+  return { cache, repos, hasher, tokens, services, presenceHub, uploadDir: UPLOAD_DIR };
 }

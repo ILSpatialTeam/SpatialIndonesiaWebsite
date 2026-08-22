@@ -95,38 +95,44 @@ export class MonitoringService {
   // Aturan penilaiannya sengaja sedikit dan bisa dijelaskan. Skor yang
   // dihitung dari sepuluh faktor berbobot terlihat pintar, tapi tidak ada yang
   // bisa menjawab kenapa angkanya turun.
+  //
+  // Yang dikembalikan KODE, bukan kalimat. Dashboard punya dua bahasa, dan
+  // kalimat jadi dari server akan selalu muncul dalam satu bahasa apa pun yang
+  // dipilih pengguna. Menerjemahkan di server berarti server harus tahu bahasa
+  // pengguna; menyerahkan kodenya ke klien jauh lebih sederhana.
   _nilai(k, db) {
     const catatan = [];
     let tingkat = 'aman';
+    const naik = (ke) => { if (tingkat !== 'kritis') tingkat = ke; };
 
     if (k.kritis > 0) {
       tingkat = 'kritis';
-      catatan.push(`${k.kritis} galat server dalam periode ini.`);
+      catatan.push({ kode: 'serverError', n: k.kritis });
     }
     if (k.login_gagal >= 20) {
-      tingkat = tingkat === 'kritis' ? tingkat : 'waspada';
-      catatan.push(`${k.login_gagal} percobaan login gagal — periksa sumbernya.`);
+      naik('waspada');
+      catatan.push({ kode: 'loginGagalBanyak', n: k.login_gagal });
     } else if (k.login_gagal > 0) {
-      catatan.push(`${k.login_gagal} percobaan login gagal.`);
+      catatan.push({ kode: 'loginGagal', n: k.login_gagal });
     }
     if (k.dibatasi >= 30) {
-      tingkat = tingkat === 'kritis' ? tingkat : 'waspada';
-      catatan.push(`${k.dibatasi} permintaan kena batas laju.`);
+      naik('waspada');
+      catatan.push({ kode: 'rateLimit', n: k.dibatasi });
     }
     if (db.cache_hit_ratio !== null && db.cache_hit_ratio < 90) {
-      catatan.push(`Rasio cache database ${db.cache_hit_ratio}% — di bawah 90%, pertimbangkan menaikkan shared_buffers.`);
+      catatan.push({ kode: 'cacheRendah', n: db.cache_hit_ratio });
     }
     if (Number(db.deadlocks) > 0) {
-      tingkat = tingkat === 'kritis' ? tingkat : 'waspada';
-      catatan.push(`${db.deadlocks} deadlock tercatat sejak Postgres menyala.`);
+      naik('waspada');
+      catatan.push({ kode: 'deadlock', n: Number(db.deadlocks) });
     }
-    const persenKoneksi = (db.koneksi / db.koneksi_maks) * 100;
+    const persenKoneksi = Math.round((db.koneksi / db.koneksi_maks) * 100);
     if (persenKoneksi > 80) {
       tingkat = 'kritis';
-      catatan.push(`Koneksi database ${Math.round(persenKoneksi)}% dari batas.`);
+      catatan.push({ kode: 'koneksiPenuh', n: persenKoneksi });
     }
 
-    if (!catatan.length) catatan.push('Tidak ada yang perlu ditindaklanjuti.');
+    if (!catatan.length) catatan.push({ kode: 'bersih' });
     return { tingkat, catatan };
   }
 
