@@ -132,16 +132,64 @@ three.js. Keduanya bicara lewat `core/bus.js`.
 Scene memancarkan, UI mendengarkan. Sisi 3D tidak pernah memanggil UI langsung:
 
 `scene-ready` · `planet-focus` / `planet-free` / `planet-hover` ·
-`agenda` · `sky-lore` / `sky-aim` · `trails` · `aurora` · `milkyway` ·
+`agenda` · `sky-lore` / `sky-aim` · `trails` · `visitors` ·
+`sky-stars` / `sky-star-hover` / `sky-star-open` · `aurora` · `milkyway` ·
 `meteor-start` / `meteor-armed` / `meteor-end` / `meteor-hit` / `meteor-shot` /
-`meteor-hud` / `meteor-over` / `meteor-restart` · `insight-open` / `insight-close` ·
+`meteor-hud` / `meteor-over` / `meteor-restart` · `insight-open` / `insight-close` /
+`insight-external` ·
 `xr-support` / `xr-end` / `xr-error` · `ar-support` / `ar-start` / `ar-placed`
+
+Dua di antaranya sering tertukar dan pernah memakan waktu: **`sky-lore` terbit
+tepat saat mode rasi dinyalakan atau dimatikan; `sky-aim` hanya terbit saat
+posisi langit dihitung ulang** — sekali di awal, lalu tiap 60 detik. Keduanya
+membawa `on`, tapi kalau yang dibutuhkan adalah reaksi terhadap tombol, hanya
+`sky-lore` yang cukup cepat.
 
 Elemen `<solar-system>` juga punya API publik yang dipakai HUD:
 `travelTo` · `freeFlight` · `setConstellations` / `skyReport` · `setTrails` /
-`presenceCount` · `setAurora` · `setMilkyWay` · `setMeteorMode` / `restartMeteor` / `fireAt` ·
+`presenceCount` · `setVisitors` / `visitorCount` ·
+`skyStarCount` / `skyCoordAt` / `addSkyStar` / `markMyStar` / `findMyStar` ·
+`setAurora` · `setMilkyWay` · `setMeteorMode` / `restartMeteor` / `fireAt` ·
 `agendaNow` · `systemMap` (data peta orbit + panning audio) · `snapshot`
 (kartu pos) · `openArticle` / `closeArticle` · `enterVR` / `enterAR`.
+
+### Dua fitur yang butuh orang lain
+
+Keduanya hidup di `src/systems/` seperti sistem lain, tapi sumber datanya bukan
+`src/data/` melainkan backend yang sedang jalan.
+
+**Presence live** (`systems/visitors.js` + `data/live.js`). Tiap pengunjung yang
+sedang membuka situs tampil sebagai satu titik cahaya yang melayang di dekat
+planet yang ia lihat. Jalurnya SSE satu arah (`GET /presence/live`); laporan
+balik lewat `POST /presence/here` biasa. Tidak ada nama, avatar, atau obrolan —
+yang dibagikan cuma gerak, dan itu menutup seluruh permukaan moderasi sekaligus.
+
+Server menyiarkan `move` ke **semua** koneksi termasuk pengirimnya; yang
+menyaring diri sendiri adalah klien (`bukanAku` di `live.js`). Itu memang
+tempatnya: siapa yang perlu digambar adalah keputusan tampilan.
+
+**Langit komunitas** (`systems/community-sky.js` + `ui/organisms/star-place.js`).
+Satu bintang per pengunjung, ditaruh sendiri dengan menunjuk langit. Semua
+bintang digambar dalam satu `THREE.Points` — seribu Sprite terpisah berarti
+seribu draw call, sementara jumlahnya memang bisa tumbuh tanpa batas jelas.
+Matematika koordinatnya dipinjam dari `sky-lore.js` (`arahDari`, `raDecDari`),
+jadi bintang komunitas dan rasi Nusantara duduk di sistem koordinat yang sama.
+
+Aturan "satu orang satu bintang" dijaga unique index atas salted hash alamat IP
+di sisi server; alamat mentahnya tidak pernah disimpan.
+
+Tiap bintang membawa nama depan, kota, dan satu kalimat — dan ketiganya baru
+ada gunanya kalau bisa dibaca. `ui/organisms/star-card.js` menampilkannya:
+scene memancarkan `sky-star-hover` (penunjuk) dan `sky-star-open` (ketukan),
+keduanya dengan koordinat layar supaya kartunya tahu muncul di sebelah mana.
+Dua kejadian, bukan satu, karena layar sentuh tidak punya hover dan bintangnya
+terlalu kecil untuk diberi ukuran sentuh yang layak.
+
+Pemilihannya diukur di **layar**, bukan di dunia (`bintangDekat` di
+`community-sky.js`). Bola langitnya berjari-jari 168 satuan: ambang dalam
+satuan dunia akan terasa lebar ke satu arah dan sempit ke arah lain. Bintang
+ditanyakan **paling akhir** dalam rantai hover — setelah bulan dan planet —
+karena apa pun yang menutupinya di layar pasti berada di depannya.
 
 ### Urutan impor di `src/main.js` disengaja
 
@@ -233,6 +281,18 @@ penyesuaian tata letak global.
   sengaja dipakai supaya tidak menggantung.
 - **Verifikasi lewat kelas CSS saja tidak cukup.** Panduan pernah lolos uji
   karena kelas `open` terpasang, padahal panelnya belum dipasang ke DOM.
+- **`ctx.glowTexture` adalah pabrik tekstur, bukan tekstur.** Meneruskannya
+  langsung sebagai `map` menghasilkan shader yang gagal dikompilasi dengan pesan
+  `'uvundefined' : undeclared identifier` — three.js membaca `map.channel` yang
+  tidak ada. Panggil sekali di `build()` dan pakai hasilnya bersama-sama.
+- **Pendengar `pointerdown` di `window` fase capture melihat SEMUA klik.**
+  Termasuk yang jatuh di tombol HUD. Kalau koordinatnya diukur terhadap
+  `e.target`, klik di tombol kecil menghasilkan koordinat yang ngawur — periksa
+  dulu bahwa targetnya memang kanvas (`star-place.js`).
+- **Jangan menggantungkan pengambilan data awal pada kejadian sekali-jalan.**
+  `scene-ready` terbit satu kali; modul yang mendengarkannya sedetik terlambat
+  tidak pernah mendapat jawaban dan diam-diam menampilkan keadaan yang salah.
+  Ambil datanya saat modul dimuat, lalu tunggu scene-nya kalau perlu.
 
 ## Rilis
 
