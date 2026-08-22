@@ -9,15 +9,21 @@ bukan mengulang apa yang sudah terbaca dari kodenya.
 
 ## Menjalankan
 
-Tidak ada `package.json`, tidak ada dependensi terpasang, tidak ada test runner.
+Frontend tidak punya `package.json` dan tidak punya dependensi terpasang.
 Berkasnya statis, tapi **harus lewat HTTP** (ES modules + `fetch` tidak jalan dari
-`file://`):
+`file://`). Backend punya dependensinya sendiri di `backend/`; keduanya tidak
+pernah berbagi `node_modules`. Tidak ada test runner di dua-duanya.
 
 ```bash
 python3 -m http.server 8899        # lalu buka http://localhost:8899/index.html
 node build.mjs                     # rakit rilis → dist/ (esbuild diambil via npx)
 node --check src/systems/aurora.js # pemeriksaan sintaks satu berkas
+
+cd backend && npm run dev          # API + dashboard admin di :4000
 ```
+
+Frontend tetap bisa dibuka tanpa backend hidup — datanya jatuh ke nilai bawaan
+di `src/data/*`. Yang hilang cuma kemutakhirannya, bukan tata suryanya.
 
 Tidak ada linter dan tidak ada uji otomatis. **Verifikasi dilakukan di browser** —
 buka halamannya, jalankan fiturnya, dan periksa konsol. Uji juga `dist/index.html`
@@ -38,12 +44,17 @@ index.html          template Design Canvas (bukan HTML biasa) + isi teks
 support.js          runtime Design Canvas (pihak ketiga, jangan disunting)
 src/main.js         titik masuk tunggal
 src/core/           perkakas tanpa pengetahuan domain (three, bus, registry, context)
-src/data/           fakta tanpa perilaku — ini seam menuju API nanti
+src/data/           bentuk data + seam ke API (remote.js)
 src/systems/        fitur 3D yang berdiri sendiri
 src/scene/          panggung + pendaftaran sistem
 src/ui/             atomic design: atoms → molecules → organisms
 src/app/            penyusun (hud.js, ambience.js)
+backend/            proyek terpisah: REST API, PostgreSQL, dashboard admin
 ```
+
+Frontend dan backend sengaja dipisah total: `backend/` punya package.json,
+dependensi, dan README sendiri, dan tidak satu pun berkas di `src/` yang
+mengimpornya. Keduanya hanya bertemu di HTTP.
 
 ### index.html adalah berkas Design Canvas
 
@@ -139,13 +150,47 @@ seketika, jadi kalau panggung duluan, kejadian pertamanya lewat sebelum ada yang
 mendengarkan. Dalam mode berkas terpisah hal ini tersamarkan oleh jeda jaringan;
 di bundel rilis ia langsung terasa.
 
-### Lapisan data adalah seam menuju API
+### Lapisan data sudah tersambung ke API
 
-`src/data/agenda.js` menyimpan agenda contoh dan `agendaState()`. Satu fungsi itu
-menggerakkan empat tempat sekaligus: sudut planet Event di orbit, Titik Temu
-beserta busurnya, papan misi, dan kartu Event (juga panel di dalam headset lewat
-`data/panels.js`). Saat pindah ke API, ganti isinya dan pertahankan bentuk
-kembaliannya — sisi 3D dan UI tidak perlu disentuh.
+`src/data/remote.js` adalah seam-nya, dan cara kerjanya perlu dipahami sebelum
+menyentuh apa pun di `src/data/`:
+
+- Modul itu **memutasi isi** `PLANETS`, `PANELS`, `ARTICLES`, `AGENDA`, dan
+  kawan-kawannya di tempat, bukan menggantinya. Belasan berkas sudah
+  mengimpornya sebagai binding, dan mengisi ulang array yang sama membuat semua
+  pengimpor melihat data baru tanpa satu baris pun diubah.
+- Snapshot localStorage diterapkan **sinkron saat modul dievaluasi**, dan
+  `main.js` mengimpornya paling awal. Evaluasi modul ES berurutan, jadi saat
+  `solar-system.js` mulai dievaluasi, datanya sudah yang terbaru — kunjungan
+  kedua tidak menunggu jaringan sedetik pun sebelum bingkai pertama.
+- Data dari jaringan datang belakangan dan memancarkan `data-ready`. Yang perlu
+  menggambar ulang mendengarkannya: `panel-content.js` dan `_buildMoons()`.
+- **`NAV` dihitung dari `PLANETS` saat modul dimuat**, jadi ia tidak ikut
+  berubah sendiri dan harus diisi ulang terpisah. Kaitan tersembunyi seperti ini
+  yang paling gampang terlewat saat menambah data baru.
+
+`agendaState()` sengaja tetap hidup di sisi klien walau backend punya
+salinannya (`backend/src/domain/entities/agenda.js`). Sudut planet Event
+dihitung tiap frame; yang datang dari server adalah **daftar acaranya**, bukan
+keadaannya.
+
+Alamat API dibaca dari `<meta name="spatial-api">` di `index.html`.
+
+### Isi tujuh menu datang dari database
+
+Panel `<div data-panel="…">` di `index.html` diberi penanda `data-slot`
+(`eyebrow`, `title`, `lead`, `items`, `links`), dan `ui/organisms/panel-content.js`
+mengisinya. Dua hal yang perlu diingat sebelum menyentuhnya:
+
+- Baris pertama tiap daftar dipakai sebagai **cetakan**: ia dikloning lalu
+  teksnya diganti. Jadi mengubah desain panel cukup di `index.html` seperti
+  biasa — jangan menyalin gaya inline itu ke JavaScript.
+- Panelnya milik React, jadi ada `MutationObserver` seperti `event-card.js`.
+  Pengawasnya **dilepas selama menggambar**; tanpa itu ia membangunkan dirinya
+  sendiri dan tab-nya membeku.
+
+Tombol tutup dan form Gabung sengaja tidak disentuh sama sekali — keduanya
+masih dipegang binding `{{ }}` milik template.
 
 ### UI: atomic design
 
@@ -156,6 +201,25 @@ penyesuaian tata letak global.
 
 ## Jebakan yang sudah pernah menggigit
 
+- **Permintaan lintas-origin bisa gagal tanpa satu pun galat di konsol.** Header
+  yang tidak termasuk daftar aman CORS — `If-None-Match` salah satunya — memicu
+  preflight. Kalau header itu tidak ada di `allowedHeaders` backend, preflight-nya
+  **berhasil** (204) tapi permintaan sebenarnya dibatalkan browser diam-diam.
+  Gejalanya: data tidak pernah diperbarui, konsol bersih. Yang menunjukkannya
+  cuma log server — `OPTIONS` tanpa `GET` setelahnya.
+- **Skrip `type="module"` diambil dalam mode CORS walau same-origin**, jadi ia
+  membawa header `Origin`. Daftar putih CORS yang tidak memuat origin server
+  sendiri akan menolak modul dashboard-nya sendiri.
+- **`induk.append(null)` menyisipkan teks "null" ke halaman.** DOM mengubah apa
+  pun yang bukan Node jadi string, jadi `syarat ? node : null` yang diteruskan
+  langsung ke `.append()` muncul di layar tanpa galat. Pakai helper yang
+  menyaring (`el()` di `src/ui/atoms/el.js`, `pasang()` di dashboard admin).
+- **Properti instans menutupi method prototipe.** `this.taxonomy = repo` di
+  konstruktor membuat method `taxonomy()` di kelas yang sama tidak akan pernah
+  bisa dipanggil. Sudah kejadian dua kali di `backend/src/application/services/`.
+- **`MutationObserver` yang mengamati subtree lalu mengubah subtree itu akan
+  memakan dirinya sendiri.** Lepas pengawasnya selama menggambar, dan buang
+  catatannya dengan `takeRecords()` sebelum menyambung lagi.
 - **Animasi keyframe dengan `fill: both` menimpa `transform` di media query.**
   Elemen yang dipusatkan dengan `translateX(-50%)` butuh keyframe versinya
   sendiri per breakpoint (lihat `mtInX`/`mtInY` di `meteor-hud.js`).
