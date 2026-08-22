@@ -77,6 +77,7 @@ daftar sudah menyimpulkan keduanya, jadi frontend tidak perlu tahu aturannya.
   tags: [
     { name: 'Publik', description: 'Dibaca situs. Tanpa autentikasi.' },
     { name: 'Partisipasi', description: 'Kiriman dari pengunjung: sparing, jejak, pendaftaran.' },
+    { name: 'Kebersamaan', description: 'Presence live dan langit komunitas — bagian multiplayer situs.' },
     { name: 'Auth', description: 'Masuk, keluar, dan sesi dashboard.' },
     { name: 'Admin', description: 'CRUD dari dashboard. Wajib masuk.' }
   ],
@@ -224,6 +225,111 @@ daftar sudah menyimpulkan keduanya, jadi frontend tidak perlu tahu aturannya.
         }
       }
     },
+    '/presence/live': {
+      get: {
+        tags: ['Kebersamaan'],
+        summary: 'Aliran presence live (Server-Sent Events)',
+        description:
+          'Membuka koneksi SSE yang tetap terbuka selama pengunjung ada di halaman.\n\n' +
+          'Jenis kejadian yang dikirim:\n\n' +
+          '- `hello` — pesan pertama: `{ id, warna, tamu[] }`. Berisi id pengunjung ini ' +
+          'dan snapshot siapa saja yang sudah ada. Tanpa snapshot awal, layar akan kosong ' +
+          'sampai orang pertama kebetulan berpindah planet.\n' +
+          '- `join` — seseorang masuk (`PresenceGuest`). Tidak dikirim ke dirinya sendiri.\n' +
+          '- `move` — seseorang pindah planet (`PresenceGuest`, lengkap dengan `dari`). ' +
+          'Ini **juga** dikirim ke pengirimnya; klien yang menyaring dirinya sendiri.\n' +
+          '- `leave` — seseorang pergi: `{ id }`.\n' +
+          '- Komentar `: ping` tiap 20 detik supaya proxy tidak menutup koneksi.\n\n' +
+          'Endpoint ini sengaja **tidak** kena rate limit baca: koneksinya memang ' +
+          'dibuka lama, dan menghitungnya sebagai satu permintaan per detik akan ' +
+          'memblokir pengunjung yang perilakunya normal.\n\n' +
+          'Maksimum 200 koneksi bersamaan per instance; setelah itu server mengirim ' +
+          'kejadian `full` lalu menutup.',
+        responses: {
+          200: {
+            description: 'Aliran terbuka',
+            content: { 'text/event-stream': { schema: { type: 'string' } } }
+          }
+        }
+      }
+    },
+    '/presence/here': {
+      post: {
+        tags: ['Kebersamaan'],
+        summary: 'Lapor planet yang sedang dilihat',
+        description:
+          'Dipanggil saat pengunjung berpindah planet, dan sebagai denyut tiap 45 detik. ' +
+          'Tanpa kabar selama 90 detik, pengunjung dianggap pergi.\n\n' +
+          'Id yang tidak dikenal dijawab `{ ok: false }`, bukan galat: koneksi SSE bisa ' +
+          'putus lalu klien masih sempat mengirim satu laporan terakhir dengan id lamanya.',
+        requestBody: body({
+          type: 'object',
+          required: ['id'],
+          properties: {
+            id: { type: 'string', pattern: '^[A-Za-z0-9_-]{8}$', example: 'Kf3nQ2xA' },
+            planet: { type: 'string', nullable: true, example: 'karya' }
+          }
+        }),
+        responses: {
+          ...ok('Diterima', {
+            type: 'object',
+            properties: { ok: { type: 'boolean' }, jumlah: { type: 'integer' } }
+          }),
+          422: err('Validasi')
+        }
+      }
+    },
+    '/sky/stars': {
+      get: {
+        tags: ['Kebersamaan'],
+        summary: 'Bintang komunitas yang sudah disetujui',
+        description: 'Di-cache 120 detik. Cache dibatalkan saat ada bintang baru atau moderasi.',
+        responses: ok('Daftar bintang', arrayOf('SkyStar'))
+      },
+      post: {
+        tags: ['Kebersamaan'],
+        summary: 'Taruh satu bintang di langit',
+        description:
+          'Satu bintang per sumber, dijaga unique index atas salted hash alamat IP — ' +
+          'alamat mentahnya tidak pernah disimpan. Percobaan kedua dijawab 409.\n\n' +
+          'Kalau `sky.moderation` menyala, bintangnya masuk berstatus `pending` dan ' +
+          'jawabannya membawa `moderated: true`; bawaannya langsung tampil.',
+        requestBody: body({
+          type: 'object',
+          required: ['ra', 'dec', 'name'],
+          properties: {
+            ra: { type: 'number', minimum: 0, maximum: 23.999 },
+            dec: { type: 'number', minimum: -90, maximum: 90 },
+            name: { type: 'string', minLength: 2, maxLength: 24 },
+            city: { type: 'string', maxLength: 40 },
+            note: { type: 'string', maxLength: 60 }
+          }
+        }),
+        responses: {
+          201: {
+            description: 'Bintang menyala',
+            ...json({ type: 'object', properties: { bintang: ref('SkyStar'), moderated: { type: 'boolean' } } })
+          },
+          409: { description: 'Sumber ini sudah punya bintang.', ...json(ref('Error')) },
+          422: err('Validasi'),
+          429: err('TerlaluSering')
+        }
+      }
+    },
+    '/sky/mine': {
+      get: {
+        tags: ['Kebersamaan'],
+        summary: 'Bintang milik pengunjung ini, kalau ada',
+        description:
+          'Dipakai situs untuk memutuskan menampilkan tombol "taruh bintang" atau ' +
+          'menyorot bintang yang sudah ada. Tidak pernah di-cache: jawabannya ' +
+          'berbeda untuk tiap pengunjung.',
+        responses: ok('Bintangnya, atau null', {
+          allOf: [ref('SkyStar')],
+          nullable: true
+        })
+      }
+    },
     '/settings': {
       get: { tags: ['Publik'], summary: 'Pengaturan situs yang publik', responses: ok('Pengaturan', { type: 'object' }) }
     },
@@ -366,6 +472,28 @@ daftar sudah menyimpulkan keduanya, jadi frontend tidak perlu tahu aturannya.
     '/admin/sparing/{id}': {
       patch: adminOp({ summary: 'Setujui atau tolak sparing', parameters: [pId('id', 'uuid')], requestBody: body({ type: 'object', properties: { status: { type: 'string', enum: ['pending', 'approved', 'rejected'] } } }), responses: { ...ok('Status baru', { type: 'object' }), 404: err('TidakAda') } }),
       delete: adminOp({ summary: 'Hapus sparing', parameters: [pId('id', 'uuid')], responses: { 204: { description: 'Terhapus' } } })
+    },
+    '/admin/sky': {
+      get: adminOp({
+        summary: 'Semua bintang komunitas, termasuk yang belum disetujui',
+        parameters: [{ name: 'status', in: 'query', schema: { type: 'string', enum: ['pending', 'approved', 'rejected'] } }, qLimit, qOffset],
+        responses: ok('Daftar', { type: 'object' })
+      })
+    },
+    '/admin/sky/{id}': {
+      patch: adminOp({
+        summary: 'Setujui atau tolak bintang',
+        description: 'Mengubah status membatalkan cache daftar publik.',
+        parameters: [pId('id', 'uuid')],
+        requestBody: body({ type: 'object', properties: { status: { type: 'string', enum: ['pending', 'approved', 'rejected'] } } }),
+        responses: { ...ok('Status baru', { type: 'object' }), 404: err('TidakAda') }
+      }),
+      delete: adminOp({
+        summary: 'Hapus bintang',
+        description: 'Sumbernya boleh menaruh bintang baru setelah ini.',
+        parameters: [pId('id', 'uuid')],
+        responses: { 204: { description: 'Terhapus' } }
+      })
     },
     '/admin/submissions': {
       get: adminOp({ summary: 'Pendaftaran Gabung', parameters: [{ name: 'status', in: 'query', schema: { type: 'string', enum: ['new', 'contacted', 'archived'] } }, qLimit, qOffset], responses: ok('Daftar', { type: 'object' }) })

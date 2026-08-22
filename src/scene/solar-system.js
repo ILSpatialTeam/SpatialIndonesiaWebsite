@@ -19,6 +19,8 @@ import { ARTICLES, CATEGORIES, FREQ } from '../data/insight.js';
 import { createSkyLore } from '../systems/sky-lore.js';
 import { createAgendaOrbit } from '../systems/agenda-orbit.js';
 import { createTrails } from '../systems/trails.js';
+import { createVisitors } from '../systems/visitors.js';
+import { createCommunitySky } from '../systems/community-sky.js';
 import { createAurora } from '../systems/aurora.js';
 import { createMilkyWay } from '../systems/milkyway.js';
 import { createMeteorGame } from '../systems/meteor.js';
@@ -311,8 +313,15 @@ class SolarSystem extends HTMLElement {
     });
     this.systems = createRegistry(this.ctx);
     this.sky = this.systems.add(createSkyLore);
+    // Rasi Nusantara adalah fakta astronomi; bintang komunitas ada karena
+    // seseorang menaruhnya. Dua sistem, satu sistem koordinat.
+    this.langit = this.systems.add(createCommunitySky);
     this.sysAgenda = this.systems.add(createAgendaOrbit);
     this.trails = this.systems.add(createTrails);
+    // Jejak adalah masa lalu; visitors adalah sekarang. Dua sistem terpisah
+    // karena umur datanya berbeda jauh — yang satu bertahan berhari-hari, yang
+    // satu berumur detik.
+    this.visitors = this.systems.add(createVisitors);
     this.sysAurora = this.systems.add(createAurora);
     this.milkyway = this.systems.add(createMilkyWay);
     this.meteor = this.systems.add(createMeteorGame);
@@ -1039,7 +1048,27 @@ class SolarSystem extends HTMLElement {
       if (moon) return this.openArticle(moon.object.userData.slug);
     }
     const hit = this.ray.intersectObjects(this.hits, false)[0];
-    if (hit) this.travelTo(hit.object.userData.planetId);
+    if (hit) return this.travelTo(hit.object.userData.planetId);
+
+    // Layar sentuh tidak punya hover, jadi ketukan adalah satu-satunya cara
+    // membaca titipan orang lain di sana.
+    const bintang = this.langit?.bintangDekat(this.ndc);
+    if (bintang) {
+      this.dispatchEvent(new CustomEvent('sky-star-open', {
+        detail: { bintang, ...this._layarDariNdc() }, bubbles: true
+      }));
+    }
+  }
+
+  // NDC → piksel di viewport. Kartunya perlu tahu harus muncul di sebelah mana,
+  // dan mengubah koordinat balik di sisi antarmuka berarti ia harus mengukur
+  // kanvas sendiri — pengetahuan yang sudah ada di sini.
+  _layarDariNdc() {
+    const r = this.canvas.getBoundingClientRect();
+    return {
+      x: r.left + ((this.ndc.x + 1) / 2) * r.width,
+      y: r.top + ((1 - this.ndc.y) / 2) * r.height
+    };
   }
 
   /* ---------- insight moons ---------- */
@@ -1078,10 +1107,65 @@ class SolarSystem extends HTMLElement {
 
   /* ---------- API publik: diteruskan ke sistemnya ---------- */
 
-  setConstellations(on) { return this.sky ? this.sky.toggle(on) : false; }
+  setConstellations(on) {
+    // Bintang komunitas ikut menyala bersama rasi: keduanya menghuni langit
+    // yang sama, dan menyalakan satu tanpa yang lain membuat langitnya terasa
+    // separuh jadi.
+    const hasil = this.sky ? this.sky.toggle(on) : false;
+    if (this.langit) this.langit.toggle(hasil);
+    return hasil;
+  }
+
+  // ── langit komunitas ──────────────────────────────────────────────────────
+  skyStarCount() { return this.langit ? this.langit.count() : 0; }
+  /** Arah yang sedang ditunjuk → koordinat langit yang bisa disimpan. */
+  skyCoordAt(ndc) { return this.langit ? this.langit.koordinatDari(ndc) : null; }
+  addSkyStar(bintang, milikku) { this.langit?.tambah(bintang, milikku); }
+  markMyStar(bintang) { this.langit?.tandaiMilikku(bintang); }
+
+  /**
+   * Putar pandangan sampai satu bintang komunitas ada di depan mata.
+   *
+   * Kamera bebas selalu menatap pusat dari jarak `dist`, jadi supaya sebuah
+   * arah di kubah langit terlihat, kameranya harus berdiri di seberangnya —
+   * di `-dir`. Dari situ yaw dan pitch-nya tinggal dibalik dari komponen arah.
+   *
+   * Hanyutan pelan `t * 0.014` di loop kamera ikut dikurangkan; tanpa itu,
+   * bidikannya meleset sejauh umur halaman.
+   *
+   * Pitch kamera bebas dijepit di `[-0.35, 0.95]` — batas yang sudah ada jauh
+   * sebelum fitur ini, dan memang perlu supaya orbit bebas tidak pernah
+   * terbalik. Akibatnya bintang yang sedang tinggi di langit tidak bisa
+   * benar-benar dipusatkan: arahnya benar, tapi tetap di atas tepi layar.
+   *
+   * Itu dilaporkan balik lewat `mentok`, bukan disembunyikan. Memutar kamera
+   * lalu mengaku "ada di depan sana" padahal bintangnya di luar layar adalah
+   * cara tercepat membuat orang mengira fiturnya rusak.
+   *
+   * @returns {{ok: boolean, mentok: boolean}} `ok` false kalau belum punya bintang.
+   */
+  findMyStar() {
+    const dir = this.langit?.arahMilikku();
+    if (!dir) return { ok: false, mentok: false };
+
+    this.freeFlight();
+    // Hanyutan pelan `t * 0.014` di loop kamera ikut dikurangkan; tanpa itu,
+    // bidikannya meleset sejauh umur halaman.
+    const t = this.clock ? this.clock.getElapsedTime() : 0;
+    this.yaw = Math.atan2(-dir.x, -dir.z) - t * 0.014;
+
+    // `+4` di loop kamera adalah tinggi tetap kamera; ia harus ikut dihitung,
+    // kalau tidak bintang dekat ufuk selalu meleset ke bawah.
+    const d = this.dist || 56;
+    const ideal = Math.asin(clamp(-dir.y - 4 / d, -1, 1));
+    this.pitch = clamp(ideal, -0.35, 0.95);
+    return { ok: true, mentok: Math.abs(ideal - this.pitch) > 0.05 };
+  }
   skyReport() { return this.sky ? this.sky.report() : { clock: '', items: [] }; }
   setTrails(on) { return this.trails ? this.trails.toggle(on) : false; }
   presenceCount() { return this.trails ? this.trails.count() : 0; }
+  setVisitors(on) { return this.visitors ? this.visitors.toggle(on) : false; }
+  visitorCount() { return this.visitors ? this.visitors.count() : 0; }
   setAurora(on) { return this.sysAurora ? this.sysAurora.toggle(on) : false; }
   setMilkyWay(on) { return this.milkyway ? this.milkyway.toggle(on) : false; }
   agendaNow() { return this.sysAgenda ? this.sysAgenda.state() : null; }
@@ -2254,7 +2338,19 @@ class SolarSystem extends HTMLElement {
         this.hover = hoverId;
         this.dispatchEvent(new CustomEvent('planet-hover', { detail: { id: hoverId }, bubbles: true }));
       }
-      this._cursor(hoverId || moonId ? 'pointer' : 'grab');
+
+      // Bintang komunitas ditanyakan paling akhir, dan hanya kalau tidak ada
+      // apa pun yang lebih dekat. Ia duduk di kubah langit berjari-jari 168 —
+      // apa pun yang menutupinya di layar pasti berada di depannya.
+      const bintang = (hoverId || moonId) ? null : (this.langit?.bintangDekat(this.ndc) ?? null);
+      if ((bintang?.id ?? null) !== (this.hoverStar?.id ?? null)) {
+        this.hoverStar = bintang;
+        this.dispatchEvent(new CustomEvent('sky-star-hover', {
+          detail: { bintang, ...this._layarDariNdc() }, bubbles: true
+        }));
+      }
+
+      this._cursor(hoverId || moonId || bintang ? 'pointer' : 'grab');
     }
     this.planets.forEach(p => {
       const target = this.hover === p.id ? 1.18 : 1;

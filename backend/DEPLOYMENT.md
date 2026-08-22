@@ -1,9 +1,9 @@
 # Deployment Backend Spatial Indonesia
 
-Backend ini satu proses Node dan satu database Postgres. Tidak ada antrean,
-tidak ada Redis, tidak ada worker. Itu membuat deployment-nya sederhana —
-dan sebagian besar isi dokumen ini adalah tentang hal-hal di sekitarnya:
-rahasia, HTTPS, cadangan, dan apa yang terjadi saat pembaruan.
+Backend ini satu proses Node dan satu database Postgres. Tidak ada message
+queue, tidak ada Redis, tidak ada worker. Itu membuat deployment-nya sederhana
+— dan sebagian besar isi dokumen ini justru tentang hal di sekitarnya: secret,
+HTTPS, backup, dan apa yang terjadi saat update.
 
 Arsitekturnya di [`ARCHITECTURE.md`](ARCHITECTURE.md), audit keamanan di
 [`SECURITY.md`](SECURITY.md), pengembangan sehari-hari di
@@ -13,61 +13,61 @@ Arsitekturnya di [`ARCHITECTURE.md`](ARCHITECTURE.md), audit keamanan di
 
 ## 1. Sebelum apa pun: sembilan hal yang wajib diganti
 
-Proses **menolak menyala** kalau nomor 2, 3, atau 4 belum benar saat
+Proses **menolak menyala** kalau nomor 2, 3, 4, atau 5 belum benar saat
 `NODE_ENV=production`. Sisanya tidak dijaga kode — Anda yang harus ingat.
 
 | # | Variabel | Kenapa |
-|---|---|---|
-| 1 | `NODE_ENV=production` | Mematikan jejak tumpukan di respons galat dan menyalakan HSTS |
+| --- | --- | --- |
+| 1 | `NODE_ENV=production` | Mematikan stack trace di response error dan menyalakan HSTS |
 | 2 | `JWT_ACCESS_SECRET` | Nilai contoh `ganti-saya` ditolak. 48 byte acak |
 | 3 | `JWT_REFRESH_SECRET` | Sama, dan **harus berbeda** dari yang di atas |
-| 4 | `COOKIE_SECURE=true` | Tanpa ini cookie sesi admin bisa lewat HTTP polos |
-| 5 | `IP_HASH_SALT` | Wajib di produksi. Harus berbeda dari JWT secret — lihat T-6 di SECURITY.md |
+| 4 | `IP_HASH_SALT` | Salt untuk hash IP. Harus berbeda dari JWT secret — lihat T-6 di SECURITY.md |
+| 5 | `COOKIE_SECURE=true` | Tanpa ini cookie session admin bisa dikirim lewat HTTP polos |
 | 6 | `CORS_ORIGINS` | Isi domain frontend saja. Hapus semua `localhost` |
-| 7 | `PUBLIC_URL` | Dipakai membentuk URL gambar yang diunggah admin |
+| 7 | `PUBLIC_URL` | Dipakai membentuk URL gambar yang di-upload admin |
 | 8 | `TRUST_PROXY` | Jumlah proxy di depan aplikasi — lihat §4 |
-| 9 | `ADMIN_PASSWORD` | Akun owner pertama. Ganti dari `.env.example` |
+| 9 | `ADMIN_PASSWORD` | Akun owner pertama. Ganti dari nilai di `.env.example` |
 
 ```bash
-# Bangkitkan tiga rahasia sekaligus
+# Generate tiga secret sekaligus
 for v in JWT_ACCESS_SECRET JWT_REFRESH_SECRET IP_HASH_SALT; do
   echo "$v=$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")"
 done
 ```
 
-> Rahasia tidak pernah masuk image. `.env` ada di `.dockerignore`, dan
-> konfigurasinya disuntikkan saat container berjalan. Kalau ikut ter-*bake*,
-> siapa pun yang bisa menarik image Anda mendapatkan kredensial produksi.
+> Secret tidak pernah masuk ke dalam image. `.env` ada di `.dockerignore`, dan
+> konfigurasinya di-inject saat container berjalan. Kalau ikut ter-*bake*,
+> siapa pun yang bisa menarik image Anda mendapatkan kredensial production.
 
 ---
 
 ## 2. Cara A — Docker Compose (satu mesin)
 
-Paling cocok untuk VPS. Backend dan Postgres jalan berdampingan, database tidak
-terekspos ke luar mesin.
+Paling cocok untuk VPS. Backend dan Postgres jalan berdampingan, dan
+database-nya tidak terbuka ke luar mesin.
 
 ```bash
 cd backend
 cp .env.example .env
-# isi rahasia dari §1, plus POSTGRES_PASSWORD
+# isi secret dari §1, plus POSTGRES_PASSWORD
 
 docker compose up -d --build
 docker compose exec api npm run seed     # sekali saja, di awal
 docker compose logs -f api
 ```
 
-Migrasi berjalan otomatis sebelum server menyala (`RUN_MIGRATIONS=true` di
-compose). Server memang menolak start kalau ada migrasi tertinggal, jadi
+Migration dijalankan otomatis sebelum server menyala (`RUN_MIGRATIONS=true` di
+compose). Server memang menolak start kalau ada migration yang tertinggal, jadi
 urutannya dijamin benar.
 
-> **`.env` pengembangan tidak akan bisa dipakai apa adanya.** Compose menyetel
+> **`.env` untuk development tidak bisa dipakai apa adanya.** Compose menyetel
 > `NODE_ENV=production`, dan pada mode itu proses menolak menyala kalau JWT
-> secret masih nilai contoh, `COOKIE_SECURE` masih `false`, atau `IP_HASH_SALT`
-> kosong. Ini disengaja — ketiganya adalah kesalahan yang paling sering lolos
-> ke produksi, jadi dibuat mustahil.
+> secret masih nilai contoh, `IP_HASH_SALT` kosong, atau `COOKIE_SECURE` masih
+> `false`. Ini disengaja — ketiganya kesalahan yang paling sering lolos ke
+> production, jadi dibuat mustahil.
 >
-> Gejalanya: container keluar seketika, dan `docker compose logs api` mencetak
-> variabel mana yang bermasalah. Bukan crash — itu penolakan yang direncanakan.
+> Gejalanya: container langsung keluar, dan `docker compose logs api` mencetak
+> variabel mana yang bermasalah. Itu penolakan yang direncanakan, bukan crash.
 
 Cek hasilnya:
 
@@ -81,21 +81,21 @@ docker compose ps          # kolom STATUS harus "healthy", bukan sekadar "Up"
 - **`ports: "127.0.0.1:4000:4000"`** — Node tidak menghadap internet. Yang
   menghadap adalah reverse proxy di depannya (§4). Kalau ditulis `"4000:4000"`
   saja, Docker akan membuka port itu ke seluruh dunia **menembus ufw** —
-  jebakan yang sudah membuat banyak database bocor.
-- **Volume `uploads`** — gambar yang diunggah admin. Tanpa ini semuanya hilang
+  jebakan yang sudah membocorkan banyak database.
+- **Volume `uploads`** — gambar yang di-upload admin. Tanpa ini semuanya hilang
   setiap kali container diganti, dan mengganti container adalah cara normal
-  memperbarui aplikasi.
+  meng-update aplikasi.
 - **`postgres:18-alpine`, bukan `latest`** — Postgres tidak bisa membaca
-  direktori data dari versi mayor berbeda. `latest` suatu hari akan menolak
-  menyala setelah pull rutin, dengan data yang utuh tapi tidak terbaca.
-- **Batas log** — pino menulis JSON satu baris. Tanpa `max-size`, berkasnya
-  tumbuh sampai disk penuh.
+  direktori data dari versi mayor yang berbeda. `latest` suatu hari akan
+  menolak menyala setelah pull rutin, dengan data yang utuh tapi tidak terbaca.
+- **Batas ukuran log** — pino menulis JSON satu baris per event. Tanpa
+  `max-size`, file-nya tumbuh sampai disk penuh.
 
 ### Perintah harian
 
 ```bash
 docker compose logs -f api                       # ikuti log
-docker compose exec api npm run migrate:status   # status migrasi
+docker compose exec api npm run migrate:status   # status migration
 docker compose exec db psql -U spatial_app -d spatial_indonesia
 docker compose restart api
 docker compose down                              # berhenti, data tetap ada
@@ -104,7 +104,7 @@ docker compose down -v                           # ⚠ ikut menghapus volume
 
 ---
 
-## 3. Cara B — Image saja, database dikelola pihak lain
+## 3. Cara B — Image saja, database dari penyedia lain
 
 Untuk Railway, Fly.io, Render, atau Kubernetes, dengan Postgres dari Neon,
 Supabase, atau RDS.
@@ -126,23 +126,23 @@ docker run -d --name spatial-api \
   spatial-backend:1.0.0
 ```
 
-**Migrasi dijalankan sebagai langkah terpisah**, bukan oleh container aplikasi
-— begitu ada lebih dari satu replika, semuanya akan mencoba bermigrasi
-bersamaan saat deploy:
+**Jalankan migration sebagai langkah terpisah**, bukan dari container
+aplikasi — begitu ada lebih dari satu replika, semuanya akan mencoba
+bermigrasi bersamaan saat deploy:
 
 ```bash
 docker run --rm -e DATABASE_URL=… -e JWT_ACCESS_SECRET=… -e JWT_REFRESH_SECRET=… \
-  spatial-backend:1.0.0 node scripts/migrate.js up
+  -e IP_HASH_SALT=… spatial-backend:1.0.0 node scripts/migrate.js up
 ```
 
-Migrasi dibungkus transaksi sehingga tabrakan tidak akan merusak apa pun, tapi
-job terpisah membuat kegagalannya terlihat sebagai kegagalan deploy — bukan
+Migration dibungkus transaksi sehingga tabrakan tidak akan merusak data, tapi
+job terpisah membuat kegagalannya terlihat sebagai deploy yang gagal — bukan
 sebagai container yang restart berulang tanpa penjelasan.
 
-> **Tag versi, bukan `latest`.** `latest` membuat rollback jadi tebak-tebakan:
-> tidak ada yang tahu image mana yang tadi berjalan.
+> **Beri tag versi, jangan `latest`.** `latest` membuat rollback jadi
+> tebak-tebakan: tidak ada yang tahu image mana yang tadi berjalan.
 
-### Beri tahu platformnya soal health check
+### Beri tahu platform-nya soal health check
 
 Titiknya `GET /api/v1/health`. Endpoint ini **benar-benar menyentuh database** —
 server yang hidup tapi kehilangan Postgres tidak akan dilaporkan sehat.
@@ -161,17 +161,17 @@ server {
     ssl_certificate     /etc/letsencrypt/live/api.spatialindonesia.id/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/api.spatialindonesia.id/privkey.pem;
 
-    # Unggahan admin dibatasi 4 MB di aplikasi. Batas nginx harus sedikit di
-    # atasnya — kalau lebih kecil, penolakannya datang sebagai 413 dari nginx
-    # dengan halaman HTML, bukan pesan JSON yang bisa dibaca dashboard.
+    # Upload dibatasi 4 MB di aplikasi. Batas nginx harus sedikit di atasnya —
+    # kalau lebih kecil, penolakannya datang sebagai 413 dari nginx berupa
+    # halaman HTML, bukan pesan JSON yang bisa dibaca dashboard.
     client_max_body_size 6m;
 
     location / {
         proxy_pass http://127.0.0.1:4000;
         proxy_http_version 1.1;
 
-        # Tiga header ini yang membuat req.ip, req.protocol, dan URL absolut
-        # di aplikasi menunjuk ke hal yang benar.
+        # Tiga header ini yang membuat req.ip, req.protocol, dan URL absolut di
+        # aplikasi menunjuk ke hal yang benar.
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
         proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
@@ -200,46 +200,47 @@ api.spatialindonesia.id {
 ### Menghitung `TRUST_PROXY` dengan benar
 
 Angka ini menentukan alamat mana di rantai `X-Forwarded-For` yang dipercaya
-sebagai IP pengunjung. **Salah hitung punya dua akibat yang sama-sama buruk:**
+sebagai IP pengunjung. **Salah menghitungnya punya dua akibat yang sama-sama
+buruk.**
 
 | Nilai | Keadaan |
-|---|---|
+| --- | --- |
 | `0` | Node langsung menghadap internet, tanpa proxy |
 | `1` | Satu nginx / Caddy / load balancer |
 | `2` | Cloudflare di depan nginx |
 
 - Terlalu **kecil** → semua pengunjung terlihat berasal dari IP proxy. Satu
-  jatah batas laju untuk seluruh dunia; satu bot memblokir semua orang.
+  jatah rate limit untuk seluruh dunia; satu bot bisa memblokir semua orang.
 - Terlalu **besar** → klien bisa memalsukan IP-nya sendiri hanya dengan
-  menambahkan header. Pembatas laju jadi hiasan.
+  menambahkan header. Rate limit-nya jadi hiasan.
 
-Cara memastikan setelah deploy: buat batas laju terlampaui dari dua perangkat
-berbeda dan lihat halaman **Pemantauan → Sumber paling aktif**. Kalau keduanya
-muncul sebagai satu sidik yang sama, angkanya terlalu kecil.
+Cara memastikan setelah deploy: picu rate limit dari dua perangkat berbeda,
+lalu lihat halaman **Monitoring → Sumber paling aktif**. Kalau keduanya muncul
+sebagai satu hash yang sama, angkanya terlalu kecil.
 
 ---
 
 ## 5. Frontend
 
-Frontend adalah berkas statis dan **tidak ada di image ini**.
+Frontend berupa file statis dan **tidak ada di dalam image ini**.
 
 ```bash
 cd ..            # folder induk
 node build.mjs   # menghasilkan dist/
 ```
 
-Unggah isi `dist/` ke hosting statis apa pun (Vercel, Netlify, nginx, S3).
-Dua hal yang harus disesuaikan sebelum rilis:
+Upload isi `dist/` ke hosting statis apa pun (Vercel, Netlify, nginx, S3). Dua
+hal yang harus disesuaikan sebelum rilis:
 
 1. **`<meta name="spatial-api">` di `index.html`** — arahkan ke domain API.
-   Hapus metanya kalau API dilayani dari origin yang sama.
+   Hapus meta-nya kalau API di-serve dari origin yang sama.
 2. **`CORS_ORIGINS` di backend** — isi domain frontend. Origin yang tidak
-   terdaftar akan ditolak 403, dan situsnya jatuh ke data bawaan tanpa galat
+   terdaftar akan ditolak 403, dan situsnya jatuh ke data bawaan tanpa error
    yang terlihat di layar.
 
 > Cara tercepat memastikan sambungannya benar: buka DevTools → Network, cari
-> `bootstrap`. `200` atau `304` berarti tersambung. `403`, atau `OPTIONS` tanpa
-> `GET` sesudahnya, berarti origin-nya belum masuk daftar putih.
+> `bootstrap`. Status `200` atau `304` berarti tersambung. `403`, atau
+> `OPTIONS` tanpa `GET` sesudahnya, berarti origin-nya belum masuk whitelist.
 
 ---
 
@@ -296,13 +297,13 @@ sudo journalctl -u spatial-api -f
 
 ---
 
-## 7. Memperbarui
+## 7. Update dan rollback
 
 ### Docker Compose
 
 ```bash
 git pull
-docker compose up -d --build          # migrasi jalan otomatis
+docker compose up -d --build          # migration jalan otomatis
 docker compose logs -f api
 ```
 
@@ -315,19 +316,19 @@ docker compose up -d --build
 ```
 
 **Rollback kode itu mudah; rollback skema tidak.** `npm run migrate:down`
-membatalkan **satu** migrasi terakhir dan itu memang disengaja — rollback
-beruntun tanpa diminta adalah cara cepat kehilangan data produksi. Kalau
-migrasi menghapus kolom, datanya sudah tidak ada dan `down` tidak akan
-mengembalikannya. Untuk perubahan yang merusak, cadangkan dulu.
+membatalkan **satu** migration terakhir, dan itu memang disengaja — rollback
+beruntun tanpa diminta adalah cara cepat kehilangan data production. Kalau
+sebuah migration menghapus kolom, datanya sudah tidak ada dan `down` tidak akan
+mengembalikannya. Untuk perubahan yang merusak, backup dulu.
 
-> Menyunting migrasi yang sudah terpasang akan ditolak: checksum-nya dicatat.
-> Buat migrasi baru.
+> Mengedit migration yang sudah terpasang akan ditolak: checksum-nya dicatat.
+> Bikin migration baru.
 
 ---
 
-## 8. Cadangan
+## 8. Backup
 
-Yang perlu dicadangkan hanya dua: **database** dan **folder `uploads/`**. Tidak
+Yang perlu di-backup hanya dua: **database** dan **folder `uploads/`**. Tidak
 ada state lain di mana pun.
 
 ```bash
@@ -335,12 +336,12 @@ ada state lain di mana pun.
 docker compose exec -T db pg_dump -U spatial_app -Fc spatial_indonesia \
   > backup-$(date +%F).dump
 
-# Unggahan
+# File upload
 docker run --rm -v spatial-indonesia_uploads:/data -v "$PWD":/keluar alpine \
   tar czf /keluar/uploads-$(date +%F).tar.gz -C /data .
 ```
 
-Pulihkan:
+Restore:
 
 ```bash
 docker compose exec -T db pg_restore -U spatial_app -d spatial_indonesia \
@@ -354,11 +355,11 @@ Cron harian:
   pg_dump -U spatial_app -Fc spatial_indonesia > /backup/si-$(date +\%F).dump
 ```
 
-> **Cadangan yang belum pernah dipulihkan bukan cadangan.** Coba `pg_restore`
-> ke database kosong sekali, sekarang, sebelum Anda membutuhkannya.
+> **Backup yang belum pernah di-restore bukan backup.** Coba `pg_restore` ke
+> database kosong sekali, sekarang, sebelum Anda benar-benar membutuhkannya.
 
-`pg_dump` harus berasal dari versi mayor yang sama dengan servernya —
-alasan lain kenapa versi image dikunci.
+`pg_dump` harus berasal dari versi mayor yang sama dengan server-nya — alasan
+lain kenapa versi image dikunci.
 
 ---
 
@@ -367,52 +368,52 @@ alasan lain kenapa versi image dikunci.
 ```bash
 API=https://api.spatialindonesia.id/api/v1
 
-curl -s $API/health                                    # 1. database tersambung
+curl -s $API/health                                       # 1. database tersambung
 curl -s -o /dev/null -w '%{http_code}\n' $API/bootstrap   # 2. 200
 curl -s -o /dev/null -w '%{http_code}\n' \
-  -H 'Origin: https://jahat.example' $API/bootstrap     # 3. 403
-curl -sI $API/health | grep -i strict-transport         # 4. HSTS ada
-curl -s -o /dev/null -w '%{http_code}\n' $API/admin/users # 5. 401
+  -H 'Origin: https://jahat.example' $API/bootstrap        # 3. 403
+curl -sI $API/health | grep -i strict-transport            # 4. HSTS ada
+curl -s -o /dev/null -w '%{http_code}\n' $API/admin/users  # 5. 401
 ```
 
-6. Masuk ke `/admin`, buka **Pemantauan**, pastikan statusnya hijau dan
-   rasio cache database di atas 95%.
+6. Masuk ke `/admin`, buka **Monitoring**, pastikan statusnya hijau dan cache
+   hit ratio database di atas 95%.
 
-Lalu **ganti kata sandi akun owner** lewat ikon gembok di topbar.
+Lalu **ganti password akun owner** lewat ikon gembok di topbar.
 
 ---
 
 ## 10. Kalau ada yang salah
 
 | Gejala | Penyebab yang paling sering |
-|---|---|
-| Container restart terus | Migrasi gagal atau rahasia belum diisi. `docker compose logs api` — pesannya menyebut variabel mana |
+| --- | --- |
+| Container restart terus | Migration gagal atau secret belum diisi. `docker compose logs api` — pesannya menyebut variabel mana |
 | `Konfigurasi lingkungan tidak valid` | Variabel wajib kosong. Daftarnya tercetak lengkap di log |
 | `502 Bad Gateway` | Container mati atau nginx menunjuk port yang salah. Cek `docker compose ps` |
 | Frontend tampil tapi datanya bawaan | Origin ditolak CORS. Cek Network → `bootstrap` |
-| `OPTIONS` ada, `GET` tidak menyusul | Header dipakai frontend tapi tidak ada di `allowedHeaders` — gagal tanpa galat di konsol |
-| Semua pengunjung kena batas laju bersamaan | `TRUST_PROXY` terlalu kecil (§4) |
-| Gambar admin hilang setelah deploy | Volume `uploads` tidak terpasang |
-| Login berhasil lalu langsung keluar | `COOKIE_SECURE=true` tanpa HTTPS — browser membuang cookienya |
-| Dashboard kosong, konsol bersih | Modul lama di cache tab. Buka tab baru |
+| `OPTIONS` ada, `GET` tidak menyusul | Header yang dipakai frontend tidak ada di `allowedHeaders` — gagal tanpa error di console |
+| Semua pengunjung kena rate limit bersamaan | `TRUST_PROXY` terlalu kecil (§4) |
+| Gambar admin hilang setelah deploy | Volume `uploads` tidak ter-mount |
+| Login berhasil lalu langsung keluar lagi | `COOKIE_SECURE=true` tanpa HTTPS — browser membuang cookie-nya |
+| Dashboard kosong tapi console bersih | Modul lama di cache tab. Buka tab baru |
 
-Log terstruktur JSON. Untuk membacanya:
+Log-nya JSON terstruktur. Untuk membacanya:
 
 ```bash
-docker compose logs api | grep '"level":50'                 # hanya error
-docker compose logs api | node -e "…"                        # atau pipe ke jq
+docker compose logs api | grep '"level":50'      # error saja
+docker compose logs api | jq 'select(.level>=50)'
 ```
 
-Kejadian keamanan tidak hanya di log — semuanya tersimpan di tabel
-`security_events` dan bisa dibaca di halaman **Pemantauan**.
+Security event tidak hanya ada di log — semuanya tersimpan di tabel
+`security_events` dan bisa dibaca di halaman **Monitoring**.
 
 ---
 
-## 11. Ringkasan berkas Docker
+## 11. Ringkasan file Docker
 
-| Berkas | Isinya |
-|---|---|
+| File | Isinya |
+| --- | --- |
 | `Dockerfile` | Build dua tahap, non-root, tini sebagai PID 1, health check ke `/api/v1/health` |
 | `.dockerignore` | Menjaga `node_modules`, `.env`, `test/`, dan `uploads/` tetap di luar image |
 | `docker-compose.yml` | Backend + Postgres, database tidak terekspos, volume untuk data |
-| `docker/entrypoint.sh` | Menjalankan migrasi (opt-in) lalu menyerahkan proses ke Node |
+| `docker/entrypoint.sh` | Menjalankan migration (opsional) lalu menyerahkan proses ke Node |

@@ -1,7 +1,7 @@
 // Controller dashboard. Sama tipisnya dengan yang publik; semua keputusan ada
 // di service. Yang khas di sini cuma satu: `req.actor` selalu diteruskan,
 // karena setiap perubahan harus tercatat siapa yang melakukannya.
-export function makeAdminController({ menuAdmin, articleAdmin, curation, userAdmin, media, monitoring, cache }) {
+export function makeAdminController({ menuAdmin, articleAdmin, curation, userAdmin, media, monitoring, sky, cache }) {
   return {
     // ── ringkasan ─────────────────────────────────────────────────────────
     async dashboard(req, res) {
@@ -112,6 +112,18 @@ export function makeAdminController({ menuAdmin, articleAdmin, curation, userAdm
     },
     async settingSet(req, res) {
       res.json(await curation.settingSet(req.params.id, req.body.value, req.actor));
+    },
+
+    // ── langit komunitas ──────────────────────────────────────────────────
+    async skyList(req, res) {
+      res.json(await sky.daftarAdmin(req.validatedQuery));
+    },
+    async skyModerate(req, res) {
+      res.json(await sky.moderasi(req.params.id, req.body.status, req.actor));
+    },
+    async skyDelete(req, res) {
+      await sky.hapus(req.params.id, req.actor);
+      res.status(204).end();
     },
 
     // ── jejak audit ───────────────────────────────────────────────────────

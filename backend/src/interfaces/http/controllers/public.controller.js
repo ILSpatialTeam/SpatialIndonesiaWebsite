@@ -4,7 +4,7 @@ import { env } from '../../../config/env.js';
 // Controller sengaja tipis: menerjemahkan HTTP jadi panggilan service dan
 // sebaliknya, tidak lebih. Tidak ada satu pun aturan bisnis di berkas ini —
 // itu yang membuat aturan yang sama berlaku sama persis lewat rute mana pun.
-export function makePublicController({ content, participation }) {
+export function makePublicController({ content, participation, presenceHub, sky }) {
   const ipHash = (req) => hashIp(req.ip, env.ipHashSalt);
 
   return {
@@ -47,6 +47,42 @@ export function makePublicController({ content, participation }) {
       res.json(await content.presenceTrails());
     },
 
+    // ── presence live ─────────────────────────────────────────────────────
+    //
+    // Server-Sent Events, bukan WebSocket: arahnya cuma satu — server memberi
+    // tahu klien siapa saja yang sedang ada. Laporan balik dari klien lewat
+    // POST /presence/here yang sudah punya rate limit sendiri.
+    livePresence(req, res) {
+      // Header ini yang membuatnya jadi SSE, bukan response biasa.
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+        // Nginx menahan response di buffer secara bawaan, dan itu membuat SSE
+        // tampak mati total tanpa satu pun error. Header ini mematikannya
+        // tanpa perlu menyentuh konfigurasi nginx.
+        'X-Accel-Buffering': 'no'
+      });
+      res.flushHeaders?.();
+
+      const id = presenceHub.gabung(res);
+      if (!id) {
+        // Kapasitas penuh. Ditutup baik-baik, bukan dibiarkan menggantung —
+        // klien akan mencoba lagi nanti lewat reconnect bawaan SSE.
+        res.write('event: full\ndata: {}\n\n');
+        return res.end();
+      }
+
+      // Koneksi bisa putus tanpa pemberitahuan apa pun; ini satu-satunya sinyal
+      // yang bisa diandalkan bahwa orangnya sudah pergi.
+      req.on('close', () => presenceHub.keluar(id));
+    },
+
+    hereNow(req, res) {
+      const dikenal = presenceHub.pindah(req.body.id, req.body.planet ?? null);
+      res.json({ ok: dikenal, jumlah: presenceHub.jumlah });
+    },
+
     async recordPresence(req, res) {
       const menus = await content.menuList();
       const hasil = await participation.recordPresence({
@@ -81,6 +117,20 @@ export function makePublicController({ content, participation }) {
         ipHash: ipHash(req),
         userAgent: req.get('user-agent')
       });
+      res.status(201).json(hasil);
+    },
+
+    // ── langit komunitas ──────────────────────────────────────────────────
+    async skyStars(req, res) {
+      res.sendCached(await sky.daftar());
+    },
+
+    async myStar(req, res) {
+      res.json(await sky.milikku(ipHash(req)));
+    },
+
+    async placeStar(req, res) {
+      const hasil = await sky.taruh({ ...req.body, ipHash: ipHash(req) });
       res.status(201).json(hasil);
     },
 

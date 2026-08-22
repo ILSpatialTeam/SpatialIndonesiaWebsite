@@ -127,6 +127,16 @@ export class AuditRepository extends Contract {
   list(_opsi) { this._abstract('list'); }
 }
 
+export class SkyRepository extends Contract {
+  listApproved() { this._abstract('listApproved'); }
+  listAll(_opsi) { this._abstract('listAll'); }
+  findByIpHash(_ipHash) { this._abstract('findByIpHash'); }
+  create(_data) { this._abstract('create'); }
+  setStatus(_id, _status) { this._abstract('setStatus'); }
+  remove(_id) { this._abstract('remove'); }
+  count() { this._abstract('count'); }
+}
+
 export class SecurityEventRepository extends Contract {
   record(_event) { this._abstract('record'); }
   list(_opsi) { this._abstract('list'); }

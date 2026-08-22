@@ -505,6 +505,41 @@ ALTER TABLE admin_sessions ADD COLUMN rotated_at timestamptz;
 
 CREATE INDEX admin_sessions_keluarga_idx ON admin_sessions (family_id);
 
+-- ══ 0007_sky.sql ════════════════════════════════════════════════
+
+CREATE TABLE sky_stars (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- Right ascension dalam jam (0–24) dan declination dalam derajat (-90–90).
+  ra         numeric(6,3) NOT NULL,
+  dec        numeric(6,3) NOT NULL,
+
+  name       text NOT NULL,
+  city       text NOT NULL DEFAULT '',
+  -- Kalimat sangat pendek. Sengaja dibatasi 60 karakter: ini bintang, bukan
+  -- buku tamu, dan kolom yang panjang mengundang isi yang harus dimoderasi.
+  note       text NOT NULL DEFAULT '',
+
+  status     moderation_status NOT NULL DEFAULT 'approved',
+  ip_hash    text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT sky_stars_ra_rentang  CHECK (ra >= 0 AND ra < 24),
+  CONSTRAINT sky_stars_dec_rentang CHECK (dec >= -90 AND dec <= 90),
+  CONSTRAINT sky_stars_name_panjang CHECK (length(btrim(name)) BETWEEN 2 AND 24),
+  CONSTRAINT sky_stars_city_panjang CHECK (length(city) <= 40),
+  CONSTRAINT sky_stars_note_panjang CHECK (length(note) <= 60)
+);
+
+CREATE INDEX sky_stars_tampil_idx ON sky_stars (created_at DESC)
+  WHERE status = 'approved';
+
+-- Satu bintang per sumber. Bukan pembatasan yang ketat — orang yang benar-benar
+-- ingin menaruh dua bisa berpindah jaringan — tapi cukup untuk menjaga
+-- langitnya tetap berarti tanpa memaksa siapa pun mendaftar akun.
+CREATE UNIQUE INDEX sky_stars_satu_per_sumber_uq ON sky_stars (ip_hash)
+  WHERE ip_hash IS NOT NULL;
+
 -- ══ catatan migrasi ═══════════════════════════════════════════════════════
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -521,7 +556,8 @@ INSERT INTO schema_migrations (version, name, checksum) VALUES
   ('0003', 'insight', '87a584ae262a7317'),
   ('0004', 'engagement', 'c3c55e407177b9c9'),
   ('0005', 'observability', 'aa2fbeeb4b07ced8'),
-  ('0006', 'hardening', 'b54960b43acbca65')
+  ('0006', 'hardening', 'b54960b43acbca65'),
+  ('0007', 'sky', '89bfc7c280d8598f')
 ON CONFLICT (version) DO NOTHING;
 
 COMMIT;

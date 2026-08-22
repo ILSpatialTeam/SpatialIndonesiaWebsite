@@ -11,6 +11,73 @@ import { ACCENT, MINT } from '../data/planets.js';
 // dan dari mana pun — itu justru intinya.
 export const SKY_LAT = -6.2, SKY_LON = 106.85, SKY_R = 168;
 
+// ── sistem koordinat langit ─────────────────────────────────────────────────
+//
+// Diekspor karena bukan cuma rasi bawaan yang perlu ditempatkan di langit:
+// bintang komunitas (`community-sky.js`) harus memakai perhitungan yang persis
+// sama, kalau tidak ia akan melayang di tempat yang berbeda dari rasi di
+// sekitarnya.
+//
+// `lstDari` mengembalikan local sidereal time untuk Jakarta — itu yang membuat
+// langitnya berputar mengikuti jam sungguhan, bukan diam menempel di layar.
+export function lstDari(now = Date.now()) {
+  const jd = now / 86400000 + 2440587.5;
+  const d = jd - 2451545.0;
+  let gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+  if (gmst < 0) gmst += 24;
+  return (gmst + SKY_LON / 15 + 24) % 24;
+}
+
+const RAD = Math.PI / 180;
+
+/** ra (jam) + dec (derajat) → arah satuan di ruang dunia. */
+export function arahDari(ra, dec, now = Date.now()) {
+  const lst = lstDari(now);
+  const lat = SKY_LAT * RAD;
+  const ha = ((lst - ra) * 15) * RAD;
+  const de = dec * RAD;
+  const sinAlt = Math.sin(de) * Math.sin(lat) + Math.cos(de) * Math.cos(lat) * Math.cos(ha);
+  const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt)));
+  const az = Math.atan2(
+    -Math.sin(ha) * Math.cos(de),
+    Math.sin(de) * Math.cos(lat) - Math.cos(de) * Math.sin(lat) * Math.cos(ha)
+  );
+  return {
+    dir: new THREE.Vector3(Math.cos(alt) * Math.sin(az), Math.sin(alt), Math.cos(alt) * Math.cos(az)).normalize(),
+    alt: alt / RAD
+  };
+}
+
+/**
+ * Kebalikan `arahDari`: arah di ruang dunia → ra/dec.
+ *
+ * Dipakai saat pengunjung menaruh bintangnya sendiri — yang ia tunjuk adalah
+ * satu titik di layar, dan yang perlu disimpan adalah koordinat langit yang
+ * masih berarti besok pagi ketika langitnya sudah berputar.
+ */
+export function raDecDari(dir, now = Date.now()) {
+  const v = dir.clone().normalize();
+  const lat = SKY_LAT * RAD;
+  const alt = Math.asin(Math.max(-1, Math.min(1, v.y)));
+  const az = Math.atan2(v.x, v.z);
+
+  const sinDec = Math.sin(alt) * Math.sin(lat) + Math.cos(alt) * Math.cos(lat) * Math.cos(az);
+  const dec = Math.asin(Math.max(-1, Math.min(1, sinDec)));
+
+  const cosDec = Math.cos(dec);
+  // Tepat di kutub langit, ra tidak terdefinisi — semua nilai menunjuk titik
+  // yang sama. Dikembalikan 0 daripada menghasilkan NaN.
+  if (Math.abs(cosDec) < 1e-6) return { ra: 0, dec: dec / RAD };
+
+  const sinHa = -Math.sin(az) * Math.cos(alt) / cosDec;
+  const cosHa = (Math.sin(alt) - Math.sin(dec) * Math.sin(lat)) / (cosDec * Math.cos(lat));
+  const ha = Math.atan2(sinHa, cosHa) / RAD / 15;
+
+  let ra = (lstDari(now) - ha) % 24;
+  if (ra < 0) ra += 24;
+  return { ra, dec: dec / RAD };
+}
+
 const SKY = [
   {
     id: 'waluku', name: 'Waluku', note: 'Orion · penanda musim tanam',

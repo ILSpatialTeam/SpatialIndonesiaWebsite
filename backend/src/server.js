@@ -77,6 +77,11 @@ const tutup = async (sinyal) => {
   }, 10_000);
   paksa.unref();
 
+  // Koneksi SSE tidak akan tertutup sendiri — `server.close()` menunggu semua
+  // request selesai, dan aliran presence memang dirancang tidak pernah selesai.
+  // Tanpa ini, setiap deploy menggantung sampai batas paksa 10 detik.
+  container.presenceHub?.tutup();
+
   server.close(async () => {
     clearInterval(timerBersih);
     await closePool().catch(() => {});

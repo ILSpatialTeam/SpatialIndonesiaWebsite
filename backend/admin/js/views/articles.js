@@ -3,6 +3,7 @@ import {
   el, pasang, kosongkan, tabel, lencana, toast, toastGalat, konfirmasi, drawer,
   bidang, input, textarea, select, tanggalID, tandaiGalat
 } from '../ui.js';
+import { t, localeIntl } from '../i18n.js';
 
 // Daftar dan editor artikel Insight.
 //
@@ -13,6 +14,7 @@ import {
 // bertanya-tanya mana yang menang.
 
 const STATUS = { draft: 'netral', published: 'hijau', archived: 'redup' };
+const labelStatus = (s) => t(`artikel.status.${s}`);
 
 export async function tampilanArtikel(wadah) {
   const keadaan = { status: '', category: '', search: '', offset: 0, limit: 20 };
@@ -22,7 +24,7 @@ export async function tampilanArtikel(wadah) {
   const tundaMuat = () => { clearTimeout(jeda); jeda = setTimeout(muat, 250); };
 
   const cariEl = input({
-    type: 'search', placeholder: 'Cari judul atau slug…',
+    type: 'search', placeholder: t('artikel.cari'),
     oninput: (e) => { keadaan.search = e.target.value; keadaan.offset = 0; tundaMuat(); }
   });
 
@@ -31,8 +33,8 @@ export async function tampilanArtikel(wadah) {
   const kepala = el(
     'div',
     { class: 'halaman-kepala' },
-    el('div', {}, el('h1', {}, 'Artikel'), el('p', { class: 'redup' }, 'Tulisan yang mengorbit planet Insight.')),
-    el('button', { class: 'btn btn-utama', onclick: () => bukaEditor(null, categories, muat) }, '+ Tulis artikel')
+    el('div', {}, el('h1', {}, t('artikel.judul')), el('p', { class: 'redup' }, t('artikel.subjudul'))),
+    el('button', { class: 'btn btn-utama', onclick: () => bukaEditor(null, categories, muat) }, t('artikel.tulisBaru'))
   );
 
   const saring = el(
@@ -40,63 +42,63 @@ export async function tampilanArtikel(wadah) {
     { class: 'saring' },
     cariEl,
     select(
-      [{ value: '', label: 'Semua status' }, ...Object.keys(STATUS).map((s) => ({ value: s, label: s }))],
+      [{ value: '', label: t('artikel.semuaStatus') }, ...Object.keys(STATUS).map((s) => ({ value: s, label: labelStatus(s) }))],
       { onchange: (e) => { keadaan.status = e.target.value; keadaan.offset = 0; muat(); } }
     ),
     select(
-      [{ value: '', label: 'Semua kategori' }, ...categories.map((c) => ({ value: c.id, label: c.label }))],
+      [{ value: '', label: t('artikel.semuaKategori') }, ...categories.map((c) => ({ value: c.id, label: c.label }))],
       { onchange: (e) => { keadaan.category = e.target.value; keadaan.offset = 0; muat(); } }
     )
   );
 
   async function muat() {
-    pasang(kosongkan(isi), el('p', { class: 'redup' }, 'Memuat…'));
+    pasang(kosongkan(isi), el('p', { class: 'redup' }, t('umum.memuat')));
     try {
       const { items, total } = await api.get('/admin/articles', keadaan);
       pasang(kosongkan(isi),
         tabel(
           [
-            { judul: 'No', lebar: '52px', sel: (a) => a.no },
+            { judul: t('artikel.kolomNo'), lebar: '52px', sel: (a) => a.no },
             {
-              judul: 'Judul',
+              judul: t('artikel.kolomJudul'),
               sel: (a) =>
                 el('div', {},
                   el('strong', {}, a.title),
                   el('div', { class: 'redup kecil' }, `/${a.slug}`))
             },
-            { judul: 'Kategori', lebar: '110px', sel: (a) => a.categoryId },
+            { judul: t('artikel.kolomKategori'), lebar: '110px', sel: (a) => a.categoryId },
             {
-              judul: 'Sumber',
+              judul: t('artikel.kolomSumber'),
               lebar: '110px',
               sel: (a) =>
                 a.source === 'medium'
-                  ? el('a', { href: a.externalUrl, target: '_blank', rel: 'noopener noreferrer', class: 'tautan' }, 'Medium ↗')
-                  : lencana('Di situs', 'biru')
+                  ? el('a', { href: a.externalUrl, target: '_blank', rel: 'noopener noreferrer', class: 'tautan' }, t('artikel.diMedium'))
+                  : lencana(t('artikel.diSitus'), 'biru')
             },
-            { judul: 'Status', lebar: '100px', sel: (a) => lencana(a.status, STATUS[a.status]) },
-            { judul: 'Terbit', lebar: '110px', sel: (a) => tanggalID(a.publishedAt) },
-            { judul: 'Dibaca', lebar: '70px', sel: (a) => String(a.viewCount) },
+            { judul: t('artikel.kolomStatus'), lebar: '100px', sel: (a) => lencana(labelStatus(a.status), STATUS[a.status]) },
+            { judul: t('artikel.kolomTerbit'), lebar: '110px', sel: (a) => tanggalID(a.publishedAt) },
+            { judul: t('artikel.kolomDibaca'), lebar: '70px', sel: (a) => String(a.viewCount) },
             {
               judul: '',
               lebar: '178px',
               sel: (a) =>
                 el('div', { class: 'aksi-baris' },
-                  el('button', { class: 'btn btn-kecil', onclick: () => bukaEditor(a, categories, muat) }, 'Sunting'),
+                  el('button', { class: 'btn btn-kecil', onclick: () => bukaEditor(a, categories, muat) }, t('aksi.sunting')),
                   el('button', {
                     class: 'btn btn-kecil btn-bahaya',
                     onclick: async () => {
-                      if (!(await konfirmasi(`Hapus artikel "${a.title}"? Semua sparing-nya ikut terhapus.`))) return;
+                      if (!(await konfirmasi(t('artikel.konfirmasiHapus', { judul: a.title })))) return;
                       try {
                         await api.del(`/admin/articles/${a.id}`);
-                        toast('Artikel dihapus.', 'sukses');
+                        toast(t('artikel.terhapus'), 'sukses');
                         muat();
                       } catch (err) { toastGalat(err); }
                     }
-                  }, 'Hapus'))
+                  }, t('aksi.hapus')))
             }
           ],
           items,
-          { kosong: 'Belum ada artikel yang cocok.' }
+          { kosong: t('artikel.kosong') }
         ),
         halaman(total, keadaan, muat)
       );
@@ -110,21 +112,21 @@ export async function tampilanArtikel(wadah) {
 }
 
 function halaman(total, keadaan, muat) {
-  if (total <= keadaan.limit) return el('p', { class: 'redup kecil' }, `${total} artikel`);
+  if (total <= keadaan.limit) return el('p', { class: 'redup kecil' }, t('artikel.jumlah', { n: total }));
   const dari = keadaan.offset + 1;
   const sampai = Math.min(keadaan.offset + keadaan.limit, total);
   return el(
     'div',
     { class: 'halaman-nav' },
-    el('span', { class: 'redup kecil' }, `${dari}–${sampai} dari ${total}`),
+    el('span', { class: 'redup kecil' }, t('umum.dari', { a: dari, b: sampai, total })),
     el('button', {
       class: 'btn btn-kecil', disabled: keadaan.offset === 0,
       onclick: () => { keadaan.offset = Math.max(0, keadaan.offset - keadaan.limit); muat(); }
-    }, '‹ Sebelumnya'),
+    }, t('aksi.sebelumnya')),
     el('button', {
       class: 'btn btn-kecil', disabled: sampai >= total,
       onclick: () => { keadaan.offset += keadaan.limit; muat(); }
-    }, 'Berikutnya ›')
+    }, t('aksi.berikutnya'))
   );
 }
 
@@ -132,8 +134,8 @@ function halaman(total, keadaan, muat) {
 function bukaEditor(artikel, categories, setelahSimpan) {
   const baru = !artikel;
   const form = el('form', { class: 'form' });
-  const { tutup, akar, setPenjaga } = drawer(baru ? 'Tulis artikel' : `Sunting: ${artikel.title}`, form, { lebar: 'min(860px, 94vw)' });
-  const jejakEl = el('span', { class: 'editor-jejak bersih' }, 'Tersimpan');
+  const { tutup, akar, setPenjaga } = drawer(baru ? t('artikel.form.baru') : t('artikel.form.sunting', { judul: artikel.title }), form, { lebar: 'min(860px, 94vw)' });
+  const jejakEl = el('span', { class: 'editor-jejak bersih' }, t('artikel.draf.tersimpan'));
 
   const nilai = artikel ?? {
     title: '', slug: '', no: '', categoryId: categories[0]?.id ?? '', lead: '',
@@ -142,25 +144,24 @@ function bukaEditor(artikel, categories, setelahSimpan) {
 
   const sumberEl = select(
     [
-      { value: 'internal', label: 'Dibaca di situs ini', selected: nilai.source === 'internal' },
-      { value: 'medium', label: 'Alihkan ke Medium', selected: nilai.source === 'medium' }
+      { value: 'internal', label: t('artikel.form.internal'), selected: nilai.source === 'internal' },
+      { value: 'medium', label: t('artikel.form.medium'), selected: nilai.source === 'medium' }
     ],
     { onchange: (e) => setSumber(e.target.value) }
   );
 
-  const tautanBidang = bidang('Tautan Medium', input({
+  const tautanBidang = bidang(t('artikel.form.tautanMedium'), input({
     name: 'externalUrl', type: 'url', value: nilai.externalUrl ?? '',
     placeholder: 'https://medium.com/@penulis/judul-tulisan'
-  }), { nama: 'externalUrl', petunjuk: 'Bulan artikel ini akan membuka tab baru, bukan pembaca di dalam situs.' });
+  }), { nama: 'externalUrl', petunjuk: t('artikel.form.tautanMediumCatatan') });
 
   const editorEl = el('div', { class: 'editor' });
   const editorBidang = el(
     'div',
     { class: 'bidang', dataset: { bidang: 'bodyHtml' } },
-    el('span', { class: 'bidang-label' }, 'Isi tulisan'),
+    el('span', { class: 'bidang-label' }, t('artikel.form.isi')),
     editorEl,
-    el('small', { class: 'bidang-petunjuk' },
-      'Disimpan sebagai HTML dan dibersihkan di server: skrip, iframe, dan atribut kejadian dibuang.')
+    el('small', { class: 'bidang-petunjuk' }, t('artikel.form.isiCatatan'))
   );
 
   const setSumber = (s) => {
@@ -169,35 +170,35 @@ function bukaEditor(artikel, categories, setelahSimpan) {
   };
 
   const statusEl = select(
-    ['draft', 'published', 'archived'].map((s) => ({ value: s, label: s, selected: nilai.status === s })),
+    ['draft', 'published', 'archived'].map((s) => ({ value: s, label: labelStatus(s), selected: nilai.status === s })),
     { name: 'status' }
   );
 
   pasang(form,
-    bidang('Judul', input({ name: 'title', value: nilai.title, required: true, maxLength: 200 }), { nama: 'title' }),
+    bidang(t('artikel.form.judul'), input({ name: 'title', value: nilai.title, required: true, maxLength: 200 }), { nama: 'title' }),
     el('div', { class: 'baris-2' },
-      bidang('Slug', input({ name: 'slug', value: nilai.slug, placeholder: baru ? 'dibuat otomatis dari judul' : '' }),
-        { nama: 'slug', petunjuk: 'Bagian URL. Mengubahnya memutus tautan lama.' }),
-      bidang('Nomor arsip', input({ name: 'no', value: nilai.no, placeholder: baru ? 'otomatis' : '', maxLength: 10 }),
+      bidang(t('artikel.form.slug'), input({ name: 'slug', value: nilai.slug, placeholder: baru ? t('artikel.form.slugOtomatis') : '' }),
+        { nama: 'slug', petunjuk: t('artikel.form.slugCatatan') }),
+      bidang(t('artikel.form.nomor'), input({ name: 'no', value: nilai.no, placeholder: baru ? t('artikel.form.otomatis') : '', maxLength: 10 }),
         { nama: 'no' })),
     el('div', { class: 'baris-2' },
-      bidang('Kategori', select(
+      bidang(t('artikel.form.kategori'), select(
         categories.map((c) => ({ value: c.id, label: c.label, selected: c.id === nilai.categoryId })),
         { name: 'categoryId' }
       ), { nama: 'categoryId' }),
-      bidang('Penulis', input({ name: 'author', value: nilai.author, maxLength: 120 }), { nama: 'author' })),
-    bidang('Lead', textarea({ name: 'lead', value: nilai.lead, maxLength: 400, rows: 2 }),
-      { nama: 'lead', petunjuk: 'Kalimat di kartu artikel. Kosongkan untuk diambil dari paragraf pertama.' }),
+      bidang(t('artikel.form.penulis'), input({ name: 'author', value: nilai.author, maxLength: 120 }), { nama: 'author' })),
+    bidang(t('artikel.form.lead'), textarea({ name: 'lead', value: nilai.lead, maxLength: 400, rows: 2 }),
+      { nama: 'lead', petunjuk: t('artikel.form.leadCatatan') }),
     el('div', { class: 'baris-2' },
-      bidang('Jenis', sumberEl, { nama: 'source' }),
-      bidang('Status', statusEl, { nama: 'status' })),
+      bidang(t('artikel.form.dibacaDi'), sumberEl, { nama: 'source' }),
+      bidang(t('artikel.form.status'), statusEl, { nama: 'status' })),
     tautanBidang,
     editorBidang,
     el('div', { class: 'form-aksi' },
       jejakEl,
-      el('button', { type: 'button', class: 'btn', onclick: () => tutup() }, 'Batal'),
+      el('button', { type: 'button', class: 'btn', onclick: () => tutup() }, t('aksi.batal')),
       el('button', { type: 'submit', class: 'btn btn-utama', title: 'Cmd/Ctrl + S' },
-        baru ? 'Simpan artikel' : 'Simpan perubahan'))
+        baru ? t('artikel.form.simpanBaru') : t('aksi.simpanPerubahan')))
   );
 
   setSumber(nilai.source);
@@ -206,7 +207,7 @@ function bukaEditor(artikel, categories, setelahSimpan) {
   // CSP tidak perlu mengizinkan satu pun host luar.
   const quill = new window.Quill(editorEl, {
     theme: 'snow',
-    placeholder: 'Tulis di sini…',
+    placeholder: t('artikel.form.tulisDiSini'),
     modules: {
       toolbar: {
         container: [
@@ -262,13 +263,15 @@ function bukaEditor(artikel, categories, setelahSimpan) {
 
   const tandaiKotor = () => {
     tersimpan = false;
-    jejakEl.textContent = 'Belum tersimpan';
+    jejakEl.textContent = t('artikel.draf.belum');
     jejakEl.className = 'editor-jejak kotor';
     clearTimeout(jedaDraf);
     jedaDraf = setTimeout(() => {
       simpanDraf();
       if (!tersimpan) {
-        jejakEl.textContent = `Draf disimpan di peramban · ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+        jejakEl.textContent = t('artikel.draf.otomatis', {
+          jam: new Date().toLocaleTimeString(localeIntl(), { hour: '2-digit', minute: '2-digit' })
+        });
       }
     }, 1500);
   };
@@ -285,7 +288,9 @@ function bukaEditor(artikel, categories, setelahSimpan) {
       const umur = Math.round((Date.now() - draf.at) / 60000);
       pasang(form.querySelector('.form-aksi').parentElement.insertBefore(
         el('div', { class: 'draf-pulih' }), form.firstChild),
-        el('span', {}, `Ada draf yang belum tersimpan dari ${umur < 1 ? 'kurang dari semenit' : umur + ' menit'} lalu.`),
+        el('span', {}, t('artikel.draf.adaDraf', {
+          waktu: umur < 1 ? t('artikel.draf.kurangSemenit') : t('artikel.draf.menit', { n: umur })
+        })),
         el('button', {
           type: 'button', class: 'btn btn-kecil',
           onclick: (ev) => {
@@ -299,13 +304,13 @@ function bukaEditor(artikel, categories, setelahSimpan) {
             }
             setSumber(draf.source);
             ev.target.closest('.draf-pulih').remove();
-            toast('Draf dipulihkan.', 'sukses');
+            toast(t('artikel.draf.dipulihkan'), 'sukses');
           }
-        }, 'Pulihkan'),
+        }, t('aksi.pulihkan')),
         el('button', {
           type: 'button', class: 'btn btn-kecil',
           onclick: (ev) => { buangDraf(); ev.target.closest('.draf-pulih').remove(); }
-        }, 'Buang'));
+        }, t('aksi.buang')));
     }
   } catch { /* draf rusak diabaikan */ }
 
@@ -314,10 +319,8 @@ function bukaEditor(artikel, categories, setelahSimpan) {
   // Batal, klik di luar panel, dan tombol Esc.
   setPenjaga(async () => {
     if (tersimpan) { buangDraf(); return true; }
-    const lanjut = await konfirmasi(
-      'Ada perubahan yang belum tersimpan. Draf tetap tersimpan di peramban dan bisa dipulihkan nanti.',
-      { tombol: 'Tutup tanpa menyimpan', bahaya: true }
-    );
+    const lanjut = await konfirmasi(t('artikel.draf.konfirmasiTutup'),
+      { tombol: t('artikel.draf.tutupTanpaSimpan'), bahaya: true });
     if (lanjut) simpanDraf();
     return lanjut;
   });
@@ -374,9 +377,9 @@ function bukaEditor(artikel, categories, setelahSimpan) {
       else await api.patch(`/admin/articles/${artikel.id}`, muatan);
       tersimpan = true;
       buangDraf();
-      jejakEl.textContent = 'Tersimpan';
+      jejakEl.textContent = t('artikel.draf.tersimpan');
       jejakEl.className = 'editor-jejak bersih';
-      toast(baru ? 'Artikel dibuat.' : 'Perubahan disimpan.', 'sukses');
+      toast(baru ? t('artikel.dibuat') : t('umum.tersimpan'), 'sukses');
       tutup({ paksa: true });
       setelahSimpan();
     } catch (err) {
@@ -402,11 +405,11 @@ function unggahGambar(quill) {
     // Batas server 4 MB. Diperiksa di sini juga supaya penolakannya instan,
     // bukan setelah menunggu unggahan yang pasti gagal.
     if (berkas.size > 4 * 1024 * 1024) {
-      toast('Gambar maksimal 4 MB.', 'galat');
+      toast(t('artikel.gambar.terlaluBesar'), 'galat');
       return;
     }
     const posisi = quill.getSelection(true)?.index ?? quill.getLength();
-    toast('Mengunggah gambar…');
+    toast(t('artikel.gambar.mengunggah'));
     try {
       const fd = new FormData();
       fd.append('file', berkas);
@@ -414,7 +417,7 @@ function unggahGambar(quill) {
       quill.insertEmbed(posisi, 'image', hasil.url, 'user');
       quill.setSelection(posisi + 1, 0);
     } catch (err) {
-      toastGalat(err instanceof ApiError ? err : new ApiError(0, { error: { message: 'Unggahan gagal.' } }));
+      toastGalat(err instanceof ApiError ? err : new ApiError(0, { error: { message: t('artikel.gambar.gagal') } }));
     }
   };
   pilih.click();
