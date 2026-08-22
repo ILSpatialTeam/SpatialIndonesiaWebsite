@@ -279,6 +279,14 @@ class SolarSystem extends HTMLElement {
     this.speed = 0;
 
     this._buildMoons();
+
+    // Daftar artikel bisa berubah setelah panggung berdiri — respons API datang
+    // belakangan, dan admin mungkin baru menerbitkan tulisan baru. Bulannya
+    // dibangun ulang, bukan ditambal satu per satu: jumlahnya belasan dan
+    // membangunnya ulang jauh lebih mudah dibuat benar daripada menyamakan
+    // selisihnya.
+    this._onData = () => { if (this.isConnected) this._buildMoons(); };
+    document.addEventListener('data-ready', this._onData);
     this._buildXRUI();
     this._buildLens();
     this._buildComet();
@@ -450,6 +458,7 @@ class SolarSystem extends HTMLElement {
   }
 
   disconnectedCallback() {
+    if (this._onData) document.removeEventListener('data-ready', this._onData);
     removeEventListener('keydown', this._keys);
     removeEventListener('blur', this._cease);
     removeEventListener('pointerup', this._cease, true);
@@ -1398,6 +1407,18 @@ class SolarSystem extends HTMLElement {
   pinMoon(slug) { this.moonPin = slug || null; }
 
   openArticle(slug) {
+    // Sebagian artikel tidak tinggal di sini — ia hanya tautan ke Medium.
+    // Bulannya tetap mengorbit seperti yang lain; yang berbeda cuma apa yang
+    // terjadi saat diklik. Panggung tidak membuka tab sendiri (itu DOM, dan
+    // `scene/` tidak menyentuh DOM): ia memancarkan kejadian, UI yang bertindak.
+    const art = ARTICLES.find(x => x.slug === slug);
+    if (art && art.external && art.href) {
+      this.dispatchEvent(new CustomEvent('insight-external', {
+        detail: { slug, href: art.href }, bubbles: true
+      }));
+      return;
+    }
+
     const m = this.moons && this.moons.find(x => x.slug === slug);
     if (!m || this.renderer.xr.isPresenting) return;
     // tekstur 2048x1024 dan bola 128 segmen itu mahal dibuat, dan sebagian besar
