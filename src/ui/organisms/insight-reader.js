@@ -9,6 +9,7 @@
 // Seluruhnya dipasang ke document.body, di luar pohon React milik Design Canvas,
 // supaya tidak ikut ter-render ulang.
 import { ARTICLES, CATEGORIES, FREQ, SEED_SPARING } from '../../data/insight.js';
+import { muatArtikel, kirimSparing, kirimBoost } from '../../data/remote.js';
 
 const KEY = 'si.insight.v2';
 const NARROW = 780;
@@ -18,7 +19,7 @@ const DONE_AT = 0.985;
 /* ---------- simpanan ---------- */
 
 const store = (() => {
-  let s = { added: {}, boost: {}, boosted: {}, read: {}, name: '' };
+  let s = { added: {}, boost: {}, boosted: {}, read: {}, pending: {}, name: '' };
   try { Object.assign(s, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* storage bisa dimatikan */ }
   const flush = () => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* abaikan */ } };
   return {
@@ -28,6 +29,15 @@ const store = (() => {
         .sort((a, b) => (b.boost - a.boost) || (a.at < b.at ? 1 : -1));
     },
     add(slug, item) { (s.added[slug] = s.added[slug] || []).push(item); flush(); },
+    // Satelit yang sudah dikirim tapi masih menunggu persetujuan admin.
+    pending(id) { s.pending = s.pending || {}; s.pending[id] = 1; flush(); },
+    isPending(id) { return !!(s.pending && s.pending[id]); },
+    // Dicabut kalau server menolak kirimannya.
+    drop(slug, id) {
+      if (!s.added[slug]) return;
+      s.added[slug] = s.added[slug].filter(x => x.id !== id);
+      flush();
+    },
     boost(id) { if (s.boosted[id]) return false; s.boosted[id] = 1; s.boost[id] = (s.boost[id] || 0) + 1; flush(); return true; },
     boosted(id) { return !!s.boosted[id]; },
     read(slug) { return !!s.read[slug]; },
@@ -44,6 +54,10 @@ const el = (tag, attrs, kids) => {
   if (attrs) for (const k in attrs) {
     if (k === 'class') n.className = attrs[k];
     else if (k === 'text') n.textContent = attrs[k];
+    // `html` hanya dipakai untuk isi artikel, dan isi artikel sudah dibersihkan
+    // di server sebelum masuk database (lihat shared/html.js di backend).
+    // Teks dari pengunjung — nama dan isi sparing — tetap lewat `text`.
+    else if (k === 'html') n.innerHTML = attrs[k];
     else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
     else if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
   }
@@ -369,10 +383,20 @@ function sparingCard(slug, s, refresh) {
       el('b', { text: s.name }),
       el('span', { text: ago(s.at).toUpperCase() }),
       s.mine ? el('span', { style: 'color:#5ad1c0', text: 'SATELITMU' }) : null,
+      // Satelit yang menunggu moderasi hanya terlihat oleh pengirimnya. Diberi
+      // tanda supaya ia tidak mengira orang lain sudah membacanya.
+      store.isPending(s.id) ? el('span', { style: 'color:#f2a65a', text: 'MENUNGGU ADMIN' }) : null,
       el('button', {
         disabled: store.boosted(s.id) ? '' : null,
         text: (store.boosted(s.id) ? '↑ ' : '↑ DORONG ') + s.boost,
-        onclick: () => { if (store.boost(s.id)) refresh(); }
+        onclick: () => {
+          if (!store.boost(s.id)) return;
+          refresh();
+          // Dorongan lokal sudah tercatat dan tampil; kiriman ke server
+          // menyusul. Gagal pun tidak ada yang perlu dibatalkan — angka ini
+          // bukan sesuatu yang harus tepat sampai satuan terakhir.
+          if (!String(s.id).startsWith('u')) kirimBoost(s.id).catch(() => {});
+        }
       })
     ]),
     el('p', { text: s.text })
@@ -416,8 +440,13 @@ function composeForm(slug, sec, par, paraText, refresh) {
     if (!freq || text.length < MIN_TEXT) return;
     const who = name.value.trim().slice(0, 32) || 'Anonim';
     store.name(who);
+
+    // Disimpan lokal lebih dulu supaya satelitnya langsung terbit — menunggu
+    // jaringan sebelum ada yang bergerak di layar membuat aksinya terasa
+    // gagal. Kalau server menolak, catatan lokal itu yang dicabut lagi.
+    const id = 'u' + Date.now().toString(36);
     store.add(slug, {
-      id: 'u' + Date.now().toString(36), anchor: [sec, par], freq, name: who, text,
+      id, anchor: [sec, par], freq, name: who, text,
       at: new Date().toISOString().slice(0, 10), boost: 0, mine: true
     });
     ta.value = ''; sync();
@@ -425,6 +454,20 @@ function composeForm(slug, sec, par, paraText, refresh) {
     const s = scene();
     const land = () => { go.textContent = 'LUNCURKAN'; sync(); refresh(true); };
     if (s && s.launchSparing) s.launchSparing(slug, freq, land); else land();
+
+    kirimSparing(slug, { frequencyId: freq, authorName: who, text, anchor: [sec, par] })
+      .then(hasil => {
+        // Kalau moderasi menyala, satelit ini baru terlihat orang lain setelah
+        // disetujui. Dikatakan apa adanya — "terkirim!" untuk sesuatu yang
+        // belum tampil di mana pun adalah janji yang tidak ditepati.
+        if (hasil && hasil.moderated) store.pending(id);
+        refresh(true);
+      })
+      .catch(err => {
+        store.drop(slug, id);
+        refresh(true);
+        console.warn('[spatial] sparing gagal dikirim:', err.message);
+      });
   });
 
   const fr = el('div', { class: 'pn-freqs' });
@@ -474,20 +517,28 @@ function buildPara(a, sec, par, text, tag) {
     if (withForm !== false) thread.appendChild(composeForm(a.slug, sec, par, text, refresh));
   };
 
-  wrap.append(gut, tag === 'blockquote' ? el('blockquote', { text: text }) : el('p', { text: text }), thread);
+  wrap.append(gut, tag === 'blockquote' ? el('blockquote', { text: text }) : el('p', { html: text }), thread);
   refresh();
   return wrap;
 }
 
-function openReader(slug) {
-  const a = art(slug);
-  if (!a) return;
+async function openReader(slug) {
+  const awal = art(slug);
+  if (!awal) return;
   R.slug = slug; R.done = store.read(slug); R.p = 0;
   R.bodyEl = null; R.building = true;
 
   warp.classList.remove('on');
   void warp.offsetWidth;
   warp.classList.add('on');
+
+  // Isi tulisan diambil per artikel, bukan ikut daftar: enam badan artikel
+  // untuk satu yang dibaca adalah muatan yang tidak pernah terpakai. Animasi
+  // warp di atas sudah berjalan, jadi pengambilannya bersembunyi di baliknya.
+  const a = (await muatArtikel(slug).catch(() => null)) || awal;
+  // Pembaca bisa keburu pindah bulan sementara permintaan berjalan. Kalau
+  // begitu, hasil yang telat ini bukan lagi yang sedang dibuka.
+  if (R.slug !== slug) return;
 
   const c = cat(a);
   col.replaceChildren();
@@ -507,8 +558,14 @@ function openReader(slug) {
 
   const body = el('div', { class: 'pn-body' });
   R.paras = [];
-  a.body.forEach((sec, si) => {
-    body.appendChild(el('h2', { class: 'pn-h2', text: sec.h }));
+  // Isi bisa kosong kalau server tidak terjangkau dan artikel ini belum pernah
+  // dibuka. Lebih jujur mengatakannya daripada memperlihatkan bulan purnama
+  // di atas halaman kosong.
+  if (!a.body || !a.body.length) {
+    body.appendChild(el('p', { class: 'pn-lead', text: 'Isi tulisan ini belum bisa dimuat. Periksa sambunganmu, lalu buka lagi bulannya.' }));
+  }
+  (a.body || []).forEach((sec, si) => {
+    if (sec.h) body.appendChild(el('h2', { class: 'pn-h2', text: sec.h }));
     sec.p.forEach((txt, pi) => {
       const w = buildPara(a, si, pi, txt);
       body.appendChild(w);
@@ -628,6 +685,14 @@ document.addEventListener('planet-focus', e => {
 });
 document.addEventListener('planet-free', () => { closeReader(); view('none'); });
 document.addEventListener('insight-open', e => openReader(e.detail.slug));
+
+// Artikel yang tinggal di Medium tidak punya isi untuk dibaca di sini. Panggung
+// yang memutuskan (ia yang tahu bulan mana yang diklik) lalu memancarkan
+// kejadian ini; membuka tab adalah urusan lapisan antarmuka, bukan three.js.
+document.addEventListener('insight-external', e => {
+  const { href } = e.detail || {};
+  if (href) window.open(href, '_blank', 'noopener,noreferrer');
+});
 document.addEventListener('insight-close', () => { closeReader(); renderManifest(); view('manifest'); });
 document.addEventListener('insight-hover', e => {
   const slug = e.detail && e.detail.slug;
