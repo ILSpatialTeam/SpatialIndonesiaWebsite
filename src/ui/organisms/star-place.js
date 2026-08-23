@@ -1,45 +1,100 @@
 // Organisme: menaruh bintang di langit komunitas.
 //
-// Alurnya tiga langkah, dan urutannya penting: tombol hanya muncul saat mode
-// rasi bintang menyala, karena hanya saat itulah langitnya terlihat. Menaruh
-// bintang di langit yang tidak sedang ditampilkan adalah tindakan buta.
+// ── Kenapa tombolnya ada di gugus instrumen ─────────────────────────────────
 //
-//   1. Mode rasi menyala → tombol "Taruh bintangmu" muncul di kaki layar
-//   2. Ditekan → kursor jadi bidikan, satu klik di langit mengunci koordinat
-//   3. Form kecil: nama depan, kota, satu kalimat. Kirim, bintangnya menyala.
+// Versi pertama memasang pil bertulisan di tengah bawah layar. Ia bekerja, tapi
+// duduk persis di atas tata suryanya — dan dalam keadaan "kamu sudah punya
+// bintang" ia berubah jadi papan status permanen yang tidak menawarkan apa pun.
+// Sebuah keterangan yang selalu terlihat adalah harga yang mahal untuk sesuatu
+// yang dibaca sekali.
 //
-// Pengunjung yang sudah punya bintang tidak melihat tombolnya lagi — yang
-// muncul justru tombol untuk menemukan kembali bintangnya sendiri.
+// Sekarang ia satu tombol bundar di gugus kanan atas, tepat di sebelah tombol
+// rasi bintang. Aksinya memang milik mode langit itu, jadi tempatnya di samping
+// sakelar yang menyalakannya. Keterangannya muncul saat disentuh, seperti
+// seluruh instrumen lain.
+//
+// Tombolnya selalu ada, tidak muncul-hilang mengikuti mode rasi: baris
+// instrumen yang isinya berubah-ubah membuat tombol tetangganya bergeser tiap
+// kali mode dinyalakan. Kalau langitnya belum menyala, tombol ini yang
+// menyalakannya — satu langkah persiapan yang tidak perlu ditanggung pengguna.
+//
+// Alurnya tetap tiga langkah:
+//   1. Ditekan → kursor jadi bidikan, satu klik di langit mengunci koordinat
+//   2. Form kecil: nama depan, kota, satu kalimat
+//   3. Kirim, bintangnya menyala
+//
+// Pengunjung yang sudah punya bintang mendapat tombol yang berbeda tugasnya:
+// memutar pandangan ke bintangnya sendiri, bukan menawarkan bintang kedua.
 import { el } from '../atoms/el.js';
+import { instrument } from '../molecules/instrument.js';
 import { scene } from '../../core/dom.js';
 import { API } from '../../data/remote.js';
 import { signal } from './signals.js';
 
 export const css = `/* -- taruh bintang di langit komunitas -- */
-.hud-star { position: absolute; left: 50%; bottom: 92px; z-index: 34; transform: translateX(-50%); display: none; pointer-events: auto; }
+
+/* Sudah punya bintang: cincinnya hangat, sewarna bintang komunitas di langit.
+   Bukan ungu seperti .on, supaya "milikmu menyala di sana" tidak tertukar
+   dengan "mode ini sedang aktif". */
+.hud-btn[data-hud-btn="star"].punya { color: #ffe9c4; }
+.hud-btn[data-hud-btn="star"].punya .ring { border-color: rgba(255,233,196,.6); box-shadow: 0 0 22px rgba(255,233,196,.22); }
+.hud-btn[data-hud-btn="star"].on { color: #ffe9c4; background: radial-gradient(circle at 50% 35%, rgba(255,233,196,.28), rgba(18,17,22,.5) 72%); }
+.hud-btn[data-hud-btn="star"].on .ring { border-color: rgba(255,233,196,.85); box-shadow: 0 0 26px rgba(255,233,196,.3); }
+.hud-btn[data-hud-btn="star"].on .arc { border-color: rgba(255,233,196,.45); }
+
+/* Wadah form menggantung di bawah gugus instrumen. Letaknya diukur saat
+   digambar (lihat tempelDiBawahGugus di bawah), bukan dipatok angka: tinggi
+   gugus itu berubah antara layar lebar dan sempit, dan bertambah setiap kali
+   ada alat baru. Nilai di sini cuma cadangan kalau gugusnya belum ada.
+
+   fixed, bukan absolute: koordinat yang dipasang berasal dari
+   getBoundingClientRect, dan itu koordinat viewport. */
+.hud-star { position: fixed; top: 126px; right: 30px; z-index: 34; display: none; pointer-events: auto; }
 .hud-star.on { display: block; animation: hudSig .3s ease both; }
 
-.hud-star .ajak {
-  display: flex; align-items: center; gap: 9px; padding: 9px 16px;
-  border: 1px solid rgba(158,148,249,.4); border-radius: 999px;
-  background: rgba(12,10,18,.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 12.5px; cursor: pointer;
-}
-.hud-star .ajak:hover { border-color: #9E94F9; background: rgba(158,148,249,.14); }
-.hud-star .ajak i { width: 6px; height: 6px; border-radius: 50%; background: #ffe9c4; box-shadow: 0 0 10px #ffe9c4; font-style: normal; }
+/* Petunjuk saat membidik: elemen tersendiri di kaki layar — ruang yang justru
+   dikosongkan oleh perpindahan tombolnya. Di atas ia akan bertabrakan dengan
+   tumpukan transmisi, dan di dekat kursor ia menutupi tempat yang sedang
+   dipilih orang.
 
-/* Petunjuk saat sedang membidik. Sengaja di tengah atas, jauh dari kursor —
-   kalau di dekat kursor, ia menutupi tempat yang sedang dipilih orang. */
-.hud-star .bidik {
-  position: fixed; left: 50%; top: 84px; transform: translateX(-50%);
-  padding: 8px 18px; border-radius: 999px; border: 1px solid rgba(255,233,196,.35);
-  background: rgba(12,10,18,.9); color: #ffe9c4;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
-  white-space: nowrap; pointer-events: none;
+   Ia TIDAK boleh jadi anak .hud-star. Wadah itu punya animasi yang menganimasi
+   transform, dan elemen ber-transform adalah containing block bagi keturunan
+   position: fixed — hint-nya akan ikut menempel di panel kanan atas alih-alih
+   di tengah layar. Sudah kejadian, dan gejalanya tampak seperti salah hitung
+   posisi, bukan seperti aturan CSS.
+
+   Teksnya boleh turun ke baris berikutnya. Dengan huruf kapital dan jarak huruf
+   selebar ini, satu baris memakan 481px — terpotong di kedua sisi pada layar
+   ponsel mana pun. */
+.hud-aim {
+  position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+  z-index: 34; display: none;
+  max-width: min(540px, calc(100vw - 28px));
+  padding: 8px 18px; border-radius: 16px; border: 1px solid rgba(255,233,196,.35);
+  background: rgba(12,10,18,.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  color: #ffe9c4; text-align: center;
+  font-family: var(--hud-mono); font-size: 10.5px; line-height: 1.7;
+  letter-spacing: .16em; text-transform: uppercase;
+  pointer-events: none;
+  /* Keyframe sendiri, bukan hudSig. Animasi ber-fill: both menimpa transform
+     elemennya, dan hudSig berakhir di transform: none — translateX(-50%) yang
+     memusatkan pil ini ikut terhapus, jadi ia melenceng setengah lebarnya ke
+     kanan. Jebakan yang sama pernah menggigit di meteor-hud.js. */
+  animation: hudAimIn .3s cubic-bezier(.2,.7,.2,1) both;
 }
+.hud-aim.on { display: block; }
+
+@keyframes hudAimIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+
+/* Layar sentuh tidak punya tombol Escape. Membatalkan di sana dilakukan lewat
+   tombol instrumen yang sama, yang memang sudah berubah jadi "Batal membidik". */
+@media (pointer: coarse) { .hud-aim .esc { display: none; } }
 
 .hud-star form {
-  display: flex; flex-direction: column; gap: 10px; width: min(320px, 88vw); padding: 18px;
+  display: flex; flex-direction: column; gap: 10px; width: min(300px, calc(100vw - 24px)); padding: 18px;
   border: 1px solid rgba(255,233,196,.3); border-radius: 12px;
   background: rgba(12,10,18,.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 24px 60px rgba(0,0,0,.6);
@@ -59,10 +114,24 @@ export const css = `/* -- taruh bintang di langit komunitas -- */
 }
 .hud-star form button.utama { border-color: transparent; background: #ffe9c4; color: #1a1408; font-weight: 600; }
 .hud-star form button:disabled { opacity: .45; cursor: not-allowed; }
+
+@media (max-width: 779px) {
+  .hud-star { top: calc(112px + env(safe-area-inset-top)); right: 12px; }
+  .hud-aim {
+    bottom: calc(74px + env(safe-area-inset-bottom));
+    padding: 7px 14px; font-size: 9px; letter-spacing: .1em; line-height: 1.65;
+  }
+}
 `;
 
 const node = el('div', { class: 'hud-star' });
-export { node };
+// Simpul terpisah, bukan anak `node` — alasannya ada di komentar CSS di atas.
+const hint = el('div', { class: 'hud-aim' }, [
+  document.createTextNode('Klik di langit untuk menaruh bintangmu'),
+  el('span', { class: 'esc', text: ' · Esc untuk batal' })
+]);
+const button = instrument('star', 'star', 'Taruh bintangmu', () => tekan());
+export { node, hint, button };
 
 let mode = 'diam';        // diam | bidik | isi
 let koordinat = null;
@@ -73,37 +142,100 @@ let rasiMenyala = false;
 // `touch-action: none` dan punya kursornya sendiri.
 const kanvas = () => document.querySelector('solar-system canvas');
 
-// Kursor bidikan disetel saat mode berubah, bukan lewat timer. Kanvas 3D
-// mengelola kursornya sendiri, jadi yang disentuh cuma saat benar-benar perlu.
 function pasangKursor() {
   const c = kanvas();
   if (c) c.style.cursor = mode === 'bidik' ? 'crosshair' : '';
 }
 
+// Keterangan tombol hidup di tiga tempat sekaligus — tooltip bawaan browser,
+// nama untuk pembaca layar, dan label kecil di bawah ikon. Ketiganya diubah
+// bersama; melewatkan salah satunya membuat tombolnya berbohong kepada
+// sebagian pengguna saja.
+function namaiTombol(teks) {
+  button.title = teks;
+  button.setAttribute('aria-label', teks);
+  const cap = button.querySelector('.cap');
+  if (cap) cap.textContent = teks.toUpperCase();
+}
+
+function segarkanTombol() {
+  button.classList.toggle('on', mode !== 'diam');
+  button.classList.toggle('punya', punyaBintang && mode === 'diam');
+  if (mode !== 'diam') namaiTombol('Batal membidik');
+  else namaiTombol(punyaBintang ? 'Cari bintangmu' : 'Taruh bintangmu');
+}
+
+function tekan() {
+  if (mode !== 'diam') return batal();
+  if (punyaBintang) return cariMilikku();
+
+  // Langit yang belum menyala dinyalakan dulu: menaruh bintang di langit yang
+  // tidak sedang ditampilkan adalah tindakan buta.
+  if (!rasiMenyala) scene()?.setConstellations(true);
+  mode = 'bidik';
+  gambar();
+}
+
+// Form-nya menggantung tepat di bawah gugus instrumen, sejajar tepi kanannya.
+// Diukur, bukan dihitung dari angka di CSS: tinggi gugus berubah antara layar
+// lebar dan sempit, dan bertambah tiap kali ada alat baru. Angka mati di CSS
+// sempat membuat form-nya menindih baris alat sebanyak 19 piksel.
+const SELA = 12;
+function tempelDiBawahGugus() {
+  const gugus = document.querySelector('.hud-cluster');
+  const induk = gugus?.offsetParent;
+  if (!gugus || !induk || !gugus.offsetHeight) return;   // belum ada, atau tersembunyi
+
+  // `offsetTop`/`offsetHeight`, bukan `getBoundingClientRect`. Yang kedua ikut
+  // menghitung transform, dan gugus itu punya animasi masuk yang menggeser dan
+  // menyusutkannya. Form yang dibuka sebelum animasinya selesai — atau saat tab
+  // di latar belakang, yang membekukan animasi di tengah jalan — akan menempel
+  // pada posisi sementara, bukan posisi sebenarnya.
+  //
+  // `offsetParent` di sini adalah lapisan HUD, yang menutupi seluruh viewport,
+  // jadi koordinatnya sama dengan koordinat layar yang dipakai `position: fixed`.
+  node.style.top = `${gugus.offsetTop + gugus.offsetHeight + SELA}px`;
+  node.style.right = `${induk.clientWidth - (gugus.offsetLeft + gugus.offsetWidth)}px`;
+}
+
+// Rencana penerbangan berpindah bentuk: panel tegak di sisi kiri pada layar
+// lebar, strip mendatar di kaki layar pada mode ponsel. Bentuk kedua berdiri
+// persis di tempat hint ini.
+//
+// Yang diperiksa karena itu bukan "layarnya sempit atau tidak", melainkan
+// apakah kedua kotaknya benar-benar bertabrakan. Aturan berbasis lebar layar
+// akan tetap salah begitu tata letaknya berubah lagi — dan pernah hampir
+// salah ke arah sebaliknya: mengangkat hint setinggi panel tegak melemparkannya
+// ke puncak layar.
+//
+// Dipanggil SETELAH hint terpasang, karena kotaknya baru ada setelah itu.
+function angkatDiAtasStrip() {
+  hint.style.bottom = '';                 // kembali ke nilai CSS sebelum diukur
+  const strip = document.querySelector('[data-ui="flightplan"]');
+  if (!strip) return;
+
+  const s = strip.getBoundingClientRect();
+  // Strip yang disembunyikan (html.fp-hidden) masih menempati ruang; ia tidak
+  // boleh ikut mendorong apa pun.
+  if (!s.height || Number(getComputedStyle(strip).opacity) <= 0.05) return;
+
+  const h = hint.getBoundingClientRect();
+  const bertabrakan = h.left < s.right && h.right > s.left && h.top < s.bottom && h.bottom > s.top;
+  if (!bertabrakan) return;
+
+  hint.style.bottom = `${Math.round(innerHeight - s.top) + 12}px`;
+}
+
 function gambar() {
   pasangKursor();
+  segarkanTombol();
   node.replaceChildren();
-  node.classList.toggle('on', rasiMenyala && mode !== 'diam' ? true : rasiMenyala);
-  if (!rasiMenyala) return;
+  hint.classList.toggle('on', mode === 'bidik');
+  if (mode === 'bidik') angkatDiAtasStrip();
+  node.classList.toggle('on', mode === 'isi');
+  if (mode !== 'isi') return;
+  tempelDiBawahGugus();
 
-  if (mode === 'diam') {
-    node.appendChild(el('button', {
-      class: 'ajak',
-      onclick: punyaBintang ? cariMilikku : () => { mode = 'bidik'; gambar(); },
-      title: punyaBintang ? 'Putar pandangan ke bintangmu' : 'Taruh satu bintang di langit ini'
-    }, [
-      el('i'),
-      document.createTextNode(punyaBintang ? 'Bintangmu ada di langit ini' : 'Taruh bintangmu')
-    ]));
-    return;
-  }
-
-  if (mode === 'bidik') {
-    node.appendChild(el('div', { class: 'bidik', text: 'Klik di langit untuk menaruh bintangmu · Esc untuk batal' }));
-    return;
-  }
-
-  // mode === 'isi'
   const form = el('form');
   const nama = el('input', { name: 'name', placeholder: 'Nama depan', maxlength: '24', required: '' });
   const kota = el('input', { name: 'city', placeholder: 'Kota (opsional)', maxlength: '40' });
@@ -155,10 +287,17 @@ function gambar() {
   requestAnimationFrame(() => nama.focus());
 }
 
+function batal() {
+  mode = 'diam';
+  koordinat = null;
+  gambar();
+}
+
 // Sudah punya bintang: tombolnya memutar pandangan ke sana, bukan menawarkan
 // bintang kedua. Server memang menolak yang kedua (409), tapi menawarkan form
 // yang pasti gagal adalah janji palsu.
 function cariMilikku() {
+  if (!rasiMenyala) scene()?.setConstellations(true);
   const hasil = scene()?.findMyStar();
   if (!hasil?.ok) return signal('Bintangmu belum bisa ditemukan — coba lagi sebentar.');
   // Arahnya sudah benar; yang tidak bisa dipenuhi cuma kemiringan pandangan.
@@ -166,12 +305,6 @@ function cariMilikku() {
   signal(hasil.mentok
     ? 'Bintangmu tinggi di atas, di luar jangkauan pandangan — arahnya sudah tepat.'
     : 'Bintangmu ada di depan sana.');
-}
-
-function batal() {
-  mode = 'diam';
-  koordinat = null;
-  gambar();
 }
 
 // Klik di kanvas saat membidik. Ditangkap di fase capture supaya tidak ikut
@@ -215,7 +348,9 @@ document.addEventListener('sky-lore', (e) => {
   const nyala = Boolean(e.detail?.on);
   if (nyala === rasiMenyala) return;
   rasiMenyala = nyala;
-  if (!nyala) batal(); else gambar();
+  // Langitnya dimatikan di tengah jalan: bidikan dan form yang tertinggal
+  // merujuk ke sesuatu yang sudah tidak terlihat.
+  if (!nyala && mode !== 'diam') batal();
 });
 
 // Apakah pengunjung ini sudah punya bintang?
@@ -231,11 +366,11 @@ document.addEventListener('sky-lore', (e) => {
   try {
     const res = await fetch(`${API}/sky/mine`);
     punya = res.ok ? await res.json() : null;
-  } catch { /* tanpa jawaban, tombolnya tetap tampil seperti biasa */ }
+  } catch { /* tanpa jawaban, tombolnya tetap menawarkan menaruh bintang */ }
   if (!punya) return;
 
   punyaBintang = true;
-  gambar();
+  segarkanTombol();
 
   const tandai = (sisa = 20) => {
     const s = scene();
