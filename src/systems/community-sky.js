@@ -16,6 +16,73 @@ import { API } from '../data/remote.js';
 const WARNA = new THREE.Color('#ffe9c4');   // sedikit lebih hangat dari bintang rasi
 const MAKS = 2000;                          // batas atas geometri, bukan batas fitur
 const RAIH_PX = 24;                         // radius jangkauan penunjuk, dalam piksel layar
+const UKURAN = 17;                          // piksel di layar; sizeAttenuation mati
+
+/**
+ * Bintang berkilau empat sudut, digambar di kanvas.
+ *
+ * Bukan cakram gradien seperti bintang latar dan rasi. Bedanya disengaja:
+ * yang bulat adalah langit, yang berkilau adalah titipan orang. Satu pandang
+ * sudah cukup membedakan mana yang ditaruh seseorang dan mana yang memang ada
+ * di sana.
+ *
+ * Sudutnya dibuat cekung dengan menaruh titik kendali kurva tepat di pusat —
+ * itu yang membuat lengannya meruncing, bukan jadi belah ketupat.
+ */
+function sparkleTexture(ctx, size = 128) {
+  const c = ctx.makeCanvas(size, size);
+  const g = c.getContext('2d');
+  const m = size / 2;
+
+  // Kabut bulat tipis di belakang: tanpa ini lengan bintangnya terlihat
+  // mengambang, tidak menempel pada sumber cahaya.
+  const kabut = g.createRadialGradient(m, m, 0, m, m, m);
+  kabut.addColorStop(0, 'rgba(255,255,255,.42)');
+  kabut.addColorStop(0.3, 'rgba(255,233,196,.13)');
+  kabut.addColorStop(1, 'rgba(255,233,196,0)');
+  g.fillStyle = kabut;
+  g.fillRect(0, 0, size, size);
+
+  const lengan = (panjang, alpha) => {
+    const R = m * panjang;
+    g.beginPath();
+    g.moveTo(m, m - R);
+    g.quadraticCurveTo(m, m, m + R, m);
+    g.quadraticCurveTo(m, m, m, m + R);
+    g.quadraticCurveTo(m, m, m - R, m);
+    g.quadraticCurveTo(m, m, m, m - R);
+    g.closePath();
+    const isi = g.createRadialGradient(m, m, 0, m, m, R);
+    isi.addColorStop(0, `rgba(255,255,255,${alpha})`);
+    isi.addColorStop(0.34, `rgba(255,245,222,${alpha * 0.72})`);
+    isi.addColorStop(1, 'rgba(255,233,196,0)');
+    g.fillStyle = isi;
+    g.fill();
+  };
+
+  // Salib panjang, lalu salib pendek yang diputar 45° — dua lapis membuat
+  // kilaunya terbaca sebagai bintang, bukan sebagai tanda tambah.
+  lengan(0.98, 0.95);
+  g.save();
+  g.translate(m, m);
+  g.rotate(Math.PI / 4);
+  g.translate(-m, -m);
+  lengan(0.46, 0.55);
+  g.restore();
+
+  const inti = g.createRadialGradient(m, m, 0, m, m, m * 0.13);
+  inti.addColorStop(0, 'rgba(255,255,255,1)');
+  inti.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = inti;
+  g.fillRect(0, 0, size, size);
+
+  return new THREE.CanvasTexture(c);
+}
+
+// Fase kedip diturunkan dari id, bukan diacak: bintang yang sama berkedip pada
+// irama yang sama tiap kali halaman dibuka, dan tidak ada yang perlu disimpan.
+// Diacak per muat, langit akan terasa berbeda tiap kunjungan tanpa alasan.
+const faseDari = (id = '') => ([...id].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) % 6283, 7) / 1000);
 
 // Dipakai berulang di `bintangDekat`; membuat Vector3 baru tiap bintang tiap
 // frame berarti ribuan objek sekali pakai per detik.
@@ -33,8 +100,9 @@ export function createCommunitySky(ctx) {
     // Satu objek Points untuk semua bintang. Seribu Sprite terpisah akan jadi
     // seribu draw call; satu buffer yang diperbarui jauh lebih murah, dan
     // jumlahnya memang bisa tumbuh tanpa batas jelas.
-    // `ctx.glowTexture` adalah pabrik tekstur, bukan tekstur. Dipanggil sekali
-    // di sini dan dipakai dua-duanya.
+    const kilau = sparkleTexture(ctx, 128);
+    // Sorotan tetap memakai cakram lembut: ia halo di belakang bintangnya,
+    // bukan bintang kedua. `ctx.glowTexture` adalah pabrik, bukan tekstur jadi.
     const pijar = ctx.glowTexture(64, [
       [0, 'rgba(255,255,255,.95)'],
       [0.32, 'rgba(255,255,255,.42)'],
@@ -42,13 +110,24 @@ export function createCommunitySky(ctx) {
     ]);
 
     const posisi = new Float32Array(MAKS * 3);
+    // Kedipan per bintang lewat warna simpul. PointsMaterial tidak punya alpha
+    // per titik, tapi warna simpul dikalikan dengan warna material — dan di
+    // atas AdditiveBlending, meredupkan warna sama saja dengan meredupkan
+    // bintangnya. Itu menghindari ShaderMaterial sendiri untuk satu efek kecil.
+    //
+    // Sebelumnya satu nilai sinus dipakai untuk seluruh material, jadi semua
+    // bintang berdenyut serempak — yang justru terbaca sebagai kedipan layar,
+    // bukan kedipan bintang.
+    const kerlip = new Float32Array(MAKS * 3);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(posisi, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(kerlip, 3));
     geo.setDrawRange(0, 0);
 
     const titik = new THREE.Points(geo, new THREE.PointsMaterial({
-      color: WARNA, size: 7.4, sizeAttenuation: false, transparent: true, opacity: 0,
-      map: pijar, blending: THREE.AdditiveBlending, depthWrite: false, fog: false
+      color: WARNA, size: UKURAN, sizeAttenuation: false, transparent: true, opacity: 0,
+      map: kilau, vertexColors: true,
+      blending: THREE.AdditiveBlending, depthWrite: false, fog: false
     }));
     group.add(titik);
 
@@ -62,7 +141,7 @@ export function createCommunitySky(ctx) {
     punyaku.visible = false;
     group.add(punyaku);
 
-    C = { group, titik, posisi, punyaku, pijar, bintang: [], milikku: null, on: false, fade: 0 };
+    C = { group, titik, posisi, kerlip, punyaku, pijar, kilau, bintang: [], milikku: null, on: false, fade: 0 };
     muat();
   }
 
@@ -177,15 +256,27 @@ export function createCommunitySky(ctx) {
       // sama seperti perlakuan rasi bawaan — supaya tidak terpotong lantai.
       const y = Math.max(dir.y, -0.3);
       posisiKe(n, dir.x * SKY_R, y * SKY_R, dir.z * SKY_R);
+
+      // Dua sinus dengan periode yang tidak kelipatan satu sama lain: sekali
+      // saja dan kedipannya terbaca sebagai denyut mesin, bukan sebagai udara
+      // yang bergerak. Fase diambil dari id, jadi tetangga tidak sinkron.
+      if (b.fase === undefined) b.fase = faseDari(b.id);
+      const k = 0.62 + Math.sin(t * 1.15 + b.fase) * 0.26 + Math.sin(t * 2.7 + b.fase * 1.9) * 0.12;
+      C.kerlip[n * 3] = k;
+      C.kerlip[n * 3 + 1] = k;
+      C.kerlip[n * 3 + 2] = k;
+
       n += 1;
       if (n >= MAKS) break;
     }
     C.titik.geometry.setDrawRange(0, n);
     C.titik.geometry.attributes.position.needsUpdate = true;
+    C.titik.geometry.attributes.color.needsUpdate = true;
 
-    const kedip = 0.78 + Math.sin(t * 0.9) * 0.14 + Math.sin(t * 2.3) * 0.08;
-    C.titik.material.opacity = C.fade * kedip;
-    C.titik.material.size = 7.4 * ctx.worldScale();
+    // Kedipnya sekarang per bintang lewat warna simpul; yang tersisa di sini
+    // hanya pemudaran satu langit saat mode rasi dinyalakan atau dimatikan.
+    C.titik.material.opacity = C.fade;
+    C.titik.material.size = UKURAN * ctx.worldScale();
 
     if (C.milikku) {
       const { dir } = arahDari(C.milikku.ra, C.milikku.dec, now);
@@ -209,6 +300,7 @@ export function createCommunitySky(ctx) {
     C.titik.material.dispose();
     C.punyaku.material.dispose();
     C.pijar.dispose();
+    C.kilau.dispose();
     ctx.world.remove(C.group);
     C = null;
   }
