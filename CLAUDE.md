@@ -17,7 +17,7 @@ pernah berbagi `node_modules`. Tidak ada test runner di dua-duanya.
 ```bash
 python3 -m http.server 8899        # lalu buka http://localhost:8899/index.html
 node build.mjs                     # rakit rilis → dist/ (esbuild diambil via npx)
-node --check src/systems/aurora.js # pemeriksaan sintaks satu berkas
+node --check src/systems/aurora.js # pemeriksaan sintaks satu berkas (lihat catatannya di bawah)
 
 cd backend && npm run dev          # API + dashboard admin di :4000
 ```
@@ -178,12 +178,29 @@ jadi bintang komunitas dan rasi Nusantara duduk di sistem koordinat yang sama.
 Aturan "satu orang satu bintang" dijaga unique index atas salted hash alamat IP
 di sisi server; alamat mentahnya tidak pernah disimpan.
 
+Kendalinya satu tombol instrumen di gugus kanan atas, tepat di sebelah tombol
+rasi — aksinya memang milik mode langit itu. Tombolnya **selalu ada**, tidak
+muncul-hilang mengikuti mode rasi: baris instrumen yang isinya berubah-ubah
+menggeser tombol tetangganya tiap kali mode dinyalakan. Kalau langitnya belum
+menyala, tombol ini yang menyalakannya lebih dulu. Versi pertamanya adalah pil
+bertulisan di tengah bawah layar; ia duduk persis di atas tata suryanya, dan
+dalam keadaan "sudah punya bintang" berubah jadi papan status permanen.
+
 Tiap bintang membawa nama depan, kota, dan satu kalimat — dan ketiganya baru
 ada gunanya kalau bisa dibaca. `ui/organisms/star-card.js` menampilkannya:
 scene memancarkan `sky-star-hover` (penunjuk) dan `sky-star-open` (ketukan),
 keduanya dengan koordinat layar supaya kartunya tahu muncul di sebelah mana.
 Dua kejadian, bukan satu, karena layar sentuh tidak punya hover dan bintangnya
 terlalu kecil untuk diberi ukuran sentuh yang layak.
+
+Bentuknya bintang berkilau empat sudut, bukan cakram gradien seperti bintang
+latar dan rasi — yang bulat adalah langit, yang berkilau adalah titipan orang.
+Kedipannya **per bintang**, lewat warna simpul (`vertexColors`): PointsMaterial
+tidak punya alpha per titik, tapi di atas AdditiveBlending meredupkan warna sama
+saja dengan meredupkan bintangnya, dan itu menghindari ShaderMaterial sendiri
+untuk satu efek kecil. Fase tiap bintang diturunkan dari id-nya, jadi tetangga
+tidak berdenyut serempak — satu nilai sinus untuk seluruh material terbaca
+sebagai kedipan layar, bukan kedipan bintang.
 
 Pemilihannya diukur di **layar**, bukan di dunia (`bintangDekat` di
 `community-sky.js`). Bola langitnya berjari-jari 168 satuan: ambang dalam
@@ -281,6 +298,23 @@ penyesuaian tata letak global.
   sengaja dipakai supaya tidak menggantung.
 - **Verifikasi lewat kelas CSS saja tidak cukup.** Panduan pernah lolos uji
   karena kelas `open` terpasang, padahal panelnya belum dipasang ke DOM.
+- **`node --check` memeriksa berkas sebagai skrip, bukan sebagai modul ES.**
+  Satu backtick nyasar di dalam `export const css = \`…\`` — misalnya di dalam
+  komentar CSS — menutup template-nya lebih awal, dan sisa berkasnya jadi
+  omong kosong. `node --check` tetap keluar dengan kode 0; browser menolaknya
+  dengan `SyntaxError`. Modul yang menyimpan CSS-nya sendiri tidak pernah cukup
+  diverifikasi dengan `node --check` saja.
+- **Elemen ber-transform adalah containing block bagi keturunan
+  `position: fixed`.** Anak yang `fixed` di dalamnya berhenti mengacu ke
+  viewport dan mulai mengacu ke induknya. Yang memicunya bisa cuma sebuah
+  `animation` yang menganimasi transform — petunjuk bidik bintang pernah
+  melompat ke panel kanan atas karena ini, dan gejalanya tampak seperti salah
+  hitung posisi, bukan seperti aturan CSS.
+- **`getBoundingClientRect` ikut menghitung transform, `offsetTop`/`offsetHeight`
+  tidak.** Elemen HUD punya animasi masuk yang menggeser dan menyusutkan — dan
+  animasi CSS membeku di tab latar belakang, jadi transform separuh jalan itu
+  bisa bertahan lama. Untuk menempelkan satu elemen ke elemen lain, ukur dengan
+  `offsetTop`/`offsetHeight` (lihat `tempelDiBawahGugus` di `star-place.js`).
 - **`ctx.glowTexture` adalah pabrik tekstur, bukan tekstur.** Meneruskannya
   langsung sebagai `map` menghasilkan shader yang gagal dikompilasi dengan pesan
   `'uvundefined' : undeclared identifier` — three.js membaca `map.channel` yang

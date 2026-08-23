@@ -22,6 +22,10 @@ export const ICON = {
   // digambar sistemnya, jadi tombolnya menjanjikan apa yang benar-benar muncul
   galaxy: ['M12 8.4c2.6-.9 5.6.4 6.4 2.9.9 2.9-1.1 6-4.1 6.8-3.6 1-7.4-1.3-8.4-5', 'M12 15.6c-2.6.9-5.6-.4-6.4-2.9-.9-2.9 1.1-6 4.1-6.8 3.6-1 7.4 1.3 8.4 5', { t: 'circle', cx: 12, cy: 12, r: 1.5 }],
   board: [{ t: 'circle', cx: 12, cy: 12, r: 2 }, 'M7.6 7.6a6.2 6.2 0 0 0 0 8.8M16.4 16.4a6.2 6.2 0 0 0 0-8.8', 'M4.7 4.7a10 10 0 0 0 0 14.6M19.3 19.3a10 10 0 0 0 0-14.6'],
+  // Satu bintang tunggal dengan percik kecil di sampingnya — sengaja berbeda
+  // dari ikon `sky` yang menggambar rasi. Yang satu mode pandang, yang ini
+  // satu bintang milik satu orang.
+  star: ['M11 5.4 12.3 10 16.9 11.3 12.3 12.6 11 17.2 9.7 12.6 5.1 11.3 9.7 10Z', 'M18.4 4.2l.6 1.9 1.9.6-1.9.6-.6 1.9-.6-1.9-1.9-.6 1.9-.6Z'],
   chevL: ['M14.5 6 9 12l5.5 6'],
   chevR: ['M9.5 6 15 12l-5.5 6']
 };

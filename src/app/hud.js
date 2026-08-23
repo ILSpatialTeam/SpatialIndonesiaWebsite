@@ -22,7 +22,7 @@ import * as hero from '../ui/organisms/hero-board.js';
 import * as eventCard from '../ui/organisms/event-card.js';
 import * as postcard from '../ui/organisms/postcard.js';
 import * as focusMode from '../ui/organisms/focus-mode.js';
-import { node as starPlaceNode } from '../ui/organisms/star-place.js';
+import { node as starPlaceNode, hint as starHint, button as starBtn } from '../ui/organisms/star-place.js';
 import { node as starCardNode } from '../ui/organisms/star-card.js';
 import { ambience } from './ambience.js';
 import { mountButton as mountAudioButton } from './ambience.js';
@@ -67,7 +67,7 @@ mountAudioButton(audioBtn);
 const cluster = createCluster({
   status: statusOrb.node,
   modes: [meteorBtn, arBtn, portal],
-  tools: [boardBtn, skyBtn, galaxyBtn, auroraBtn, trailsBtn, audioBtn, cardBtn, focusBtn, fullBtn]
+  tools: [boardBtn, skyBtn, starBtn, galaxyBtn, auroraBtn, trailsBtn, audioBtn, cardBtn, focusBtn, fullBtn]
 });
 
 /* ---------- pasang ---------- */
@@ -75,6 +75,7 @@ const cluster = createCluster({
 document.body.appendChild(el('div', { class: 'hud-layer' }, [
   cluster, navRail.node, info.node, hero.node, orrery.node, signalsNode, focusMode.node, postcard.node,
   starPlaceNode,
+  starHint,
   starCardNode
 ]));
 navRail.applyFold();
