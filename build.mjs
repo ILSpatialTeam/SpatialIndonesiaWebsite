@@ -14,6 +14,24 @@
 import { execFileSync } from 'node:child_process';
 import { mkdir, cp, readFile, writeFile, rm, stat } from 'node:fs/promises';
 
+// ── .env ────────────────────────────────────────────────────────────────────
+// Membaca .env di root frontend supaya konfigurasi deployment (alamat API,
+// judul situs) tidak perlu disunting langsung di index.html.
+const envVars = {};
+try {
+  const raw = await readFile('.env', 'utf8');
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq < 1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+    envVars[key] = val;
+  }
+  console.log('.env terbaca:', Object.keys(envVars).join(', ') || '(kosong)');
+} catch { /* .env tidak ada — pakai nilai bawaan di index.html */ }
+
 const OUT = 'dist';
 const YEAR = new Date().getFullYear();
 const BANNER = `/*! Spatial Indonesia — © ${YEAR}. Seluruh hak cipta dilindungi. */`;
@@ -37,6 +55,18 @@ esbuild('support.js', '--minify', '--legal-comments=none', `--outfile=${OUT}/sup
 // 3. halaman menunjuk ke bundel, bukan ke pohon src/
 let html = await readFile('index.html', 'utf8');
 html = html.replace('<script type="module" src="./src/main.js"></script>', '<script type="module" src="./app.js"></script>');
+
+// Suntikkan nilai dari .env ke meta tag
+if (envVars.SPATIAL_API !== undefined) {
+  html = html.replace(
+    /<meta\s+name="spatial-api"\s+content="[^"]*"\s*\/?>/,
+    envVars.SPATIAL_API
+      ? `<meta name="spatial-api" content="${envVars.SPATIAL_API}" />`
+      : ''
+  );
+  console.log(`  spatial-api → ${envVars.SPATIAL_API || '(dihapus, sama origin)'}`);
+}
+
 await writeFile(`${OUT}/index.html`, html);
 
 // 4. berkas pendukung
