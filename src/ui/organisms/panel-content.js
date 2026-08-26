@@ -53,20 +53,39 @@ const PENGISI = {
     teks(baris.querySelector('p'), it.d);
   },
   karya: (baris, it) => {
-    // Label "VR · Edukasi" tampil sebagai dua keping terpisah di panel ini.
-    const keping = baris.querySelectorAll('span');
-    const bagian = String(it.k ?? '').split('·').map((s) => s.trim()).filter(Boolean);
-    keping.forEach((s, i) => {
-      if (bagian[i]) { s.textContent = bagian[i]; s.hidden = false; }
-      else s.hidden = true;
-    });
+    const visual = baris.firstElementChild;
+    if (visual && it.foto) {
+      visual.textContent = '';
+      visual.style.backgroundImage = `url(${it.foto})`;
+      visual.style.backgroundSize = 'cover';
+      visual.style.backgroundPosition = 'center';
+    }
+    const info = baris.lastElementChild;
+    if (info) {
+      const keping = info.querySelectorAll('span');
+      const bagian = String(it.k ?? '').split('·').map((s) => s.trim()).filter(Boolean);
+      keping.forEach((s, i) => {
+        if (bagian[i]) { s.textContent = bagian[i]; s.hidden = false; }
+        else s.hidden = true;
+      });
+    }
     teks(baris.querySelector('h3'), it.t ?? '');
     teks(baris.querySelector('p'), it.d);
   },
   tim: (baris, it) => {
-    const nama = baris.querySelectorAll('div > div');
-    teks(nama[0], it.t ?? it.k);
-    teks(nama[1], it.d);
+    const foto = baris.firstElementChild;
+    const info = baris.lastElementChild;
+    if (foto && it.foto) {
+      foto.textContent = '';
+      foto.style.backgroundImage = `url(${it.foto})`;
+      foto.style.backgroundSize = 'cover';
+      foto.style.backgroundPosition = 'center top';
+    }
+    if (info) {
+      const divs = info.children;
+      teks(divs[0], it.t ?? it.k);
+      teks(divs[1], it.d);
+    }
   }
 };
 
