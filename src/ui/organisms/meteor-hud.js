@@ -268,21 +268,21 @@ const killNum = el('span', { class: 'mt-num wave', text: '00' });
 const muteBtn = el('button', { class: 'mt-mute', text: '♪', title: 'Suara' });
 
 const statsRow = el('div', { class: 'mt-statsrow' }, [
-  el('div', {}, [el('span', { class: 'lab', text: 'SKOR' }), scoreNum]),
-  el('div', {}, [el('span', { class: 'lab', text: 'GELOMBANG' }), waveNum]),
-  el('div', {}, [el('span', { class: 'lab', text: 'TERTEMBAK' }), killNum])
+  el('div', {}, [el('span', { class: 'lab', text: 'SCORE' }), scoreNum]),
+  el('div', {}, [el('span', { class: 'lab', text: 'WAVE' }), waveNum]),
+  el('div', {}, [el('span', { class: 'lab', text: 'KILLS' }), killNum])
 ]);
 
 const hud = el('div', { class: 'mt-hud' }, [
-  el('div', { class: 'mt-hp' }, [el('span', { class: 'lab', text: 'INTEGRITAS SISTEM' }), barWrap]),
+  el('div', { class: 'mt-hp' }, [el('span', { class: 'lab', text: 'SYSTEM INTEGRITY' }), barWrap]),
   hpNum,
   el('span', { class: 'mt-sep' }),
   statsRow,
   muteBtn
 ]);
 
-const waveV = el('div', { class: 'v', text: 'GELOMBANG 01' });
-const waveBanner = el('div', { class: 'mt-wave' }, [el('div', { class: 'k', text: 'ANCAMAN MENINGKAT' }), waveV]);
+const waveV = el('div', { class: 'v', text: 'WAVE 01' });
+const waveBanner = el('div', { class: 'mt-wave' }, [el('div', { class: 'k', text: 'THREAT INCREASING' }), waveV]);
 const flash = el('div', { class: 'mt-flash' });
 const tip = el('div', { class: 'mt-tip' });
 
@@ -290,16 +290,16 @@ const ovScore = el('b', { text: '0' });
 const ovWave = el('b', { text: '1' });
 const ovKill = el('b', { text: '0' });
 const over = el('div', { class: 'mt-over' }, [
-  el('h2', { text: 'SISTEM RUNTUH' }),
-  el('p', { text: 'Meteor menembus pertahanan. Tata surya Spatial butuh penembak baru.' }),
+  el('h2', { text: 'SYSTEM DOWN' }),
+  el('p', { text: 'Meteors breached the defenses. The Spatial solar system needs a new gunner.' }),
   el('div', { class: 'mt-stats' }, [
-    el('div', {}, [el('span', { text: 'SKOR' }), ovScore]),
-    el('div', {}, [el('span', { text: 'GELOMBANG' }), ovWave]),
-    el('div', {}, [el('span', { text: 'TERTEMBAK' }), ovKill])
+    el('div', {}, [el('span', { text: 'SCORE' }), ovScore]),
+    el('div', {}, [el('span', { text: 'WAVE' }), ovWave]),
+    el('div', {}, [el('span', { text: 'KILLS' }), ovKill])
   ]),
   el('div', { class: 'mt-acts' }, [
-    el('button', { class: 'mt-again', text: 'MAIN LAGI', onclick: () => { const s = scene(); if (s) s.restartMeteor(); } }),
-    el('button', { class: 'mt-quit', text: 'KELUAR MODE', onclick: () => { const s = scene(); if (s) s.setMeteorMode(false); } })
+    el('button', { class: 'mt-again', text: 'PLAY AGAIN', onclick: () => { const s = scene(); if (s) s.restartMeteor(); } }),
+    el('button', { class: 'mt-quit', text: 'EXIT MODE', onclick: () => { const s = scene(); if (s) s.setMeteorMode(false); } })
   ])
 ]);
 
@@ -315,21 +315,21 @@ const pit = el('div', { class: 'mt-pit' }, [
 
 // daftar periksa sebelum lepas landas — urutannya diatur CSS lewat --i
 const CHECKS = [
-  ['REAKTOR UTAMA', 'AKTIF'],
-  ['MERIAM LASER', 'TERKALIBRASI'],
-  ['PERISAI PLANET', 'ONLINE'],
-  ['PEMINDAI METEOR', 'MENYAPU']
+  ['MAIN REACTOR', 'ACTIVE'],
+  ['LASER CANNON', 'CALIBRATED'],
+  ['PLANETARY SHIELD', 'ONLINE'],
+  ['METEOR SCANNER', 'SWEEPING']
 ];
 const boot = el('div', { class: 'mt-boot' }, [
   el('span', { class: 'shut t' }),
   el('span', { class: 'shut b' }),
   el('div', { class: 'card' }, [
-    el('div', { class: 'ship', text: 'SI-01 · PENJAGA ORBIT' }),
-    el('div', { class: 'ttl', text: 'Protokol pertahanan' }),
+    el('div', { class: 'ship', text: 'SI-01 · ORBIT GUARDIAN' }),
+    el('div', { class: 'ttl', text: 'Defense protocol' }),
     el('ul', { class: 'chk' }, CHECKS.map(([k, v], i) =>
       el('li', { style: '--i:' + i }, [el('span', { text: k }), el('i', { text: v })]))),
     el('div', { class: 'bar' }, [el('i')]),
-    el('div', { class: 'ready', text: 'SIAP BERTEMPUR' })
+    el('div', { class: 'ready', text: 'READY FOR BATTLE' })
   ])
 ]);
 
@@ -513,8 +513,8 @@ let on = false;
 
 const setTip = () => {
   tip.textContent = fine()
-    ? 'TAHAN KLIK — TEMBAK · GESER KE TEPI ATAU A/D — PUTAR · ESC — KELUAR'
-    : 'KETUK UNTUK MENEMBAK · GESER UNTUK MELIHAT SEKELILING';
+    ? 'HOLD CLICK — SHOOT · DRAG TO EDGE OR A/D — ROTATE · ESC — EXIT'
+    : 'TAP TO SHOOT · SWIPE TO LOOK AROUND';
 };
 
 const hudPaint = d => {
@@ -562,7 +562,7 @@ const start = e => {
   aim.style.display = 'none';
   over.classList.remove('on');
   setTip();
-  waveV.textContent = 'GELOMBANG 01';
+  waveV.textContent = 'WAVE 01';
   bootSound(full);
   // jaring pengaman: kalau scene sempat terhenti (tab pindah ke belakang saat
   // urutan berjalan), HUD tetap muncul dan tidak meninggalkan kokpit kosong
@@ -630,7 +630,7 @@ document.addEventListener('meteor-aim', e => {
 
 document.addEventListener('meteor-wave', e => {
   const w = (e.detail && e.detail.wave) || 1;
-  waveV.textContent = 'GELOMBANG ' + String(w).padStart(2, '0');
+  waveV.textContent = 'WAVE ' + String(w).padStart(2, '0');
   waveBanner.classList.remove('on');
   void waveBanner.offsetWidth;
   waveBanner.classList.add('on');

@@ -24,7 +24,7 @@ html.hud-focus .hud-exit { display: flex; }
 let btnRef = null, fullRef = null;
 export function mountButtons(focusBtn, fullBtn) { btnRef = focusBtn; fullRef = fullBtn; }
 
-export const node = el('button', { class: 'hud-exit', text: 'ESC — KELUAR MODE FOKUS', onclick: () => setFocus(false) });
+export const node = el('button', { class: 'hud-exit', text: 'ESC — EXIT FOCUS MODE', onclick: () => setFocus(false) });
 let focusOn = false, idleT = 0;
 export const setFocus = on => {
   focusOn = !!on;
@@ -49,8 +49,8 @@ export const toggleFull = () => {
   } else {
     const r = d.documentElement;
     const go = r.requestFullscreen || r.webkitRequestFullscreen;
-    if (go) go.call(r).catch(() => signal('Layar penuh ditolak browser. Coba dari jendela biasa, bukan tampilan tersemat.', 'warn'));
-    else signal('Browser ini tidak mendukung layar penuh.', 'warn');
+    if (go) go.call(r).catch(() => signal('Fullscreen denied by browser. Try from a regular window, not an embedded view.', 'warn'));
+    else signal('This browser does not support fullscreen.', 'warn');
   }
 };
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
