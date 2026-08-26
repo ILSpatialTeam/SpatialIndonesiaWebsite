@@ -165,13 +165,15 @@ TITLE.forEach((w, i) => { if (i) title.insertBefore(document.createTextNode(' ')
   title.appendChild(el('span', { class: 'spark', style: '--x:' + x + ';--y:' + y + ';--s:' + size + 'px;--d:' + d }));
 });
 
+const agendaRow = el('div', { class: 'agenda' }, [
+  el('span', { class: 'kicker' }, [el('i'), el('span', { text: 'NEXT MEETUP' })]),
+  evName, evMeta, track,
+  el('span', { class: 'acts' }, [goEvent, goCal])
+]);
+
 export const node = el('div', { class: 'hud-hero', 'data-hud-el': 'hero' }, [
   title,
-  el('div', { class: 'agenda' }, [
-    el('span', { class: 'kicker' }, [el('i'), el('span', { text: 'NEXT MEETUP' })]),
-    evName, evMeta, track,
-    el('span', { class: 'acts' }, [goEvent, goCal])
-  ]),
+  agendaRow,
   presence
 ]);
 
@@ -190,6 +192,7 @@ let agendaNow = null;
 export const paint = st => {
   if (!st) return;
   agendaNow = st;
+  agendaRow.style.display = st.next ? '' : 'none';
   if (!st.next) return;
   evName.textContent = st.next.title;
   evMeta.replaceChildren(

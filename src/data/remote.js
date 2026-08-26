@@ -129,6 +129,32 @@ export function terapkan(muatan) {
   if (muatan.sparing) isiUlangObj(SEED_SPARING, muatan.sparing);
   if (muatan.agenda?.length) isiUlang(AGENDA, muatan.agenda);
 
+  if (muatan.team?.length && PANELS.tim) {
+    PANELS.tim.items = muatan.team.map((m, i) => ({
+      k: String(i + 1).padStart(2, '0'),
+      t: m.name,
+      d: m.role,
+      foto: m.photoUrl ?? null
+    }));
+  }
+
+  if (muatan.programs?.length && PANELS.program) {
+    PANELS.program.items = muatan.programs.map((p) => ({
+      k: p.subtitle || '',
+      t: p.title,
+      d: p.description
+    }));
+  }
+
+  if (muatan.projects?.length && PANELS.karya) {
+    PANELS.karya.items = muatan.projects.map((p) => ({
+      k: [p.type, p.category].filter(Boolean).join(' · '),
+      t: p.title,
+      d: p.description || (p.memberName ? `by ${p.memberName}` : ''),
+      foto: p.imageUrl ?? null
+    }));
+  }
+
   return true;
 }
 

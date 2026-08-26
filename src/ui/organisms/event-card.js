@@ -76,7 +76,7 @@ export const paint = st => {
     const left = Math.ceil((a.at - now) / DAY);
     const isNext = !!(st.next && st.next.id === a.id);
     const cls = 'ag-row' + (isNext ? ' next' : '') + (a.at < now ? ' past' : '');
-    const when = a.at < now ? 'SELESAI' : (left <= 0 ? 'HARI INI' : left + ' HARI LAGI');
+    const when = a.at < now ? 'DONE' : (left <= 0 ? 'TODAY' : left + ' DAYS AWAY');
     return el('div', { class: cls }, [
       el('div', { class: 'top' }, [
         el('span', { class: 'kind', text: a.kind }),
@@ -85,7 +85,7 @@ export const paint = st => {
       el('span', { class: 'ttl', text: a.title }),
       el('span', { class: 'where', text: tanggal(a.date) + ' · ' + a.place }),
       a.note ? el('span', { class: 'note', text: a.note }) : null,
-      a.at < now ? null : el('button', { class: 'add', text: '+ KALENDER', onclick: () => saveIcs(a) })
+      a.at < now ? null : el('button', { class: 'add', text: '+ CALENDAR', onclick: () => saveIcs(a) })
     ]);
   }));
 };

@@ -68,10 +68,10 @@ export function createAgendaOrbit(ctx) {
     g.textAlign = 'center';
     g.fillStyle = 'rgba(216,208,255,.95)';
     g.font = "500 34px 'Poppins', system-ui, sans-serif";
-    g.fillText('TITIK TEMU', 280, 44);
+    g.fillText('MEETING POINT', 280, 44);
     g.fillStyle = 'rgba(169,155,242,.9)';
     g.font = "400 26px 'IBM Plex Mono', ui-monospace, monospace";
-    g.fillText(st.days === 0 ? 'HARI INI' : st.days + ' HARI LAGI', 280, 92);
+    g.fillText(st.days === 0 ? 'TODAY' : st.days + ' DAYS AWAY', 280, 92);
     const t = new THREE.CanvasTexture(c);
     t.anisotropy = 4;
     return t;
@@ -82,6 +82,8 @@ export function createAgendaOrbit(ctx) {
     const st = agendaState();
     A.state = st;
     A.at = Date.now();
+    A.group.visible = !!st.next;
+    if (!st.next) return;
     A.angle = MEET_ANGLE + (1 - st.progress) * Math.PI * 2;
 
     const pts = [];
