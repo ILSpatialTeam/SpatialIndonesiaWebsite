@@ -61,13 +61,13 @@ export const ambience = (() => {
 
   return {
     toggle() {
-      if (!ctx && !build()) { signal('Browser ini tidak menyediakan suara berbasis Web Audio.', 'warn'); return false; }
+      if (!ctx && !build()) { signal('This browser does not support Web Audio.', 'warn'); return false; }
       on = !on;
       if (ctx.state === 'suspended') ctx.resume();
       master.gain.setTargetAtTime(on ? 0.9 : 0.0001, ctx.currentTime, on ? 0.6 : 0.4);
       if (btnRef) btnRef.classList.toggle('on', on);
       clearInterval(timer);
-      if (on) { step(); timer = setInterval(step, 90); signal('Suara orbit menyala. Tiap planet punya nadanya sendiri — dekati untuk mendengarnya.'); }
+      if (on) { step(); timer = setInterval(step, 90); signal('Orbit sound on. Each planet has its own note — get closer to hear it.'); }
       try { localStorage.setItem('si.audio', on ? 'on' : 'off'); } catch (e) { /* boleh gagal */ }
       return on;
     },

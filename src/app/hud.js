@@ -32,9 +32,9 @@ injectStyles();
 
 /* ---------- instrumen ---------- */
 
-const infoBtn = instrument('info', 'info', 'Panduan', () => info.toggleInfo());
-const boardBtn = instrument('board', 'board', 'Papan misi', () => hero.toggleBoard());
-const skyBtn = instrument('sky', 'sky', 'Rasi bintang', () => {
+const infoBtn = instrument('info', 'info', 'Guide', () => info.toggleInfo());
+const boardBtn = instrument('board', 'board', 'Mission board', () => hero.toggleBoard());
+const skyBtn = instrument('sky', 'sky', 'Constellations', () => {
   const s = scene();
   if (s && s.setConstellations) skyBtn.classList.toggle('on', s.setConstellations());
 });
@@ -42,21 +42,21 @@ const auroraBtn = instrument('aurora', 'aurora', 'Aurora', () => {
   const s = scene();
   if (s && s.setAurora) auroraBtn.classList.toggle('on', s.setAurora());
 });
-const galaxyBtn = instrument('galaxy', 'galaxy', 'Galaksi', () => {
+const galaxyBtn = instrument('galaxy', 'galaxy', 'Galaxy', () => {
   const s = scene();
   if (s && s.setMilkyWay) galaxyBtn.classList.toggle('on', s.setMilkyWay());
 });
-const trailsBtn = instrument('trails', 'trails', 'Jejak penjelajah', () => {
+const trailsBtn = instrument('trails', 'trails', 'Explorer trails', () => {
   const s = scene();
   if (s && s.setTrails) trailsBtn.classList.toggle('on', s.setTrails());
 });
-const audioBtn = instrument('audio', 'audio', 'Suara orbit', () => ambience.toggle());
-const cardBtn = instrument('card', 'card', 'Kartu pos orbit', () => postcard.makeCard());
-const focusBtn = instrument('focus', 'focus', 'Mode fokus', () => focusMode.setFocus(true));
-const fullBtn = instrument('full', 'full', 'Layar penuh', () => focusMode.toggleFull());
-const meteorBtn = instrument('meteor', 'meteor', 'Mode meteor', () => press('[data-ui="meteorbtn"]'));
-const arBtn = instrument('ar', 'ar', 'Mode AR', () => press('[data-ui="arbtn"]'));
-const vrBtn = instrument('vr', 'vr', 'Mode VR', () => press('[data-ui="vrbtn"]'));
+const audioBtn = instrument('audio', 'audio', 'Orbit sound', () => ambience.toggle());
+const cardBtn = instrument('card', 'card', 'Orbit postcard', () => postcard.makeCard());
+const focusBtn = instrument('focus', 'focus', 'Focus mode', () => focusMode.setFocus(true));
+const fullBtn = instrument('full', 'full', 'Fullscreen', () => focusMode.toggleFull());
+const meteorBtn = instrument('meteor', 'meteor', 'Meteor mode', () => press('[data-ui="meteorbtn"]'));
+const arBtn = instrument('ar', 'ar', 'AR mode', () => press('[data-ui="arbtn"]'));
+const vrBtn = instrument('vr', 'vr', 'VR mode', () => press('[data-ui="vrbtn"]'));
 const portal = el('div', { class: 'hud-portal' }, [vrBtn, el('span', { class: 'lbl', text: 'MODE VR' })]);
 
 info.mountButton(infoBtn);
@@ -94,7 +94,7 @@ whenPresent('[data-hud="xr"]', xrSrc => {
   let last = '';
   new MutationObserver(() => {
     const t = (xrSrc.textContent || '').trim();
-    if (!t || t === last || /cek dukungan/i.test(t)) { last = t; return; }
+    if (!t || t === last || /checking headset/i.test(t)) { last = t; return; }
     last = t;
     signal(t);
   }).observe(xrSrc, { childList: true, characterData: true, subtree: true });
@@ -119,7 +119,7 @@ document.addEventListener('meteor-end', () => { hero.node.classList.remove('away
 document.addEventListener('trails', e => {
   const d = e.detail || {};
   trailsBtn.classList.toggle('on', !!d.on);
-  if (d.on) signal(d.count + ' penjelajah terakhir meninggalkan jejaknya di sini. Yang paling terang baru saja lewat.');
+  if (d.on) signal(d.count + ' recent explorers left their trails here. The brightest one just passed through.');
 });
 
 // keadaan tombol galaksi datang dari scene, bukan ditebak di sini — termasuk
@@ -132,7 +132,7 @@ document.addEventListener('milkyway', e => {
 document.addEventListener('aurora', e => {
   const d = e.detail || {};
   auroraBtn.classList.toggle('on', !!d.on);
-  if (d.on) signal(d.near ? 'Aurora menyala di dekat orbit ' + d.near + '.' : 'Aurora menyala di tepi sistem.');
+  if (d.on) signal(d.near ? 'Aurora lit up near orbit ' + d.near + '.' : 'Aurora lit up at the edge of the system.');
 });
 
 // begitu rasi dinyalakan, sebutkan langit mana yang sedang dilihat
@@ -143,9 +143,9 @@ document.addEventListener('sky-lore', e => {
   const r = s && s.skyReport ? s.skyReport() : null;
   if (!r) return;
   const up = r.items.filter(i => i.up).map(i => i.name);
-  signal('Langit Indonesia pukul ' + r.clock + ' WIB. ' + (up.length
-    ? up.join(', ') + ' sedang di atas ufuk.'
-    : 'Semua rasi sedang di bawah ufuk — cobalah di jam yang lain.'));
+  signal('Indonesian sky at ' + r.clock + ' WIB. ' + (up.length
+    ? up.join(', ') + ' currently above the horizon.'
+    : 'All constellations are below the horizon — try at a different hour.'));
 });
 
 document.addEventListener('ar-support', e => { arBtn.style.display = ((e.detail && e.detail.ok) || !wide()) ? '' : 'none'; });

@@ -31,9 +31,9 @@ export const node = el('div', { class: 'hud-card', 'data-hud-el': 'card' }, [
   el('div', { class: 'wrap' }, [
     cardImg,
     el('div', { class: 'row' }, [
-      el('button', { class: 'go', text: 'UNDUH PNG', onclick: () => downloadCard() }),
-      el('button', { class: 'go ghost', text: 'BAGIKAN', onclick: () => shareCard() }),
-      el('button', { class: 'go ghost', text: 'TUTUP', onclick: () => node.classList.remove('on') })
+      el('button', { class: 'go', text: 'DOWNLOAD PNG', onclick: () => downloadCard() }),
+      el('button', { class: 'go ghost', text: 'SHARE', onclick: () => shareCard() }),
+      el('button', { class: 'go ghost', text: 'CLOSE', onclick: () => node.classList.remove('on') })
     ]),
     cardNote
   ])
@@ -83,7 +83,7 @@ const composeCard = shot => new Promise(done => {
     g.textAlign = 'left';
     g.fillStyle = 'rgba(169,155,242,.9)';
     g.font = "400 20px 'IBM Plex Mono', ui-monospace, monospace";
-    g.fillText('KARTU POS ORBIT', 74, 92);
+    g.fillText('ORBIT POSTCARD', 74, 92);
 
     if (mark.complete && mark.naturalWidth) g.drawImage(mark, 74, H - 168, 52, 52);
     g.fillStyle = '#f6f3ff';
@@ -91,19 +91,19 @@ const composeCard = shot => new Promise(done => {
     g.fillText('Spatial Indonesia', 142, H - 128);
     g.fillStyle = 'rgba(185,180,204,.9)';
     g.font = "400 20px 'IBM Plex Mono', ui-monospace, monospace";
-    g.fillText('TATA SURYA SPATIAL · SPATIALINDONESIA.ID', 142, H - 96);
+    g.fillText('SPATIAL SOLAR SYSTEM · SPATIALINDONESIA.ID', 142, H - 96);
 
     g.textAlign = 'right';
     g.fillStyle = '#f6f3ff';
     g.font = "400 22px 'IBM Plex Mono', ui-monospace, monospace";
     const km = m ? (m.dist * 1.4e3).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' KM' : '';
-    g.fillText((m && m.target ? m.target.toUpperCase() : 'ORBIT BEBAS') + ' · ' + km, W - 74, H - 128);
+    g.fillText((m && m.target ? m.target.toUpperCase() : 'FREE ORBIT') + ' · ' + km, W - 74, H - 128);
     g.fillStyle = 'rgba(185,180,204,.8)';
     g.font = "400 19px 'IBM Plex Mono', ui-monospace, monospace";
     g.fillText(tanggal(now.toISOString().slice(0, 10)).toUpperCase() + (sky.clock ? ' · ' + sky.clock + ' WIB' : ''), W - 74, H - 96);
     if (up.length) {
       g.fillStyle = 'rgba(169,155,242,.85)';
-      g.fillText(up.slice(0, 3).join(' · ') + ' DI ATAS UFUK', W - 74, H - 66);
+      g.fillText(up.slice(0, 3).join(' · ') + ' ABOVE THE HORIZON', W - 74, H - 66);
     }
     done(c);
   };
@@ -114,12 +114,12 @@ const composeCard = shot => new Promise(done => {
 export const makeCard = async () => {
   const s = scene();
   const shot = s && s.snapshot ? s.snapshot() : null;
-  if (!shot) { signal('Kartu pos tidak bisa diambil dari sesi ini.', 'warn'); return; }
+  if (!shot) { signal('Postcard could not be captured from this session.', 'warn'); return; }
   const c = await composeCard(shot);
-  if (!c) { signal('Gagal menyusun kartu pos.', 'warn'); return; }
+  if (!c) { signal('Failed to compose the postcard.', 'warn'); return; }
   cardCanvas = c;
   cardImg.src = c.toDataURL('image/png');
-  cardNote.textContent = 'PEMANDANGANMU, TERSIMPAN BESERTA KOORDINAT DAN LANGIT MALAM INI';
+  cardNote.textContent = 'YOUR VIEW, SAVED WITH COORDINATES AND TONIGHT\'S SKY';
   node.classList.add('on');
 };
 

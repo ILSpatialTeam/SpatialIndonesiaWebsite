@@ -76,25 +76,25 @@ const cat = a => CATEGORIES[a.cat] || { label: 'Insight', color: '#a99bf2' };
 const CODE = { teknis: 'TEK', desain: 'DSN', industri: 'IND', cerita: 'CRT' };
 
 const FASE = p =>
-  p < 0.06 ? 'HILAL' :
-  p < 0.3 ? 'SABIT' :
-  p < 0.46 ? 'PEREMPAT AWAL' :
-  p < 0.76 ? 'CEMBUNG' :
-  p < DONE_AT ? 'HAMPIR PURNAMA' : 'PURNAMA';
+  p < 0.06 ? 'CRESCENT' :
+  p < 0.3 ? 'WAXING' :
+  p < 0.46 ? 'FIRST QUARTER' :
+  p < 0.76 ? 'GIBBOUS' :
+  p < DONE_AT ? 'NEAR FULL' : 'FULL MOON';
 
 function ago(iso) {
   const d = Math.round((Date.now() - new Date(iso + 'T00:00:00').getTime()) / 86400000);
-  if (d <= 0) return 'hari ini';
-  if (d === 1) return 'kemarin';
-  if (d < 30) return d + ' hari lalu';
-  if (d < 365) return Math.round(d / 30) + ' bulan lalu';
-  return Math.round(d / 365) + ' tahun lalu';
+  if (d <= 0) return 'today';
+  if (d === 1) return 'yesterday';
+  if (d < 30) return d + ' days ago';
+  if (d < 365) return Math.round(d / 30) + ' months ago';
+  return Math.round(d / 365) + ' years ago';
 }
 const tgl = iso => iso.split('-').reverse().join('.');
 function tanggal(iso) {
-  const B = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const B = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const d = new Date(iso + 'T00:00:00');
-  return d.getDate() + ' ' + B[d.getMonth()] + ' ' + d.getFullYear();
+  return B[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
 }
 function jarak(a, b) {
   const gap = Math.abs(ARTICLES.indexOf(a) - ARTICLES.indexOf(b));
@@ -292,12 +292,12 @@ const doc = el('div', { class: 'pn-doc' });
 const topfade = el('div', { class: 'pn-topfade' });
 const col = el('article', { class: 'pn-col' });
 doc.appendChild(col);
-const back = el('button', { class: 'pn-back', text: '← MANIFES', onclick: () => { const s = scene(); if (s) s.travelTo('insight'); } });
+const back = el('button', { class: 'pn-back', text: '← MANIFEST', onclick: () => { const s = scene(); if (s) s.travelTo('insight'); } });
 const telBar = el('i');
-const telName = el('span', { text: 'HILAL' });
+const telName = el('span', { text: 'CRESCENT' });
 const telPct = el('span', { class: 'pct', text: '0%' });
 const tel = el('div', { class: 'pn-tel' }, [
-  el('span', { text: 'FASE' }), telName,
+  el('span', { text: 'PHASE' }), telName,
   el('span', { class: 'bar' }, [telBar]), telPct
 ]);
 const warp = el('div', { class: 'pn-warp' }, [el('div', { class: 's' }), el('div', { class: 'f' })]);
@@ -322,26 +322,26 @@ const narrow = () => innerWidth < NARROW;
 
 /* ---------- manifes ---------- */
 
-let filterCat = 'semua';
+let filterCat = 'all';
 
 function renderManifest() {
   manifest.replaceChildren();
   const total = ARTICLES.reduce((n, a) => n + store.list(a.slug).length, 0);
   const live = ARTICLES.filter(a => !a.archived);
   const arch = ARTICLES.filter(a => a.archived);
-  const pick = arr => filterCat === 'semua' ? arr : arr.filter(a => a.cat === filterCat);
+  const pick = arr => filterCat === 'all' ? arr : arr.filter(a => a.cat === filterCat);
 
   manifest.append(
     el('div', { class: 'pn-mhead' }, [
       el('span', { text: 'PLANET 04' }), el('b', { text: 'INSIGHT' }),
-      el('button', { class: 'pn-x', text: 'TUTUP ✕', onclick: () => { const s = scene(); if (s) s.freeFlight(); } })
+      el('button', { class: 'pn-x', text: 'CLOSE ✕', onclick: () => { const s = scene(); if (s) s.freeFlight(); } })
     ]),
-    el('h2', { class: 'pn-mtitle', text: 'Manifes orbit' }),
-    el('p', { class: 'pn-mline', text: live.length + ' BULAN AKTIF · ' + total + ' SATELIT · ' + store.purnama() + ' PURNAMA TERKUMPUL' })
+    el('h2', { class: 'pn-mtitle', text: 'Orbit manifest' }),
+    el('p', { class: 'pn-mline', text: live.length + ' ACTIVE MOONS · ' + total + ' SATELLITES · ' + store.purnama() + ' FULL MOONS COLLECTED' })
   );
 
   const f = el('div', { class: 'pn-filters' });
-  [['semua', 'SEMUA']].concat(Object.keys(CATEGORIES).map(k => [k, CATEGORIES[k].label.toUpperCase()]))
+  [['all', 'ALL']].concat(Object.keys(CATEGORIES).map(k => [k, CATEGORIES[k].label.toUpperCase()]))
     .forEach(([id, label]) => f.appendChild(el('button', {
       'aria-pressed': String(filterCat === id), text: label,
       onclick: () => { filterCat = id; renderManifest(); }
@@ -361,9 +361,9 @@ function renderManifest() {
       el('span', {}, [
         el('span', { class: 't', text: a.title }),
         el('span', { class: 'm' }, [
-          el('span', {}, [el('i', { text: String(n) }), document.createTextNode(' SATELIT')]),
-          el('span', { text: '· ' + a.read + ' MNT · ' + tgl(a.date) }),
-          store.read(a.slug) ? el('span', { class: 'pu', text: '● PURNAMA' }) : null
+          el('span', {}, [el('i', { text: String(n) }), document.createTextNode(' SATELLITES')]),
+          el('span', { text: '· ' + a.read + ' MIN · ' + tgl(a.date) }),
+          store.read(a.slug) ? el('span', { class: 'pu', text: '● FULL MOON' }) : null
         ])
       ])
     ]);
@@ -371,12 +371,12 @@ function renderManifest() {
   };
 
   const shown = pick(live);
-  if (!shown.length) manifest.appendChild(el('p', { class: 'pn-mline', style: 'margin-top:24px', text: 'TIDAK ADA BULAN DI DISIPLIN INI.' }));
+  if (!shown.length) manifest.appendChild(el('p', { class: 'pn-mline', style: 'margin-top:24px', text: 'NO MOONS IN THIS DISCIPLINE.' }));
   shown.forEach(a => manifest.appendChild(row(a)));
 
   const old = pick(arch);
   if (old.length) {
-    manifest.appendChild(el('p', { class: 'pn-sep', text: '— SABUK ARSIP' }));
+    manifest.appendChild(el('p', { class: 'pn-sep', text: '— ARCHIVE BELT' }));
     old.forEach(a => manifest.appendChild(row(a)));
   }
 }
@@ -400,13 +400,13 @@ function sparingCard(slug, s, refresh) {
       el('span', { style: 'color:' + f.color, text: f.glyph + ' ' + f.label.toUpperCase() }),
       el('b', { text: s.name }),
       el('span', { text: ago(s.at).toUpperCase() }),
-      s.mine ? el('span', { style: 'color:#5ad1c0', text: 'SATELITMU' }) : null,
+      s.mine ? el('span', { style: 'color:#5ad1c0', text: 'YOUR SATELLITE' }) : null,
       // Satelit yang menunggu moderasi hanya terlihat oleh pengirimnya. Diberi
       // tanda supaya ia tidak mengira orang lain sudah membacanya.
-      store.isPending(s.id) ? el('span', { style: 'color:#f2a65a', text: 'MENUNGGU ADMIN' }) : null,
+      store.isPending(s.id) ? el('span', { style: 'color:#f2a65a', text: 'AWAITING REVIEW' }) : null,
       el('button', {
         disabled: store.boosted(s.id) ? '' : null,
-        text: (store.boosted(s.id) ? '↑ ' : '↑ DORONG ') + s.boost,
+        text: (store.boosted(s.id) ? '↑ ' : '↑ BOOST ') + s.boost,
         onclick: () => {
           if (!store.boost(s.id)) return;
           refresh();
@@ -423,11 +423,11 @@ function sparingCard(slug, s, refresh) {
 
 function composeForm(slug, sec, par, paraText, refresh) {
   let freq = null;
-  const hint = el('p', { class: 'pn-hint', text: 'Pilih frekuensimu. Bentuk orbit satelitnya mengikuti pilihan itu.' });
-  const name = el('input', { class: 'pn-in', type: 'text', maxlength: '32', placeholder: 'Namamu (opsional)', value: store.name() });
-  const ta = el('textarea', { class: 'pn-ta', maxlength: String(MAX_TEXT), placeholder: 'Tulis sparing-mu…' });
+  const hint = el('p', { class: 'pn-hint', text: 'Pick your frequency. The satellite\'s orbit shape follows your choice.' });
+  const name = el('input', { class: 'pn-in', type: 'text', maxlength: '32', placeholder: 'Your name (optional)', value: store.name() });
+  const ta = el('textarea', { class: 'pn-ta', maxlength: String(MAX_TEXT), placeholder: 'Write your response…' });
   const count = el('span', { text: '0 / ' + MAX_TEXT });
-  const go = el('button', { class: 'pn-go', disabled: '', text: 'LUNCURKAN' });
+  const go = el('button', { class: 'pn-go', disabled: '', text: 'LAUNCH' });
 
   const btns = Object.keys(FREQ).map(k => el('button', {
     'data-f': k, 'aria-pressed': 'false',
@@ -456,7 +456,7 @@ function composeForm(slug, sec, par, paraText, refresh) {
   go.addEventListener('click', () => {
     const text = ta.value.trim();
     if (!freq || text.length < MIN_TEXT) return;
-    const who = name.value.trim().slice(0, 32) || 'Anonim';
+    const who = name.value.trim().slice(0, 32) || 'Anonymous';
     store.name(who);
 
     // Disimpan lokal lebih dulu supaya satelitnya langsung terbit — menunggu
@@ -468,9 +468,9 @@ function composeForm(slug, sec, par, paraText, refresh) {
       at: new Date().toISOString().slice(0, 10), boost: 0, mine: true
     });
     ta.value = ''; sync();
-    go.disabled = true; go.textContent = 'MELUNCUR…';
+    go.disabled = true; go.textContent = 'LAUNCHING…';
     const s = scene();
-    const land = () => { go.textContent = 'LUNCURKAN'; sync(); refresh(true); };
+    const land = () => { go.textContent = 'LAUNCH'; sync(); refresh(true); };
     if (s && s.launchSparing) s.launchSparing(slug, freq, land); else land();
 
     kirimSparing(slug, { frequencyId: freq, authorName: who, text, anchor: [sec, par] })
@@ -491,7 +491,7 @@ function composeForm(slug, sec, par, paraText, refresh) {
   const fr = el('div', { class: 'pn-freqs' });
   btns.forEach(b => fr.appendChild(b));
   return el('div', { class: 'pn-form' }, [
-    el('p', { class: 'pn-anchor', text: '⌁ DITAMBATKAN KE: “' + paraText.slice(0, 54).trim() + '…”' }),
+    el('p', { class: 'pn-anchor', text: '⌁ ANCHORED TO: “' + paraText.slice(0, 54).trim() + '…”' }),
     fr, hint, name, ta,
     el('div', { class: 'pn-foot' }, [count, go])
   ]);
@@ -515,7 +515,7 @@ function buildPara(a, sec, par, text, tag) {
       }));
     }
     gut.appendChild(el('button', {
-      class: 'pn-add', text: '+ SPARING',
+      class: 'pn-add', text: '+ RESPOND',
       onclick: () => {
         thread.classList.add('open');
         fill(true);
@@ -562,9 +562,9 @@ async function openReader(slug) {
   col.replaceChildren();
   col.append(
     el('p', { class: 'pn-eyebrow' }, [
-      document.createTextNode('BULAN ' + a.no + ' · '),
+      document.createTextNode('MOON ' + a.no + ' · '),
       el('i', { text: c.label.toUpperCase() }),
-      document.createTextNode(' · ' + a.read + ' MENIT')
+      document.createTextNode(' · ' + a.read + ' MIN')
     ]),
     el('h1', { class: 'pn-h1', text: a.title }),
     el('p', { class: 'pn-lead', text: a.lead }),
@@ -580,7 +580,7 @@ async function openReader(slug) {
   // dibuka. Lebih jujur mengatakannya daripada memperlihatkan bulan purnama
   // di atas halaman kosong.
   if (!a.body || !a.body.length) {
-    body.appendChild(el('p', { class: 'pn-lead', text: 'Isi tulisan ini belum bisa dimuat. Periksa sambunganmu, lalu buka lagi bulannya.' }));
+    body.appendChild(el('p', { class: 'pn-lead', text: 'This article could not be loaded. Check your connection, then reopen the moon.' }));
   }
   (a.body || []).forEach((sec, si) => {
     if (sec.h) body.appendChild(el('h2', { class: 'pn-h2', text: sec.h }));
@@ -596,19 +596,19 @@ async function openReader(slug) {
   R.building = false;
 
   const end = el('div', { class: 'pn-end' + (R.done ? ' lit' : '') }, [
-    el('h3', { text: 'Purnama' }),
-    el('p', { text: 'Lintasan selesai. Bulan ini masuk ke langitmu — ' + (store.purnama() + (R.done ? 0 : 1)) + ' purnama terkumpul.' })
+    el('h3', { text: 'Full Moon' }),
+    el('p', { text: 'Orbit complete. This moon has entered your sky — ' + (store.purnama() + (R.done ? 0 : 1)) + ' full moons collected.' })
   ]);
   col.appendChild(end);
   R.endEl = end;
 
   const others = ARTICLES.filter(x => x.slug !== a.slug).sort((x, y) => parseFloat(jarak(a, x)) - parseFloat(jarak(a, y)));
-  const nx = el('div', { class: 'pn-next' }, [el('p', { class: 'pn-sep', style: 'margin:0 0 4px', text: '— LINTASAN BERIKUTNYA' })]);
+  const nx = el('div', { class: 'pn-next' }, [el('p', { class: 'pn-sep', style: 'margin:0 0 4px', text: '— NEXT ORBIT' })]);
   [others[0], others[others.length - 1]].filter(Boolean).forEach(x => nx.appendChild(el('button', {
     class: 'pn-nx', onclick: () => { const s = scene(); if (s) s.openArticle(x.slug); }
   }, [
     el('span', { class: 't', text: x.title }),
-    el('span', { class: 'ly', text: jarak(a, x) + ' THN CAHAYA' })
+    el('span', { class: 'ly', text: jarak(a, x) + ' LIGHT YRS' })
   ])));
   col.appendChild(nx);
 

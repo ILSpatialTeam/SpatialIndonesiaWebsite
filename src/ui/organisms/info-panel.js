@@ -66,7 +66,7 @@ const buildInfo = () => {
   const rows = src ? [...src.querySelectorAll('span')].map(s => s.textContent.trim()) : [];
   if (!rows.length) return;
   infoPanel.replaceChildren();
-  infoPanel.appendChild(el('h4', { text: 'CARA MENGEMUDI' }));
+  infoPanel.appendChild(el('h4', { text: 'HOW TO NAVIGATE' }));
   const lines = el('div', { class: 'lines' });
   const web = document.createElementNS(NS, 'svg');
   web.setAttribute('class', 'web');

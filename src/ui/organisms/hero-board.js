@@ -137,10 +137,10 @@ export function mountButton(btn) {
   }
 }
 
-const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const tanggal = iso => {
   const [y, m, d] = iso.split('-').map(Number);
-  return d + ' ' + BULAN[m - 1] + ' ' + y;
+  return MONTHS[m - 1] + ' ' + d + ', ' + y;
 };
 
 const evName = el('span', { class: 'ev', text: '—' });
@@ -148,12 +148,12 @@ const evMeta = el('span', { class: 'meta' });
 const trackFill = el('i'), trackDot = el('b');
 const track = el('span', { class: 'track' }, [trackFill, trackDot, el('s')]);
 const presence = el('div', { class: 'presence' });
-const goEvent = el('button', { class: 'go', text: 'TERBANG KE TITIK TEMU', onclick: () => { const s = scene(); if (s) s.travelTo('event'); } });
-const goCal = el('button', { class: 'go ghost', text: '+ KALENDER', onclick: () => saveIcs() });
+const goEvent = el('button', { class: 'go', text: 'FLY TO MEETUP POINT', onclick: () => { const s = scene(); if (s) s.travelTo('event'); } });
+const goCal = el('button', { class: 'go ghost', text: '+ CALENDAR', onclick: () => saveIcs() });
 
 
 // judul dipecah per kata: tiap kata naik sendiri lalu dilewati kilau cahaya
-const TITLE = 'Jelajahi tata surya spatial'.split(' ');
+const TITLE = 'Explore the spatial solar system'.split(' ');
 const title = el('h1', {}, TITLE.map((w, i) => el('span', { style: '--i:' + i, text: w })));
 TITLE.forEach((w, i) => { if (i) title.insertBefore(document.createTextNode(' '), title.children[i]); });
 
@@ -168,7 +168,7 @@ TITLE.forEach((w, i) => { if (i) title.insertBefore(document.createTextNode(' ')
 export const node = el('div', { class: 'hud-hero', 'data-hud-el': 'hero' }, [
   title,
   el('div', { class: 'agenda' }, [
-    el('span', { class: 'kicker' }, [el('i'), el('span', { text: 'PERTEMUAN BERIKUTNYA' })]),
+    el('span', { class: 'kicker' }, [el('i'), el('span', { text: 'NEXT MEETUP' })]),
     evName, evMeta, track,
     el('span', { class: 'acts' }, [goEvent, goCal])
   ]),
@@ -195,7 +195,7 @@ export const paint = st => {
   evMeta.replaceChildren(
     el('b', { text: tanggal(st.next.date).toUpperCase() }),
     el('span', { text: ' · ' + st.next.place.toUpperCase() + ' · ' }),
-    el('b', { text: st.days === 0 ? 'HARI INI' : st.days + ' HARI LAGI' })
+    el('b', { text: st.days === 0 ? 'TODAY' : st.days + ' DAYS AWAY' })
   );
   const pct = Math.round(st.progress * 100);
   trackFill.style.width = pct + '%';
@@ -204,7 +204,7 @@ export const paint = st => {
 
 export const paintPresence = () => {
   const recent = PRESENCE.filter(v => v.ago <= 120).length || PRESENCE.length;
-  presence.textContent = recent + ' PENJELAJAH LEWAT DALAM 2 JAM TERAKHIR';
+  presence.textContent = recent + ' EXPLORERS PASSED THROUGH IN THE LAST 2 HOURS';
 };
 
 // Undangan kalender dibuat di sisi klien: satu berkas .ics, tanpa server.
@@ -230,5 +230,5 @@ export const saveIcs = ev => {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
-  signal('Undangan ' + item.title + ' tersimpan ke kalendermu.');
+  signal('Invitation for ' + item.title + ' saved to your calendar.');
 };

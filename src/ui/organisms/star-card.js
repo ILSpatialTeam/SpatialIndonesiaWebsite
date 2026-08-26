@@ -93,7 +93,7 @@ function gambar(b) {
     b.note ? el('p', { class: 'pesan', text: b.note }) : null,
     el('div', { class: 'kaki' }, [
       el('span', { text: `ra ${Number(b.ra).toFixed(2)}j · dec ${Number(b.dec).toFixed(1)}°` }),
-      el('button', { class: 'tutup', type: 'button', text: 'Tutup', onclick: lepas })
+      el('button', { class: 'tutup', type: 'button', text: 'Close', onclick: lepas })
     ])
   );
 }

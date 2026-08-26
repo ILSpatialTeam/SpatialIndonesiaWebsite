@@ -114,88 +114,88 @@
     <div data-ui="actiongroup" style="display: flex; align-items: center; gap: 12px; pointer-events: auto; flex: 0 0 auto;">
       <div data-ui="mode" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid rgba(243,242,248,.14); border-radius: 999px; background: rgba(18,17,22,.55); font-size: 11px; letter-spacing: .16em; color: #8f8aa3;">
         <span style="width: 5px; height: 5px; border-radius: 50%; background: #a99bf2;"></span>
-        <span data-hud="mode">ORBIT BEBAS</span>
+        <span data-hud="mode">FREE ORBIT</span>
       </div>
       <button data-ui="meteorbtn" onClick="{{ onMeteor }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 16px; border: 1px solid rgba(255,138,61,.55); border-radius: 999px; background: rgba(255,120,60,.1); color: #ffb066; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;" style-hover="background: rgba(255,120,60,.22);">
         <span style="width: 9px; height: 9px; border-radius: 50%; background: #ff8a3d; box-shadow: 0 0 10px rgba(255,138,61,.9);"></span>
-        <span data-ui="meteorlabel">Mode Meteor</span>
+        <span data-ui="meteorlabel">Meteor Mode</span>
       </button>
       <button data-ui="arbtn" onClick="{{ onEnterAR }}" style="display: none; align-items: center; gap: 9px; padding: 10px 18px; border: 1px solid #a99bf2; border-radius: 999px; background: rgba(169,155,242,.12); color: #a99bf2; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;" style-hover="background: rgba(169,155,242,.2);">
         <span style="width: 13px; height: 13px; border: 1.5px solid #a99bf2; border-radius: 3px;"></span>
-        <span data-ui="arlabel">Mode AR</span>
+        <span data-ui="arlabel">AR Mode</span>
       </button>
       <button data-ui="vrbtn" onClick="{{ onEnterVR }}" style="display: flex; align-items: center; gap: 9px; padding: 10px 18px; white-space: nowrap; border: none; border-radius: 999px; background: #9E94F9; color: #121116; font-family: 'Instrument Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="background: #8375ea;">
         <span style="width: 15px; height: 9px; border: 1.5px solid #121116; border-radius: 3px 3px 5px 5px;"></span>
-        <span data-ui="vrlabel">Masuk Mode VR</span>
+        <span data-ui="vrlabel">Enter VR Mode</span>
       </button>
     </div>
   </header>
 
   <div data-ui="flightplan" style="position: absolute; top: 96px; left: 34px; z-index: 30; width: 246px; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .45s both;">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #8f8aa3;">
-      <span data-ui="fpTitleRule" style="width: 20px; height: 1px; background: #9E94F9;"></span>Rencana penerbangan
+      <span data-ui="fpTitleRule" style="width: 20px; height: 1px; background: #9E94F9;"></span>Flight plan
     </div>
     <div data-ui="fpList" onClick="{{ onGoto }}" style="display: flex; flex-direction: column; gap: 1px;">
       <button data-goto="inti" data-nav="inti" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">00</span>
-        <span>Inti</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">VISI</span>
+        <span>Core</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">VISION</span>
       </button>
       <button data-goto="program" data-nav="program" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">01</span>
         <span>Program</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">4 KEGIATAN</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">4 PROGRAMS</span>
       </button>
       <button data-goto="karya" data-nav="karya" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">02</span>
-        <span>Karya</span>
+        <span>Showcase</span>
         <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">SHOWCASE</span>
       </button>
       <button data-goto="event" data-nav="event" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">03</span>
         <span>Event</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">JADWAL</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">SCHEDULE</span>
       </button>
       <button data-goto="insight" data-nav="insight" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">04</span>
         <span>Insight</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">CATATAN</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">NOTES</span>
       </button>
       <button data-goto="tim" data-nav="tim" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(18,17,22,.45); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: rgba(169,155,242,.5); background: rgba(169,155,242,.07);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #6c6782;">05</span>
-        <span>Tim</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">RELAWAN</span>
+        <span>Team</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #6c6782;">VOLUNTEERS</span>
       </button>
       <button data-goto="gabung" data-nav="gabung" style="display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid transparent; border-radius: 6px; background: rgba(106,90,224,.1); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 13.5px; text-align: left; cursor: pointer;" style-hover="border-color: #9E94F9;">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">06</span>
-        <span>Gabung</span>
-        <span style="font-size: 10px; letter-spacing: .1em; color: #9E94F9;">TERBUKA</span>
+        <span>Join</span>
+        <span style="font-size: 10px; letter-spacing: .1em; color: #9E94F9;">OPEN</span>
       </button>
     </div>
-    <button data-ui="freeflight" onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(243,242,248,.14); border-radius: 6px; background: transparent; color: #8f8aa3; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #a99bf2; color: #a99bf2;">KEMBALI KE ORBIT BEBAS</button>
+    <button data-ui="freeflight" onClick="{{ onFree }}" style="margin-top: 12px; width: 100%; padding: 9px; border: 1px solid rgba(243,242,248,.14); border-radius: 6px; background: transparent; color: #8f8aa3; font-family: 'Instrument Sans', sans-serif; font-size: 11.5px; letter-spacing: .14em; cursor: pointer;" style-hover="border-color: #a99bf2; color: #a99bf2;">RETURN TO FREE ORBIT</button>
   </div>
 
   <div data-ui="hints" style="position: absolute; bottom: 88px; left: 34px; z-index: 30; display: flex; flex-direction: column; gap: 8px; font-size: 11px; letter-spacing: .06em; color: #6c6782; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .6s both;">
-    <span>TARIK — arahkan pandangan</span>
-    <span>KLIK PLANET — terbang ke tujuan</span>
-    <span>SCROLL — atur jarak · ESC — orbit bebas</span>
-    <span style="color: #8f8aa3;">DI VR — trigger, pinch, atau tatap 1,2 detik</span>
+    <span>DRAG — steer your view</span>
+    <span>CLICK PLANET — fly to destination</span>
+    <span>SCROLL — adjust distance · ESC — free orbit</span>
+    <span style="color: #8f8aa3;">IN VR — trigger, pinch, or gaze for 1.2 seconds</span>
   </div>
 
   <div data-ui="readout" style="position: absolute; bottom: 34px; left: 50%; transform: translateX(-50%); z-index: 30; pointer-events: none;">
     <div data-ui="readoutInner" style="display: flex; align-items: center; gap: 26px; padding: 12px 22px; border: 1px solid rgba(243,242,248,.12); border-radius: 999px; background: rgba(18,17,22,.6); backdrop-filter: blur(10px); animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .55s both;">
     <div style="display: flex; flex-direction: column; gap: 3px;">
-      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">KECEPATAN</span>
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">SPEED</span>
       <span data-hud="speed" style="font-family: 'Poppins', sans-serif; font-size: 17px; color: #a99bf2;">000</span>
     </div>
     <span style="width: 1px; height: 26px; background: rgba(243,242,248,.12);"></span>
     <div style="display: flex; flex-direction: column; gap: 3px;">
-      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">JARAK KE TUJUAN</span>
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">DISTANCE TO TARGET</span>
       <span data-hud="distance" style="font-family: 'Poppins', sans-serif; font-size: 17px; color: #f3f2f8;">—</span>
     </div>
     <span style="width: 1px; height: 26px; background: rgba(243,242,248,.12);"></span>
     <div style="display: flex; flex-direction: column; gap: 3px;">
-      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">TUJUAN</span>
+      <span style="font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">TARGET</span>
       <span data-hud="target" style="font-family: 'Poppins', sans-serif; font-size: 17px; color: #9E94F9;">—</span>
       </div>
     </div>
@@ -203,37 +203,37 @@
 
   <div data-intro="1" style="position: absolute; bottom: 122px; left: 50%; transform: translateX(-50%); z-index: 28; width: min(500px, 42vw); text-align: center; pointer-events: none; transition: opacity .5s;">
     <div style="animation: hudIn 1s cubic-bezier(.2,.7,.2,1) .8s both;">
-    <h1 style="margin: 0 0 12px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: clamp(30px, 4.4vw, 54px); line-height: .98; letter-spacing: -.035em;">Jelajahi tata surya spatial</h1>
-    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #b9b4cc;">Tiap planet adalah bagian dari komunitas. Terbang ke sana untuk melihat isinya.</p>
+    <h1 style="margin: 0 0 12px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: clamp(30px, 4.4vw, 54px); line-height: .98; letter-spacing: -.035em;">Explore the spatial solar system</h1>
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #b9b4cc;">Each planet is a part of the community. Fly there to see what's inside.</p>
     </div>
   </div>
 
   <div data-panel="inti" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 00 · Inti</span>
+      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 00 · Core</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
     <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Opening Access of Emerging Spatial Technology</h2>
-    <p data-slot="lead" style="margin: 0 0 26px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Teknologi spatial seharusnya bisa diakses siapa pun, dari mana pun di Indonesia. Itu titik awal kami.</p>
+    <p data-slot="lead" style="margin: 0 0 26px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Spatial technology should be accessible to everyone, from anywhere in Indonesia. That's our starting point.</p>
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">
-      <span style="width: 20px; height: 1px; background: #a99bf2;"></span>Misi
+      <span style="width: 20px; height: 1px; background: #a99bf2;"></span>Mission
     </div>
     <div data-slot="items" style="display: flex; flex-direction: column; gap: 1px;">
       <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">01</span>
-        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Membuat teknologi spatial lebih accessible bagi semua.</p>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Making spatial technology more accessible for everyone.</p>
       </div>
       <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">02</span>
-        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Membangun kolaborasi untuk mendorong inovasi spatial.</p>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Building collaboration to drive spatial innovation.</p>
       </div>
       <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">03</span>
-        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Mengembangkan talenta teknologi spatial masa depan.</p>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Developing future spatial technology talent.</p>
       </div>
       <div style="display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid rgba(243,242,248,.1); border-bottom: 1px solid rgba(243,242,248,.1);">
         <span style="font-family: 'Poppins', sans-serif; font-size: 11px; color: #9E94F9;">04</span>
-        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Menciptakan teknologi spatial yang meaningful dan berdampak.</p>
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.5;">Creating meaningful and impactful spatial technology.</p>
       </div>
     </div>
   </div>
@@ -243,71 +243,71 @@
       <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">Planet 01 · Program</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Program &amp; kegiatan</h2>
-    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Semua terbuka untuk publik. Tidak perlu headset sendiri untuk mulai ikut.</p>
+    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Programs &amp; activities</h2>
+    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">All open to the public. No headset required to get started.</p>
     <div data-slot="items" style="display: flex; flex-direction: column; gap: 14px;">
       <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Bulanan</div>
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Monthly</div>
         <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">XR Meetup</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Ngumpul santai: demo karya, sesi tanya jawab, dan coba perangkat bareng.</p>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Casual gathering: project demos, Q&amp;A sessions, and hands-on device tryouts.</p>
       </div>
       <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Belajar</div>
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Learning</div>
         <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Workshop &amp; bootcamp</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Kelas praktik dari nol: WebXR, Unity, three.js, sampai desain interaksi spatial.</p>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Hands-on classes from scratch: WebXR, Unity, three.js, to spatial interaction design.</p>
       </div>
       <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Kolaborasi</div>
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Collaboration</div>
         <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Open Build</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Bikin proyek bareng lintas disiplin, dari ide sampai rilis, dengan mentor komunitas.</p>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Build cross-disciplinary projects together, from idea to launch, with community mentors.</p>
       </div>
       <div style="padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px;">
-        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Kampus</div>
-        <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Kelas keliling</h3>
-        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Membawa pengenalan teknologi spatial ke kampus dan sekolah di berbagai kota.</p>
+        <div style="margin-bottom: 8px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #9E94F9;">Campus</div>
+        <h3 style="margin: 0 0 6px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px;">Roadshow</h3>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.55; color: #8f8aa3;">Bringing spatial technology introduction to campuses and schools across cities.</p>
       </div>
     </div>
   </div>
 
   <div data-panel="karya" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 02 · Karya</span>
+      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 02 · Showcase</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Karya member</h2>
-    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Proyek VR, AR, dan XR yang dibangun oleh member komunitas.</p>
+    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Member showcase</h2>
+    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">VR, AR, and XR projects built by community members.</p>
     <div data-slot="items" style="display: flex; flex-direction: column; gap: 16px;">
       <article style="border: 1px solid rgba(243,242,248,.1); border-radius: 8px; overflow: hidden;">
-        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(106,90,224,.16), rgba(169,155,242,.09)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Visual proyek</div>
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(106,90,224,.16), rgba(169,155,242,.09)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Project visual</div>
         <div style="padding: 16px 18px;">
           <div style="display: flex; gap: 7px; margin-bottom: 10px;">
             <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">VR</span>
-            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Edukasi</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Education</span>
           </div>
-          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Deskripsi singkat dan nama member pembuatnya.</p>
+          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Project title</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Brief description and name of the member who built it.</p>
         </div>
       </article>
       <article style="border: 1px solid rgba(243,242,248,.1); border-radius: 8px; overflow: hidden;">
-        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(169,155,242,.16), rgba(106,90,224,.08)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Visual proyek</div>
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(169,155,242,.16), rgba(106,90,224,.08)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Project visual</div>
         <div style="padding: 16px 18px;">
           <div style="display: flex; gap: 7px; margin-bottom: 10px;">
             <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">AR</span>
-            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Budaya</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Culture</span>
           </div>
-          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Deskripsi singkat dan nama member pembuatnya.</p>
+          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Project title</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Brief description and name of the member who built it.</p>
         </div>
       </article>
       <article style="border: 1px solid rgba(243,242,248,.1); border-radius: 8px; overflow: hidden;">
-        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(243,242,248,.12), rgba(106,90,224,.1)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Visual proyek</div>
+        <div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, rgba(243,242,248,.12), rgba(106,90,224,.1)); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: #6c6782;">Project visual</div>
         <div style="padding: 16px 18px;">
           <div style="display: flex; gap: 7px; margin-bottom: 10px;">
             <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">XR</span>
-            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Industri</span>
+            <span style="padding: 3px 9px; border: 1px solid rgba(243,242,248,.16); border-radius: 999px; font-size: 10px; color: #8f8aa3;">Industry</span>
           </div>
-          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Judul proyek</h3>
-          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Deskripsi singkat dan nama member pembuatnya.</p>
+          <h3 style="margin: 0 0 5px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 17px;">Project title</h3>
+          <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8f8aa3;">Brief description and name of the member who built it.</p>
         </div>
       </article>
     </div>
@@ -318,8 +318,8 @@
       <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #f3f2f8;">Planet 03 · Event</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Event &amp; meetup</h2>
-    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Jadwal terdekat. Klik untuk daftar lewat planet Gabung.</p>
+    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Events &amp; meetups</h2>
+    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Upcoming schedule. Click to register via the Join planet.</p>
     <div data-agenda-list="1" style="display: flex; flex-direction: column;"></div>
   </div>
 
@@ -328,61 +328,61 @@
       <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #a99bf2;">Planet 04 · Insight</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Sistem Insight</h2>
-    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Tiap tulisan adalah satu bulan yang mengorbit planet ini.</p>
+    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Insight System</h2>
+    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Each article is a moon orbiting this planet.</p>
     <div data-slot="items" style="display: flex; flex-direction: column; gap: 14px;">
       <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Teknis</span>
-        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Kenapa 72 FPS Jadi Garis Hidup di VR</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Di headset, frame drop bukan sekadar tersendat — itu yang bikin orang mual.</span>
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Technical</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Why 72 FPS Is the Lifeline in VR</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">In a headset, frame drops aren't just stuttering — they're what makes people sick.</span>
       </a>
       <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Desain</span>
-        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Antarmuka yang Tidak Bisa Disentuh</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Zona nyaman, ukuran target, dan umpan balik ketika tidak ada permukaan untuk ditekan.</span>
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Design</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">Interfaces You Can't Touch</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Comfort zones, target sizes, and feedback when there's no surface to press.</span>
       </a>
       <a href="#insight" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid rgba(243,242,248,.1); border-radius: 8px; color: #f3f2f8;" style-hover="border-color: #a99bf2;">
-        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Industri</span>
-        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">WebXR: Jalan Tercepat Masuk Spatial</span>
-        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">Hambatan terbesar bukan harga headset, tapi jarak antara karyamu dan penontonnya.</span>
+        <span style="font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #a99bf2;">Industry</span>
+        <span style="font-family: 'Poppins', sans-serif; font-size: 17px; line-height: 1.2;">WebXR: The Fastest Way Into Spatial</span>
+        <span style="font-size: 13px; line-height: 1.55; color: #8f8aa3;">The biggest barrier isn't headset price, but the distance between your work and the audience.</span>
       </a>
     </div>
   </div>
 
   <div data-panel="tim" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(243,242,248,.14); border-radius: 10px; background: rgba(18,17,22,.86); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #f3f2f8;">Planet 05 · Tim</span>
+      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #f3f2f8;">Planet 05 · Team</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Tim inti</h2>
-    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Relawan yang menjaga ritme komunitas.</p>
+    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 30px; line-height: 1.06; letter-spacing: -.03em;">Core team</h2>
+    <p data-slot="lead" style="margin: 0 0 24px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Volunteers who keep the community rhythm going.</p>
     <div data-slot="items" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Photo</div>
         <div>
-          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Name</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Role</div>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Photo</div>
         <div>
-          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Name</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Role</div>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Photo</div>
         <div>
-          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Name</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Role</div>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Foto</div>
+        <div style="aspect-ratio: 3 / 4; display: flex; align-items: flex-end; padding: 12px; border-radius: 8px; background: rgba(243,242,248,.06); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #6c6782;">Photo</div>
         <div>
-          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Nama</div>
-          <div style="font-size: 12.5px; color: #8f8aa3;">Peran</div>
+          <div style="font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600;">Name</div>
+          <div style="font-size: 12.5px; color: #8f8aa3;">Role</div>
         </div>
       </div>
     </div>
@@ -390,28 +390,28 @@
 
   <div data-panel="gabung" style="position: absolute; top: 96px; right: 34px; bottom: 34px; z-index: 32; display: none; flex-direction: column; width: min(430px, 42vw); padding: 30px; border: 1px solid rgba(106,90,224,.3); border-radius: 10px; background: rgba(18,17,22,.88); backdrop-filter: blur(16px); overflow-y: auto; animation: panelIn .5s cubic-bezier(.2,.7,.2,1) both;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px;">
-      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 06 · Gabung</span>
+      <span data-slot="eyebrow" style="font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: #9E94F9;">Planet 06 · Join</span>
       <button onClick="{{ onFree }}" style="width: 26px; height: 26px; border: 1px solid rgba(243,242,248,.18); border-radius: 50%; background: transparent; color: #8f8aa3; font-size: 13px; line-height: 1; cursor: pointer;" style-hover="border-color: #9E94F9; color: #9E94F9;">×</button>
     </div>
-    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; line-height: 1.02; letter-spacing: -.035em;">Ikut bangun ruangnya</h2>
-    <p data-slot="lead" style="margin: 0 0 22px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">Kami senang kenalan dengan orang baru. Isi datanya, kami hubungi untuk kegiatan terdekat.</p>
+    <h2 data-slot="title" style="margin: 0 0 10px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; line-height: 1.02; letter-spacing: -.035em;">Help build the space</h2>
+    <p data-slot="lead" style="margin: 0 0 22px; font-size: 14px; line-height: 1.65; color: #b9b4cc;">We love meeting new people. Fill in your details, and we'll reach out for the next activity.</p>
     <form onSubmit="{{ onSubmit }}" style="display: flex; flex-direction: column; gap: 14px;">
-      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Nama
-        <input name="name" type="text" placeholder="Nama lengkap" required style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;" />
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Name
+        <input name="name" type="text" placeholder="Full name" required style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;" />
       </label>
       <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Email
         <input name="email" type="email" placeholder="nama@email.com" required style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;" />
       </label>
-      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Fokus
+      <label style="display: flex; flex-direction: column; gap: 7px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #8f8aa3;">Focus
         <select name="focus" style="padding: 12px 13px; border: 1px solid rgba(243,242,248,.16); border-radius: 6px; background: rgba(243,242,248,.04); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 14px; letter-spacing: normal; text-transform: none;" style-focus="border-color: #9E94F9; outline: none;">
           <option>Developer</option>
           <option>Designer / 3D artist</option>
-          <option>Mahasiswa / pemula</option>
-          <option>Perusahaan / partner</option>
-          <option>Peneliti / pendidik</option>
+          <option>Student / beginner</option>
+          <option>Company / partner</option>
+          <option>Researcher / educator</option>
         </select>
       </label>
-      <button type="submit" style="margin-top: 4px; padding: 14px; border: none; border-radius: 6px; background: #9E94F9; color: #121116; font-family: 'Instrument Sans', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;" style-hover="background: #8375ea;">Kirim</button>
+      <button type="submit" style="margin-top: 4px; padding: 14px; border: none; border-radius: 6px; background: #9E94F9; color: #121116; font-family: 'Instrument Sans', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;" style-hover="background: #8375ea;">Submit</button>
       <div style="min-height: 17px; font-size: 12.5px; color: #a99bf2;">{{ formMsg }}</div>
     </form>
     <div data-slot="links" style="display: flex; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(243,242,248,.1); font-size: 12.5px;">
@@ -422,7 +422,7 @@
   </div>
 
   <div data-ui="xrline" style="position: absolute; bottom: 100px; right: 34px; z-index: 30; max-width: 230px; font-size: 11px; line-height: 1.6; letter-spacing: .04em; text-align: right; color: #6c6782; pointer-events: none;">
-    <span data-hud="xr">Cek dukungan headset...</span>
+    <span data-hud="xr">Checking headset support...</span>
   </div>
 
   <div data-ui="cursor" style="position: fixed; top: 0; left: 0; z-index: 70; pointer-events: none; opacity: 0; transition: opacity .35s; will-change: transform;">
@@ -446,7 +446,7 @@
     </div>
   </div>
   <div data-ui="cursorpick" onClick="{{ onCursorPick }}" style="position: absolute; bottom: 30px; left: 34px; z-index: 31; display: none; align-items: center; gap: 8px;">
-    <span style="margin-right: 2px; font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">KURSOR</span>
+    <span style="margin-right: 2px; font-size: 9.5px; letter-spacing: .2em; color: #6c6782;">CURSOR</span>
     <button data-cursorpick="target" title="Mode target" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(243,242,248,.16); border-radius: 8px; background: transparent; color: #8f8aa3; cursor: pointer;">
       <span style="position: absolute; top: 50%; left: 50%; width: 13px; height: 13px; margin: -7px 0 0 -7px; border: 1px solid currentColor; border-radius: 50%;"></span>
       <span style="position: absolute; top: 50%; left: 50%; width: 21px; height: 1px; margin: 0 0 0 -10px; background: currentColor;"></span>
@@ -456,17 +456,17 @@
       <span style="position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: currentColor;"></span>
       <span style="position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border: 1px solid currentColor; border-radius: 50%; opacity: .5;"></span>
     </button>
-    <button data-cursorpick="ship" title="Mode pesawat mini" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(243,242,248,.16); border-radius: 8px; background: transparent; color: #8f8aa3; cursor: pointer;">
+    <button data-cursorpick="ship" title="Mini ship mode" style="position: relative; width: 34px; height: 34px; border: 1px solid rgba(243,242,248,.16); border-radius: 8px; background: transparent; color: #8f8aa3; cursor: pointer;">
       <span style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; margin: -9px 0 0 -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 16px solid currentColor;"></span>
     </button>
   </div>
   <div data-ui="arhint" style="position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); z-index: 36; display: none; flex-direction: column; align-items: center; gap: 14px; padding: 22px 26px; border: 1px solid rgba(169,155,242,.4); border-radius: 14px; background: rgba(18,17,22,.82); text-align: center; pointer-events: none;">
     <span style="width: 30px; height: 30px; border: 1.5px solid #a99bf2; border-radius: 50%;"></span>
-    <span data-ui="arhintTitle" style="font-family: 'Poppins', sans-serif; font-size: 17px;">Arahkan ke permukaan datar</span>
-    <span data-ui="arhintBody" style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b9b4cc;">Gerakkan perangkat sampai lingkaran muncul, lalu ketuk untuk menempatkan tata surya.</span>
+    <span data-ui="arhintTitle" style="font-family: 'Poppins', sans-serif; font-size: 17px;">Point at a flat surface</span>
+    <span data-ui="arhintBody" style="max-width: 260px; font-size: 12.5px; line-height: 1.55; color: #b9b4cc;">Move your device until a circle appears, then tap to place the solar system.</span>
   </div>
 
-  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: calc(72px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(243,242,248,.2); border-radius: 999px; background: rgba(18,17,22,.7); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #a99bf2; color: #a99bf2;">TEMPATKAN ULANG</button>
+  <button data-ui="arreplace" onClick="{{ onReplaceAR }}" style="position: absolute; top: calc(72px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 36; display: none; padding: 0 16px; min-height: 40px; border: 1px solid rgba(243,242,248,.2); border-radius: 999px; background: rgba(18,17,22,.7); color: #f3f2f8; font-family: 'Instrument Sans', sans-serif; font-size: 12px; letter-spacing: .1em; cursor: pointer;" style-hover="border-color: #a99bf2; color: #a99bf2;">REPOSITION</button>
 
   <div ref="{{ loaderRef }}" style="position: absolute; inset: 0; z-index: 60; background: #121116; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 1s ease .2s, visibility 1s;">
     <div data-ui="bootmark" style="position: relative; width: 208px; height: 208px; display: flex; align-items: center; justify-content: center; perspective: 520px;">
@@ -488,12 +488,12 @@
 
       <img src="assets/si-mark.png" srcset="assets/si-mark.png 1x, assets/si-mark-3x.png 3x" alt="Spatial Indonesia" width="72" height="72" style="position: relative; display: block; width: 72px; height: auto; filter: drop-shadow(0 8px 30px rgba(106,90,224,.7)); animation: markBoot 1.15s cubic-bezier(.2,.7,.2,1) both, markFloat 3.8s ease-in-out 1.15s infinite;" />
     </div>
-    <div style="font-family: 'Poppins', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8f8aa3; animation: bootLabel 2.4s ease-in-out infinite;">Menyalakan pesawat</div>
+    <div style="font-family: 'Poppins', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8f8aa3; animation: bootLabel 2.4s ease-in-out infinite;">Powering up the ship</div>
   </div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;cursorStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;target&quot;,&quot;blackhole&quot;,&quot;ship&quot;],&quot;default&quot;:&quot;target&quot;,&quot;tsType&quot;:&quot;'target' | 'blackhole' | 'ship'&quot;,&quot;section&quot;:&quot;Kursor&quot;}}">
-const NAMES = { inti: 'INTI', program: 'PROGRAM', karya: 'KARYA', event: 'EVENT', insight: 'INSIGHT', tim: 'TIM', gabung: 'GABUNG' };
+const NAMES = { inti: 'CORE', program: 'PROGRAM', karya: 'SHOWCASE', event: 'EVENT', insight: 'INSIGHT', tim: 'TEAM', gabung: 'JOIN' };
 const MOBILE = 780;
 // the black hole cursor brings its own soundtrack
 const MUSIC_SRC = './sounds/interstellar.mp3', MUSIC_VOL = 0.8;
@@ -530,13 +530,13 @@ class Component extends DCLogic {
       const d = e.detail || {};
       this.vrReady = !!d.ok;
       this.xrButtons();
-      if (d.ok) return this.xrLine('Headset terdeteksi — mode VR siap dipakai');
-      if (d.reason === 'blocked') return this.xrLine('Mode VR terkunci di tampilan sematan ini. Buka halaman langsung di browser headset.');
+      if (d.ok) return this.xrLine('Headset detected — VR mode ready');
+      if (d.reason === 'blocked') return this.xrLine('VR mode is locked in this embedded view. Open the page directly in the headset browser.');
       // di headset, penyebab paling sering bukan "tidak didukung" tapi halaman
       // yang dibuka lewat http biasa: WebXR hanya hidup di konteks aman
-      if (!isSecureContext) return this.xrLine('Mode VR butuh HTTPS. Buka lewat https:// (localhost juga dihitung aman), bukan http://alamat-IP.');
-      if (d.reason === 'unsupported') return this.xrLine('Browser ini belum menyalakan WebXR. Di Vision Pro visionOS 1: Settings → Apps → Safari → Advanced → Feature Flags → WebXR. Di visionOS 2 ke atas sudah aktif bawaan.');
-      this.xrLine('Belum ada headset terdeteksi. Buka dari headset untuk mode VR penuh.');
+      if (!isSecureContext) return this.xrLine('VR mode requires HTTPS. Open via https:// (localhost counts as secure), not http://IP-address.');
+      if (d.reason === 'unsupported') return this.xrLine('This browser has not enabled WebXR. On Vision Pro visionOS 1: Settings → Apps → Safari → Advanced → Feature Flags → WebXR. On visionOS 2 and above it is enabled by default.');
+      this.xrLine('No headset detected. Open from a headset for full VR mode.');
     };
     this._xrEnd = () => {
       const wasAR = this.arActive;
@@ -552,7 +552,7 @@ class Component extends DCLogic {
       this.applyLayout();
       this.setCursor(this.cursorMode);
       this.showPanel(null);
-      this.xrLine(wasAR ? 'Sesi AR selesai. Kamu kembali ke tampilan layar.' : 'Sesi VR selesai. Kamu kembali ke tampilan layar.');
+      this.xrLine(wasAR ? 'AR session ended. You are back to screen view.' : 'VR session ended. You are back to screen view.');
     };
     document.addEventListener('scene-ready', this._ready);
     document.addEventListener('planet-focus', this._focus);
@@ -583,8 +583,8 @@ class Component extends DCLogic {
       this.st(this.q('[data-ui="header"]'), { display: 'flex' });
       this.st(this.q('[data-ui="readout"]'), { display: 'block' });
       this.xrButtons();
-      if (ok) this.xrLine('Perangkat mendukung AR — ketuk Mode AR untuk melihat tata surya di ruanganmu.');
-      else if (this.isPhone && !this.vrReady) this.xrLine('Ketuk Mode AR untuk mencoba melihat tata surya di ruanganmu.');
+      if (ok) this.xrLine('Device supports AR — tap AR Mode to see the solar system in your room.');
+      else if (this.isPhone && !this.vrReady) this.xrLine('Tap AR Mode to try viewing the solar system in your room.');
     };
     this._arStart = e => {
       this.arActive = true;
@@ -593,13 +593,13 @@ class Component extends DCLogic {
       this.st(this.q('[data-ui="arhint"]'), { display: 'none' });
       this.transparent(true);
       this.arChrome();
-      this.xrLine('Sesi AR aktif — tata surya muncul di depan kameramu.');
+      this.xrLine('AR session active — the solar system appears in front of your camera.');
     };
-    this._xrErr = e => this.xrLine('Galat AR: ' + ((e.detail && e.detail.message) || 'tidak diketahui'));
+    this._xrErr = e => this.xrLine('AR error: ' + ((e.detail && e.detail.message) || 'unknown'));
     this._sessEnd = e => {
       const d = (e.detail || {});
       this.lastEnd = d;
-      if (d.mode === 'ar' && !d.placed) this.xrLine('Sesi AR berakhir sebelum tracking siap. Pastikan izin kamera diberikan dan halaman dibuka di tab Chrome, bukan dalam aplikasi lain.');
+      if (d.mode === 'ar' && !d.placed) this.xrLine('AR session ended before tracking was ready. Make sure camera permission is granted and the page is opened in a Chrome tab, not inside another app.');
     };
     document.addEventListener('xr-error', this._xrErr);
     document.addEventListener('xr-session-end', this._sessEnd);
@@ -619,8 +619,8 @@ class Component extends DCLogic {
     this._arHitTest = e => {
       const ok = !!(e.detail && e.detail.ok);
       const t = this.q('[data-ui="arhintTitle"]'), b = this.q('[data-ui="arhintBody"]');
-      if (t) t.textContent = 'Ketuk untuk menempatkan';
-      if (b) b.textContent = 'Tata surya mengikuti arah ponselmu. Ketuk untuk mengunci posisinya, lalu ketuk planet untuk membuka menunya.';
+      if (t) t.textContent = 'Tap to place';
+      if (b) b.textContent = 'The solar system follows your device direction. Tap to lock its position, then tap a planet to open its menu.';
     };
     document.addEventListener('ar-hittest', this._arHitTest);
     document.addEventListener('ar-replace', this._arReplace);
@@ -691,7 +691,7 @@ class Component extends DCLogic {
   meteorBtn() {
     const on = !!this.meteorOn, m = !!this.mobile;
     const l = this.q('[data-ui="meteorlabel"]');
-    if (l) l.textContent = on ? (m ? 'Keluar' : 'Keluar Mode Meteor') : (m ? 'Meteor' : 'Mode Meteor');
+    if (l) l.textContent = on ? (m ? 'Exit' : 'Exit Meteor Mode') : (m ? 'Meteor' : 'Meteor Mode');
     this.st(this.q('[data-ui="meteorbtn"]'), {
       borderColor: on ? '#ff5a3d' : 'rgba(255,138,61,.55)',
       background: on ? 'rgba(255,90,61,.16)' : 'rgba(255,120,60,.1)',
@@ -863,7 +863,7 @@ class Component extends DCLogic {
     st(q('[data-ui="brand"]'), { overflow: 'hidden', textOverflow: 'ellipsis', minWidth: '0' });
     st(q('[data-ui="actiongroup"]'), { gap: m ? '8px' : '12px' });
     const vl = q('[data-ui="vrlabel"]');
-    if (vl) vl.textContent = m ? 'Mode VR' : 'Masuk Mode VR';
+    if (vl) vl.textContent = m ? 'VR Mode' : 'Enter VR Mode';
     st(q('[data-ui="mode"]'), { display: m ? 'none' : 'flex' });
 
     st(q('[data-ui="flightplan"]'), m
@@ -921,7 +921,7 @@ class Component extends DCLogic {
     this.xrButtons();
     qa('[data-ui="readoutInner"] > div > span:first-child').forEach(s => st(s, { fontSize: m ? '8.5px' : '9.5px', whiteSpace: 'nowrap' }));
     const free = q('[data-ui="freeflight"]');
-    if (free) free.textContent = m ? 'ORBIT BEBAS' : 'KEMBALI KE ORBIT BEBAS';
+    if (free) free.textContent = m ? 'FREE ORBIT' : 'RETURN TO FREE ORBIT';
     st(q('[data-intro] h1'), { fontSize: m ? '29px' : (short ? '34px' : '') });
     st(q('[data-intro] p'), { fontSize: m ? '13px' : '' });
 
@@ -1021,20 +1021,20 @@ class Component extends DCLogic {
       },
       onEnterAR: async () => {
         if (!navigator.xr) {
-          return this.xrLine('Browser ini belum mendukung WebXR AR. Di Android pakai Chrome; Safari iOS belum mendukungnya.');
+          return this.xrLine('This browser does not support WebXR AR. On Android use Chrome; Safari on iOS does not support it yet.');
         }
         if (!isSecureContext) {
-          return this.xrLine('Mode AR butuh koneksi HTTPS. Buka situs lewat https://');
+          return this.xrLine('AR mode requires an HTTPS connection. Open the site via https://');
         }
         try {
           await this.scene().enterAR();
         } catch (err) {
           const n = err && err.name;
-          if (n === 'NotSupportedError') this.xrLine('AR belum tersedia di perangkat ini. Di Android, pasang atau perbarui "Google Play Services for AR" lalu coba lagi.');
-          else if (n === 'SecurityError') this.xrLine('Izin kamera ditolak atau halaman tersemat. Buka situs langsung di tab browser dan izinkan kamera.');
-          else if (n === 'NotAllowedError') this.xrLine('Izin kamera diperlukan untuk mode AR. Izinkan akses kamera lalu ketuk Mode AR lagi.');
-          else if (n === 'InvalidStateError') this.xrLine('Sesi AR lain masih aktif. Tutup lalu coba lagi.');
-          else this.xrLine('Mode AR gagal dijalankan' + (err && err.message ? ': ' + err.message : '.'));
+          if (n === 'NotSupportedError') this.xrLine('AR is not available on this device. On Android, install or update "Google Play Services for AR" and try again.');
+          else if (n === 'SecurityError') this.xrLine('Camera permission denied or page is embedded. Open the site directly in a browser tab and allow camera access.');
+          else if (n === 'NotAllowedError') this.xrLine('Camera permission is required for AR mode. Allow camera access then tap AR Mode again.');
+          else if (n === 'InvalidStateError') this.xrLine('Another AR session is still active. Close it and try again.');
+          else this.xrLine('AR mode failed to start' + (err && err.message ? ': ' + err.message : '.'));
         }
       },
       onReplaceAR: () => {
@@ -1043,26 +1043,25 @@ class Component extends DCLogic {
       },
       onEnterVR: async () => {
         if (!navigator.xr) {
-          if (!isSecureContext) return this.xrLine('Mode VR butuh HTTPS. Buka situs lewat https:// — http://alamat-IP membuat WebXR dimatikan browser.');
-          return this.xrLine('WebXR tidak tersedia di browser ini. Di Vision Pro visionOS 1, nyalakan Settings → Apps → Safari → Advanced → Feature Flags → WebXR.');
+          if (!isSecureContext) return this.xrLine('VR mode requires HTTPS. Open the site via https:// — http://IP-address causes the browser to disable WebXR.');
+          return this.xrLine('WebXR is not available in this browser. On Vision Pro visionOS 1, enable Settings → Apps → Safari → Advanced → Feature Flags → WebXR.');
         }
         if (!isSecureContext) {
-          return this.xrLine('Mode VR butuh koneksi HTTPS. Buka situs lewat https://');
+          return this.xrLine('VR mode requires an HTTPS connection. Open the site via https://');
         }
         try {
           await this.scene().enterVR();
-          this.xrLine('Sesi VR aktif — pinch atau tarik trigger untuk memilih, atau pandang targetnya dan tahan sebentar.');
+          this.xrLine('VR session active — pinch or pull the trigger to select, or gaze at a target and hold briefly.');
         } catch (err) {
           const n = err && err.name;
           // kalau tadi WebXR sendiri bilang tidak ada sesi immersive-vr yang
           // didukung, itu penjelasan yang lebih jujur daripada nama galatnya
-          if (this.vrReady === false) this.xrLine('Belum ada headset yang siap di perangkat ini' + (n ? ' (' + n + ')' : '') + '. Buka halaman ini dari browser di dalam headset.');
-          else if (n === 'NotSupportedError') this.xrLine('Headset ini menolak sesi immersive-vr. Pastikan halaman dibuka di tab Safari biasa (bukan tersemat) dan tidak ada sesi lain yang aktif.');
-          else if (n === 'SecurityError') this.xrLine('Sesi VR diblokir. Buka halaman langsung di browser headset lewat https://, bukan di dalam iframe atau aplikasi lain.');
-          else if (n === 'NotAllowedError') this.xrLine('Izin sesi VR ditolak. Ketuk tombol sekali lagi lalu setujui permintaan headset.');
-          else if (n === 'InvalidStateError') this.xrLine('Sesi XR lain masih berjalan. Tutup dulu, lalu coba lagi.');
-          // apa pun sisanya: tampilkan apa adanya supaya bisa dibaca di headset
-          else this.xrLine('Mode VR gagal: ' + (n ? n + ' — ' : '') + ((err && err.message) || 'tidak diketahui'));
+          if (this.vrReady === false) this.xrLine('No headset ready on this device' + (n ? ' (' + n + ')' : '') + '. Open this page from the browser inside a headset.');
+          else if (n === 'NotSupportedError') this.xrLine('This headset rejected the immersive-vr session. Make sure the page is opened in a regular Safari tab (not embedded) and no other session is active.');
+          else if (n === 'SecurityError') this.xrLine('VR session blocked. Open the page directly in the headset browser via https://, not inside an iframe or another app.');
+          else if (n === 'NotAllowedError') this.xrLine('VR session permission denied. Tap the button once more and approve the headset request.');
+          else if (n === 'InvalidStateError') this.xrLine('Another XR session is still running. Close it first, then try again.');
+          else this.xrLine('VR mode failed: ' + (n ? n + ' — ' : '') + ((err && err.message) || 'unknown'));
         }
       },
       onSubmit: e => {
@@ -1075,24 +1074,24 @@ class Component extends DCLogic {
           focus: d.get('focus') || ''
         };
         if (!isi.name || !isi.email) {
-          this.setState({ formMsg: 'Nama dan email wajib diisi.' });
+          this.setState({ formMsg: 'Name and email are required.' });
           return;
         }
         // window.SpatialAPI dipasang src/data/remote.js. Blok ini bukan modul
         // ES dan tidak bisa mengimpornya — lihat catatan di berkas itu.
         var api = window.SpatialAPI;
         if (!api) {
-          this.setState({ formMsg: 'Pendaftaran belum tersambung. Coba muat ulang halaman.' });
+          this.setState({ formMsg: 'Registration is not connected. Try reloading the page.' });
           return;
         }
-        this.setState({ formMsg: 'Mengirim…' });
+        this.setState({ formMsg: 'Sending…' });
         api.join(isi).then(function (hasil) {
           form.reset();
-          this.setState({ formMsg: (hasil && hasil.message) || 'Terima kasih. Kami hubungi lewat email.' });
+          this.setState({ formMsg: (hasil && hasil.message) || 'Thank you. We will reach out via email.' });
         }.bind(this)).catch(function (err) {
           // Pesan dari server dipakai apa adanya: ia yang tahu bedanya
           // "email sudah terdaftar" dan "terlalu sering mengirim".
-          this.setState({ formMsg: err.message || 'Gagal mengirim. Coba lagi sebentar lagi.' });
+          this.setState({ formMsg: err.message || 'Failed to send. Please try again shortly.' });
         }.bind(this));
       }
     };

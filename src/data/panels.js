@@ -6,50 +6,50 @@
 import { ARTICLES, CATEGORIES } from './insight.js';
 import { agendaState } from './agenda.js';
 
-const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 export const tanggalID = iso => {
   const [y, m, d] = iso.split('-').map(Number);
-  return d + ' ' + BULAN[m - 1] + ' ' + y;
+  return MONTHS[m - 1] + ' ' + d + ', ' + y;
 };
 
 // Condensed content for the in-headset panels (the DOM panels keep the full version).
 export const PANELS = {
   inti: {
-    no: '00', tag: 'Inti', accent: '#9E94F9',
+    no: '00', tag: 'Core', accent: '#9E94F9',
     title: 'Opening Access of Emerging Spatial Technology',
-    lead: 'Teknologi spatial seharusnya bisa diakses siapa pun, dari mana pun di Indonesia.',
+    lead: 'Spatial technology should be accessible to anyone, from anywhere in Indonesia.',
     items: [
-      { k: '01', d: 'Membuat teknologi spatial lebih accessible bagi semua.' },
-      { k: '02', d: 'Membangun kolaborasi untuk mendorong inovasi spatial.' },
-      { k: '03', d: 'Mengembangkan talenta teknologi spatial masa depan.' },
-      { k: '04', d: 'Menciptakan teknologi spatial yang meaningful dan berdampak.' }
+      { k: '01', d: 'Making spatial technology more accessible for everyone.' },
+      { k: '02', d: 'Building collaboration to drive spatial innovation.' },
+      { k: '03', d: 'Developing the next generation of spatial technology talent.' },
+      { k: '04', d: 'Creating meaningful, impactful spatial technology.' }
     ]
   },
   program: {
     no: '01', tag: 'Program', accent: '#a99bf2',
-    title: 'Program & kegiatan',
-    lead: 'Semua terbuka untuk publik. Tidak perlu headset sendiri untuk mulai ikut.',
+    title: 'Programs & Activities',
+    lead: 'All open to the public. No headset required to get started.',
     items: [
-      { k: 'Bulanan', t: 'XR Meetup', d: 'Demo karya, tanya jawab, coba perangkat bareng.' },
-      { k: 'Belajar', t: 'Workshop & bootcamp', d: 'Kelas praktik: WebXR, Unity, three.js, desain interaksi.' },
-      { k: 'Kolaborasi', t: 'Open Build', d: 'Proyek bareng lintas disiplin, dari ide sampai rilis.' },
-      { k: 'Kampus', t: 'Kelas keliling', d: 'Pengenalan teknologi spatial ke kampus dan sekolah.' }
+      { k: 'Monthly', t: 'XR Meetup', d: 'Demo showcases, Q&A sessions, and hands-on device trials.' },
+      { k: 'Learn', t: 'Workshop & Bootcamp', d: 'Hands-on classes: WebXR, Unity, three.js, interaction design.' },
+      { k: 'Collab', t: 'Open Build', d: 'Cross-disciplinary projects, from idea to release.' },
+      { k: 'Campus', t: 'Touring Classes', d: 'Introducing spatial technology to universities and schools.' }
     ]
   },
   karya: {
-    no: '02', tag: 'Karya', accent: '#9E94F9',
-    title: 'Karya member',
-    lead: 'Proyek VR, AR, dan XR yang dibangun oleh member komunitas.',
+    no: '02', tag: 'Showcase', accent: '#9E94F9',
+    title: 'Member Showcase',
+    lead: 'VR, AR, and XR projects built by community members.',
     items: [
-      { k: 'VR · Edukasi', t: 'Judul proyek', d: 'Deskripsi singkat dan nama member pembuatnya.' },
-      { k: 'AR · Budaya', t: 'Judul proyek', d: 'Deskripsi singkat dan nama member pembuatnya.' },
-      { k: 'XR · Industri', t: 'Judul proyek', d: 'Deskripsi singkat dan nama member pembuatnya.' }
+      { k: 'VR · Education', t: 'Project title', d: 'Brief description and the member who built it.' },
+      { k: 'AR · Culture', t: 'Project title', d: 'Brief description and the member who built it.' },
+      { k: 'XR · Industry', t: 'Project title', d: 'Brief description and the member who built it.' }
     ]
   },
   event: {
     no: '03', tag: 'Event', accent: '#f3f2f8',
-    title: 'Event & meetup',
-    lead: 'Jadwal terdekat komunitas.',
+    title: 'Events & Meetups',
+    lead: 'Upcoming community schedule.',
     // sumbernya sama dengan sudut planet Event dan papan misi di layar
     items: agendaState().list.filter(a => a.at >= Date.now()).slice(0, 4).map(a => ({
       k: a.kind, t: a.title, d: tanggalID(a.date) + ' · ' + a.place
@@ -57,30 +57,30 @@ export const PANELS = {
   },
   insight: {
     no: '04', tag: 'Insight', accent: '#a99bf2',
-    title: 'Sistem Insight',
-    lead: 'Tiap artikel satu bulan yang mengorbit planet ini. Buka di layar biasa untuk membaca dan ikut sparing.',
+    title: 'Insight System',
+    lead: 'Each article is a moon orbiting this planet. Open on a regular screen to read and join the discussion.',
     items: ARTICLES.filter(a => !a.archived).slice(0, 4).map(a => ({
       k: (CATEGORIES[a.cat] || {}).label || 'Insight', t: a.title, d: a.lead
     }))
   },
   tim: {
-    no: '05', tag: 'Tim', accent: '#f3f2f8',
-    title: 'Tim inti',
-    lead: 'Relawan yang menjaga ritme komunitas.',
+    no: '05', tag: 'Team', accent: '#f3f2f8',
+    title: 'Core Team',
+    lead: 'Volunteers who keep the community going.',
     items: [
-      { k: '01', t: 'Nama', d: 'Peran' },
-      { k: '02', t: 'Nama', d: 'Peran' },
-      { k: '03', t: 'Nama', d: 'Peran' },
-      { k: '04', t: 'Nama', d: 'Peran' }
+      { k: '01', t: 'Name', d: 'Role' },
+      { k: '02', t: 'Name', d: 'Role' },
+      { k: '03', t: 'Name', d: 'Role' },
+      { k: '04', t: 'Name', d: 'Role' }
     ]
   },
   gabung: {
-    no: '06', tag: 'Gabung', accent: '#9E94F9',
-    title: 'Ikut bangun ruangnya',
-    lead: 'Gratis dan terbuka untuk semua level, tidak wajib punya headset, dari kota mana pun.',
+    no: '06', tag: 'Join', accent: '#9E94F9',
+    title: 'Help build this space',
+    lead: 'Free and open to all levels. No headset required, from any city.',
     items: [
-      { k: 'Langkah', t: 'Isi form pendaftaran', d: 'Buka planet Gabung di layar biasa untuk mengisi form.' },
-      { k: 'Kanal', t: 'Instagram · Discord · LinkedIn', d: 'Sapa kami lebih dulu kalau mau kenalan.' }
+      { k: 'Step', t: 'Fill out the signup form', d: 'Open the Join planet on a regular screen to fill out the form.' },
+      { k: 'Channel', t: 'Instagram · Discord · LinkedIn', d: 'Say hello if you want to get acquainted first.' }
     ]
   }
 };

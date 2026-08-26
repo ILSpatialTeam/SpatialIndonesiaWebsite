@@ -127,10 +127,10 @@ export const css = `/* -- taruh bintang di langit komunitas -- */
 const node = el('div', { class: 'hud-star' });
 // Simpul terpisah, bukan anak `node` — alasannya ada di komentar CSS di atas.
 const hint = el('div', { class: 'hud-aim' }, [
-  document.createTextNode('Klik di langit untuk menaruh bintangmu'),
-  el('span', { class: 'esc', text: ' · Esc untuk batal' })
+  document.createTextNode('Click on the sky to place your star'),
+  el('span', { class: 'esc', text: ' · Esc to cancel' })
 ]);
-const button = instrument('star', 'star', 'Taruh bintangmu', () => tekan());
+const button = instrument('star', 'star', 'Place your star', () => tekan());
 export { node, hint, button };
 
 let mode = 'diam';        // diam | bidik | isi
@@ -161,8 +161,8 @@ function namaiTombol(teks) {
 function segarkanTombol() {
   button.classList.toggle('on', mode !== 'diam');
   button.classList.toggle('punya', punyaBintang && mode === 'diam');
-  if (mode !== 'diam') namaiTombol('Batal membidik');
-  else namaiTombol(punyaBintang ? 'Cari bintangmu' : 'Taruh bintangmu');
+  if (mode !== 'diam') namaiTombol('Cancel aiming');
+  else namaiTombol(punyaBintang ? 'Find your star' : 'Place your star');
 }
 
 function tekan() {
@@ -237,17 +237,17 @@ function gambar() {
   tempelDiBawahGugus();
 
   const form = el('form');
-  const nama = el('input', { name: 'name', placeholder: 'Nama depan', maxlength: '24', required: '' });
-  const kota = el('input', { name: 'city', placeholder: 'Kota (opsional)', maxlength: '40' });
-  const catatan = el('input', { name: 'note', placeholder: 'Satu kalimat (opsional)', maxlength: '60' });
-  const kirim = el('button', { class: 'utama', type: 'submit', text: 'Nyalakan' });
+  const nama = el('input', { name: 'name', placeholder: 'First name', maxlength: '24', required: '' });
+  const kota = el('input', { name: 'city', placeholder: 'City (optional)', maxlength: '40' });
+  const catatan = el('input', { name: 'note', placeholder: 'One sentence (optional)', maxlength: '60' });
+  const kirim = el('button', { class: 'utama', type: 'submit', text: 'Light it up' });
 
   form.append(
-    el('h4', { text: 'Bintangmu' }),
-    el('p', { text: `Tersimpan di ra ${koordinat.ra.toFixed(2)}j · dec ${koordinat.dec.toFixed(1)}°. Satu orang satu bintang, dan ia tetap di sana setelah kamu pergi.` }),
+    el('h4', { text: 'Your star' }),
+    el('p', { text: `Saved at ra ${koordinat.ra.toFixed(2)}h · dec ${koordinat.dec.toFixed(1)}°. One person, one star — it stays there after you leave.` }),
     nama, kota, catatan,
     el('div', { class: 'aksi' }, [
-      el('button', { type: 'button', text: 'Batal', onclick: batal }),
+      el('button', { type: 'button', text: 'Cancel', onclick: batal }),
       kirim
     ])
   );
@@ -255,7 +255,7 @@ function gambar() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     kirim.disabled = true;
-    kirim.textContent = 'Mengirim…';
+    kirim.textContent = 'Sending…';
     try {
       const res = await fetch(`${API}/sky/stars`, {
         method: 'POST',
@@ -266,20 +266,20 @@ function gambar() {
         })
       });
       const hasil = await res.json();
-      if (!res.ok) throw new Error(hasil?.error?.message || 'Gagal menaruh bintang.');
+      if (!res.ok) throw new Error(hasil?.error?.message || 'Failed to place star.');
 
       const s = scene();
       s?.addSkyStar(hasil.bintang, true);
       s?.markMyStar(hasil.bintang);
       punyaBintang = true;
       signal(hasil.moderated
-        ? 'Bintangmu menunggu ditinjau sebelum menyala untuk orang lain.'
-        : 'Bintangmu menyala di langit Nusantara.');
+        ? 'Your star is awaiting review before it lights up for others.'
+        : 'Your star is shining in the Indonesian sky.');
       batal();
     } catch (err) {
       signal(err.message);
       kirim.disabled = false;
-      kirim.textContent = 'Nyalakan';
+      kirim.textContent = 'Light it up';
     }
   });
 
@@ -299,12 +299,10 @@ function batal() {
 function cariMilikku() {
   if (!rasiMenyala) scene()?.setConstellations(true);
   const hasil = scene()?.findMyStar();
-  if (!hasil?.ok) return signal('Bintangmu belum bisa ditemukan — coba lagi sebentar.');
-  // Arahnya sudah benar; yang tidak bisa dipenuhi cuma kemiringan pandangan.
-  // Mengatakannya lebih berguna daripada membiarkan orang mencari-cari.
+  if (!hasil?.ok) return signal('Your star could not be found yet — try again shortly.');
   signal(hasil.mentok
-    ? 'Bintangmu tinggi di atas, di luar jangkauan pandangan — arahnya sudah tepat.'
-    : 'Bintangmu ada di depan sana.');
+    ? 'Your star is high above, beyond the viewing angle — the direction is right.'
+    : 'Your star is right ahead.');
 }
 
 // Klik di kanvas saat membidik. Ditangkap di fase capture supaya tidak ikut
