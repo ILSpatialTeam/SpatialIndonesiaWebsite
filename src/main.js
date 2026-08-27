@@ -18,6 +18,7 @@ import { mulaiLive } from './data/live.js';
 import './ui/organisms/insight-reader.js';
 import './ui/organisms/meteor-hud.js';
 import './ui/organisms/panel-content.js';
+import './ui/organisms/menu-labels.js';
 import './app/hud.js';
 import './scene/solar-system.js';
 
