@@ -61,7 +61,8 @@ if (envVars.SPATIAL_API !== undefined) {
   html = html.replace(
     /<meta\s+name="spatial-api"\s+content="[^"]*"\s*\/?>/,
     envVars.SPATIAL_API
-      ? `<meta name="spatial-api" content="${envVars.SPATIAL_API}" />`
+      // ? `<meta name="spatial-api" content="${envVars.SPATIAL_API}" />`
+      ? `<meta name="spatial-api" content="https://api.spatialindonesia.org/api/v1" />`
       : ''
   );
   console.log(`  spatial-api → ${envVars.SPATIAL_API || '(dihapus, sama origin)'}`);
