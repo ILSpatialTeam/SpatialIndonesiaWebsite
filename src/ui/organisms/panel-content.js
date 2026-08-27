@@ -20,7 +20,7 @@
 // Panel-panel itu milik React-nya Design Canvas. Saat ia merender ulang, isi
 // yang kita suntikkan bisa terhapus. Pola yang sama sudah dipakai
 // `event-card.js`: awasi wadahnya, gambar ulang kalau isinya hilang.
-import { whenPresent } from '../../core/dom.js';
+import { whenPresent, whenSettled } from '../../core/dom.js';
 import { PANELS } from '../../data/panels.js';
 import { ARTICLES, CATEGORIES } from '../../data/insight.js';
 
@@ -212,6 +212,10 @@ function gambarSemua() {
   }
 }
 
-gambarSemua();
-// Data dari server datang belakangan; panel digambar ulang saat itu.
-document.addEventListener('data-ready', gambarSemua);
+// Digambar setelah render pertama React selesai, bukan saat modul dievaluasi:
+// panel-panel ini miliknya, dan menyentuhnya di tengah render menjatuhkan
+// seluruh halaman. Lihat `whenSettled` di `core/dom.js` untuk kejadiannya.
+whenSettled(gambarSemua);
+// Data dari server datang belakangan; panel digambar ulang saat itu — lewat
+// penjaga yang sama, karena respons bisa datang sebelum render pertama usai.
+document.addEventListener('data-ready', () => whenSettled(gambarSemua));

@@ -25,6 +25,12 @@ import { createAurora } from '../systems/aurora.js';
 import { createMilkyWay } from '../systems/milkyway.js';
 import { createMeteorGame } from '../systems/meteor.js';
 
+// Matahari tidak ada di PLANETS — ia bukan planet — tapi namanya tetap satu
+// menu yang bisa diganti admin, dan entrinya ada di NAV. Dibaca lewat fungsi,
+// bukan disalin ke konstanta, karena NAV diisi ulang di tempat oleh
+// `data/remote.js` setelah modul ini dievaluasi.
+const namaInti = () => NAV.find(n => n.id === 'inti')?.label || 'Inti — Visi & Misi';
+
 // point sprites diukur dalam satuan dunia dan mengabaikan skala objek, jadi
 // nilai dasarnya dikalikan ulang dengan world.scale tiap frame (lihat _frameBody)
 const STAR_SIZE = 1.35, DUST_SIZE = 0.38;
@@ -260,7 +266,7 @@ class SolarSystem extends HTMLElement {
       return Object.assign({}, p, { group: g, mesh, hit, path, tag });
     });
 
-    const sunTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._tagTexture('Inti — Visi & Misi', ACCENT, 'inti'), transparent: true, depthWrite: false }));
+    const sunTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: this._tagTexture(namaInti(), ACCENT, 'inti'), transparent: true, depthWrite: false }));
     sunTag.scale.set(13, 3.25, 1);
     sunTag.position.y = 6.4;
     sunTag.visible = false;
@@ -287,7 +293,15 @@ class SolarSystem extends HTMLElement {
     // dibangun ulang, bukan ditambal satu per satu: jumlahnya belasan dan
     // membangunnya ulang jauh lebih mudah dibuat benar daripada menyamakan
     // selisihnya.
-    this._onData = () => { if (this.isConnected) this._buildMoons(); };
+    this._onData = () => {
+      if (!this.isConnected) return;
+      this._buildMoons();
+      // Nama menu juga bisa berubah — admin menggantinya di dashboard. Label 3D
+      // digambar ulang supaya yang terbaca di dalam headset sama dengan yang di
+      // layar biasa; tanpa ini hanya kunjungan kedua yang benar, karena snapshot
+      // localStorage sudah terpasang sebelum panggung berdiri.
+      if (this.planets && this.navBtns) { this._syncLabels(); this._refreshTextures(); }
+    };
     document.addEventListener('data-ready', this._onData);
     this._buildXRUI();
     this._buildLens();
@@ -628,6 +642,24 @@ class SolarSystem extends HTMLElement {
     return t;
   }
 
+  // Panggung memegang *salinan* datanya, bukan datanya: tiap planet dibuat
+  // dengan `Object.assign({}, p, …)` dan tiap tombol nav menyimpan namanya di
+  // `userData`. Itu memang disengaja — keduanya menyimpan hal lain (mesh, state)
+  // yang tidak boleh ikut terhapus saat data diisi ulang. Konsekuensinya,
+  // `data/remote.js` yang mengisi ulang PLANETS dan NAV di tempat tidak terlihat
+  // dari sini sampai salinannya disamakan, dan itulah tugas method ini.
+  _syncLabels() {
+    this.planets.forEach(p => {
+      const baru = PLANETS.find(d => d.id === p.id);
+      if (baru?.label) p.label = baru.label;
+    });
+    this.navBtns.forEach(b => {
+      if (b.userData.kind !== 'nav') return;
+      const baru = NAV.find(n => n.id === b.userData.planetId);
+      if (baru?.label) b.userData.label = baru.label;
+    });
+  }
+
   _refreshTextures() {
     this.planets.forEach(p => {
       if (p.tag.material.map) p.tag.material.map.dispose();
@@ -635,7 +667,7 @@ class SolarSystem extends HTMLElement {
       p.tag.material.needsUpdate = true;
     });
     if (this.sunTag.material.map) this.sunTag.material.map.dispose();
-    this.sunTag.material.map = this._tagTexture('Inti — Visi & Misi', ACCENT, 'inti');
+    this.sunTag.material.map = this._tagTexture(namaInti(), ACCENT, 'inti');
     this.sunTag.material.needsUpdate = true;
     this.navBtns.forEach(b => this._setBtn(b, b.userData.state || 'idle', true));
     this._panelCache = {};
