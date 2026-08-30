@@ -123,48 +123,8 @@ export const paint = st => {
   host.replaceChildren(...st.list.map(a => {
     const left = Math.ceil((a.at - now) / DAY);
     const isNext = !!(st.next && st.next.id === a.id);
-    const lewat = a.at < now;
-    const cls = 'ag-row' + (isNext ? ' next' : '') + (lewat ? ' past' : '');
-    const when = lewat ? 'DONE' : (left <= 0 ? 'TODAY' : left + ' DAYS AWAY');
-
-    // Snapshot localStorage dari versi sebelum fitur ini tidak punya
-    // `registration`, dan snapshot itu diterapkan sinkron sebelum jaringan
-    // menjawab. Tanpa nilai bawaan di sini, kunjungan pertama setelah rilis
-    // menggambar baris yang pecah selama satu detik.
-    const reg = a.registration ?? { mode: 'none', open: false, reason: 'none', capacity: null, seatsLeft: null };
-    const bisaDibuka = !!a.hasDetail && !lewat;
-
-    // Judul hanya jadi tombol kalau ada yang bisa dibuka. Elemen yang tampak
-    // bisa diklik tapi tidak melakukan apa-apa lebih buruk daripada teks biasa.
-    const judul = bisaDibuka
-      ? el('button', { class: 'ttl', type: 'button', text: a.title, onclick: () => openEvent(a.id) })
-      : el('span', { class: 'ttl', text: a.title });
-
-    // Kursi tersisa, hanya untuk acara berkuota yang belum lewat.
-    let kursi = null;
-    if (!lewat && reg.mode === 'internal' && reg.capacity !== null) {
-      const habis = reg.seatsLeft <= 0;
-      const sempit = !habis && reg.seatsLeft <= Math.max(1, Math.round(reg.capacity * 0.15));
-      kursi = el('span', {
-        class: 'seats' + (habis ? ' gone' : sempit ? ' tight' : ''),
-        text: habis ? 'FULLY BOOKED' : `${reg.seatsLeft} OF ${reg.capacity} SEATS LEFT`
-      });
-    }
-
-    // Label tombol memberi tahu apa yang akan terjadi. "REGISTER" yang
-    // membuka formulir dan "REGISTER" yang melempar ke Google Form adalah dua
-    // pengalaman berbeda, dan orang berhak tahu yang mana sebelum mengetuk.
-    let daftar = null;
-    if (!lewat && reg.mode !== 'none' && reg.reason !== 'closed') {
-      const teks = reg.mode === 'external' ? 'SIGN UP ↗'
-        : reg.reason === 'full' ? 'VIEW EVENT'
-        : 'REGISTER';
-      daftar = el('button', {
-        class: reg.reason === 'full' ? 'add' : 'reg',
-        type: 'button', text: teks, onclick: () => openEvent(a.id)
-      });
-    }
-
+    const cls = 'ag-row' + (isNext ? ' next' : '') + (a.at < now ? ' past' : '');
+    const when = a.at < now ? 'DONE' : (left <= 0 ? 'TODAY' : left + ' DAYS AWAY');
     return el('div', { class: cls }, [
       el('div', { class: 'top' }, [
         el('span', { class: 'kind', text: a.kind }),
@@ -173,14 +133,7 @@ export const paint = st => {
       judul,
       el('span', { class: 'where', text: tanggal(a.date) + ' · ' + a.place }),
       a.note ? el('span', { class: 'note', text: a.note }) : null,
-      kursi,
-      lewat ? null : el('div', { class: 'acts' }, [
-        daftar,
-        // Acara yang tidak punya halaman detail tetap butuh jalan masuk kalau
-        // uraiannya ada — tombol ini yang mengisinya saat judulnya bukan tombol.
-        !daftar && bisaDibuka ? el('button', { class: 'add', type: 'button', text: 'DETAILS →', onclick: () => openEvent(a.id) }) : null,
-        el('button', { class: 'add', type: 'button', text: '+ CALENDAR', onclick: () => saveIcs(a) })
-      ])
+      a.at < now ? null : el('button', { class: 'add', text: '+ CALENDAR', onclick: () => saveIcs(a) })
     ]);
   }));
 };
