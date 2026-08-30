@@ -20,6 +20,7 @@ import './ui/organisms/meteor-hud.js';
 import './ui/organisms/panel-content.js';
 import './ui/organisms/menu-labels.js';
 import './app/hud.js';
+import './app/seo.js';
 import './scene/solar-system.js';
 
 // Data terbaru diambil setelah semuanya berdiri, tidak ditunggu. Apa pun
