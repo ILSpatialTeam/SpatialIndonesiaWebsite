@@ -240,6 +240,17 @@ export const kirimSparing = (slug, isi) => kirim(`/articles/${slug}/sparing`, is
 export const kirimBoost = (id) => kirim(`/sparing/${id}/boost`, {});
 export const kirimGabung = (isi) => kirim('/join', isi);
 
+// Detail satu acara, diambil saat kartunya dibuka.
+//
+// Sengaja TIDAK ditanam ke entri AGENDA seperti `muatArtikel()` menanam isi
+// artikel. Yang dibawa detail acara termasuk sisa kursi, dan angka itu berubah
+// karena perbuatan orang lain — menyimpannya ke daftar berarti kartu Event
+// menampilkan angka yang beku sejak terakhir dibuka. Daftar tetap memakai
+// angka dari /bootstrap (cukup sebagai keterangan), detail selalu bertanya.
+export const muatAcara = (id) => ambil(`/agenda/${encodeURIComponent(id)}`).then((r) => r.data);
+
+export const daftarAcara = (id, isi) => kirim(`/agenda/${encodeURIComponent(id)}/register`, isi);
+
 // Jembatan untuk lapisan template.
 //
 // Formulir Gabung hidup di dalam komponen Design Canvas di `index.html`, dan
