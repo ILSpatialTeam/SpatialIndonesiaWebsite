@@ -70,7 +70,57 @@ if (envVars.SPATIAL_API !== undefined) {
 
 await writeFile(`${OUT}/index.html`, html);
 
-// 4. berkas pendukung
+// 4. robots.txt & sitemap.xml
+//
+// Dibangkitkan, bukan disimpan sebagai berkas tetap — dan alamatnya dibaca dari
+// tag <link rel="canonical"> di index.html, bukan dari konstanta di sini.
+//
+// Alasannya satu: domain situs sudah tertulis di canonical, og:url, dan
+// twitter:image. Menambah salinan keempat di berkas ini berarti suatu hari
+// domainnya pindah, tiga tempat ikut diubah, dan sitemap-nya diam-diam
+// menunjuk alamat lama — kesalahan yang tidak menimbulkan galat apa pun dan
+// baru ketahuan berminggu-minggu kemudian lewat Search Console.
+const canonical = html.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1];
+
+if (!canonical) {
+  // Bukan sekadar peringatan yang bisa terlewat di antara baris log lain:
+  // tanpa canonical, seluruh blok SEO di index.html kemungkinan besar ikut
+  // hilang, dan rilis yang tidak bisa diindeks lebih buruk daripada rilis yang
+  // gagal dirakit.
+  throw new Error('index.html tidak punya <link rel="canonical">. Blok SEO-nya hilang?');
+}
+
+const situs = canonical.replace(/\/+$/, '');
+const hariIni = new Date().toISOString().slice(0, 10);
+
+// Satu URL, dan itu memang jujur: seluruh situs hidup di satu halaman. Begitu
+// artikel atau acara punya alamatnya sendiri, di sinilah daftarnya bertambah.
+await writeFile(`${OUT}/sitemap.xml`,
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${situs}/</loc>
+    <lastmod>${hariIni}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
+`);
+
+// `uploads/` ikut terunggah tapi isinya gambar yang sudah tampil di halaman —
+// tidak ada gunanya dirayapi sebagai halaman tersendiri.
+await writeFile(`${OUT}/robots.txt`,
+  `# Spatial Indonesia
+User-agent: *
+Allow: /
+Disallow: /uploads/
+
+Sitemap: ${situs}/sitemap.xml
+`);
+
+console.log(`  situs        → ${situs}  (robots.txt + sitemap.xml)`);
+
+// 5. berkas pendukung
 for (const dir of ['assets', 'sounds', 'uploads']) {
   await cp(dir, `${OUT}/${dir}`, { recursive: true }).catch(() => {});
 }

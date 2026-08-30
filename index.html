@@ -1,8 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- ══ SEO ══════════════════════════════════════════════════════════════════
+     Semua tag di bawah sengaja hidup di <head> ASLI ini, bukan di blok
+     <helmet> milik Design Canvas beberapa baris ke bawah.
+
+     Bedanya menentukan: isi <helmet> baru dipasang setelah React berjalan,
+     sedangkan yang di sini sudah ada di HTML yang dikirim server. Googlebot
+     memang menjalankan JavaScript, tapi perayap lain tidak — dan yang paling
+     terasa, pratinjau tautan di WhatsApp, LinkedIn, Slack, dan X TIDAK
+     menjalankan JavaScript sama sekali. Tag Open Graph yang dipasang React
+     tidak akan pernah mereka lihat.
+
+     Kalau domainnya pindah, empat tempat harus ikut berubah: canonical dan
+     og:url di sini, robots.txt, dan sitemap.xml.
+     ═══════════════════════════════════════════════════════════════════════ -->
+
+<title>Spatial Indonesia — XR, VR &amp; AR Community</title>
+<meta name="description" content="An open community for spatial technology in Indonesia — XR, VR, AR and WebXR. Meetups, workshops and Open Build, explored as an interactive solar system." />
+<link rel="canonical" href="https://www.spatialindonesia.org/" />
+
+<!-- Apex mengarahkan ke www, jadi canonical-nya www. Tanpa ini, dua alamat
+     yang menyajikan halaman sama bisa dihitung sebagai dua halaman berbeda. -->
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<meta name="theme-color" content="#121116" />
+<link rel="icon" type="image/png" href="/assets/si-mark.png" />
+<link rel="apple-touch-icon" href="/assets/si-mark-3x.png" />
+
+<!-- Pratinjau tautan saat dibagikan -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Spatial Indonesia" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content="https://www.spatialindonesia.org/" />
+<meta property="og:title" content="Spatial Indonesia — XR, VR &amp; AR Community" />
+<meta property="og:description" content="An open community for spatial technology in Indonesia — XR, VR, AR and WebXR. Explore the community as an interactive solar system." />
+<meta property="og:image" content="https://www.spatialindonesia.org/assets/og-cover.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Interactive solar system of Spatial Indonesia: a violet sun with six planets, each one a section of the community." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Spatial Indonesia — XR, VR &amp; AR Community" />
+<meta name="twitter:description" content="An open community for spatial technology in Indonesia — XR, VR, AR and WebXR. Explore the community as an interactive solar system." />
+<meta name="twitter:image" content="https://www.spatialindonesia.org/assets/og-cover.jpg" />
+
+<!-- Dua host yang pasti dihubungi begitu halaman hidup: three.js dan REST API.
+     Handshake DNS+TLS-nya dimulai lebih awal, bukan setelah parser menemukan
+     modulnya — di sambungan seluler selisihnya ratusan milidetik, dan LCP
+     adalah salah satu sinyal yang dipakai mesin pencari. -->
+<link rel="preconnect" href="https://unpkg.com" crossorigin />
+<link rel="preconnect" href="https://api.spatialindonesia.org" crossorigin />
+
+<!-- Data terstruktur yang tidak pernah berubah. Yang berubah (daftar acara)
+     ditulis belakangan oleh src/app/seo.js dari data yang sama dengan yang
+     dipakai kartu Event. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.spatialindonesia.org/#organization",
+      "name": "Spatial Indonesia",
+      "url": "https://www.spatialindonesia.org/",
+      "logo": "https://www.spatialindonesia.org/assets/si-mark-3x.png",
+      "description": "An open community for spatial technology in Indonesia — XR, VR, AR and WebXR.",
+      "areaServed": { "@type": "Country", "name": "Indonesia" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.spatialindonesia.org/#website",
+      "url": "https://www.spatialindonesia.org/",
+      "name": "Spatial Indonesia",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://www.spatialindonesia.org/#organization" }
+    }
+  ]
+}
+</script>
+
 <script src="./support.js"></script>
   <!-- Alamat REST API. Ubah ke domain backend saat rilis; kosongkan
        (hapus meta ini) kalau API dilayani dari origin yang sama. -->
