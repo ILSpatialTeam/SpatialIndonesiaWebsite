@@ -125,6 +125,19 @@ for (const dir of ['assets', 'sounds', 'uploads']) {
   await cp(dir, `${OUT}/${dir}`, { recursive: true }).catch(() => {});
 }
 
+// 6. isi public/ disalin apa adanya ke AKAR dist/
+//
+// Tempat berkas yang harus tersaji persis di root domain dengan namanya
+// sendiri: bukti kepemilikan Google Search Console
+// (googlef059dddd6f64e7d5.html), dan kelak yang sejenis — Bing, ads.txt.
+//
+// Kenapa tidak ditaruh langsung di dist/: perakit ini membuka dengan
+// `rm -rf dist`, jadi apa pun yang cuma ada di sana lenyap di rilis
+// berikutnya. Gejalanya menipu — verifikasi berhasil hari ini, lalu berminggu
+// kemudian Search Console mencabut aksesnya sendiri karena berkasnya sudah
+// tidak ada, dan datanya berhenti masuk tanpa ada yang menyentuh SEO.
+await cp('public', OUT, { recursive: true }).catch(() => {});
+
 const { size } = await stat(`${OUT}/app.js`);
 console.log(`dist/app.js   ${(size / 1024).toFixed(1)} KB`);
 console.log('siap diunggah: isi folder dist/ — bukan folder src/');
