@@ -62,6 +62,55 @@
      adalah salah satu sinyal yang dipakai mesin pencari. -->
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
 <link rel="preconnect" href="https://api.spatialindonesia.org" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<!-- ══ JALUR KRITIS ═════════════════════════════════════════════════════════
+     Tanpa blok ini urutannya berantai lurus, satu menunggu satu:
+
+       index.html → support.js → React (unpkg) → React boot → <helmet> dipasang
+                  → src/main.js → three.module.min.js → three.core.min.js
+
+     Tujuh langkah, empat di antaranya perjalanan bolak-balik ke unpkg, sebelum
+     satu piksel tata surya digambar. three.js sendiri 731 KB dan baru MULAI
+     diunduh di langkah keenam — Lighthouse mengukurnya sebagai LCP 5,3 detik
+     di ponsel.
+
+     Petunjuk di bawah tidak mengubah urutan eksekusi apa pun; ia hanya
+     memberitahu peramban alamat-alamat itu sekarang, saat <head> dibaca, jadi
+     unduhannya berjalan berbarengan dan bukan berurutan. Saat gilirannya tiba,
+     berkasnya sudah ada di cache.
+
+     Versinya ditulis dua kali — di sini dan di dalam support.js / core/three.js.
+     Kalau salah satunya naik versi tanpa yang lain, yang terjadi hanya unduhan
+     yang mubazir, bukan halaman yang rusak. -->
+<link rel="preload" as="script" crossorigin href="https://unpkg.com/react@18.3.1/umd/react.production.min.js" />
+<link rel="preload" as="script" crossorigin href="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" />
+<link rel="modulepreload" crossorigin href="https://unpkg.com/three@0.184.0/build/three.module.min.js" />
+<link rel="modulepreload" crossorigin href="https://unpkg.com/three@0.184.0/build/three.core.min.js" />
+<link rel="modulepreload" href="./src/main.js" />
+
+<!-- Lambang di layar boot: satu-satunya gambar di layar pertama, jadi ia yang
+     diukur sebagai LCP. -->
+<link rel="preload" as="image" href="/assets/si-mark-216.webp" />
+
+<!-- Berkas gaya font tidak lagi menahan render. `display=swap` sudah membuat
+     TEKSNYA tampil dengan huruf cadangan lebih dulu; yang masih menahan adalah
+     permintaan CSS-nya sendiri — dua perjalanan ke googleapis lalu gstatic
+     sebelum halaman boleh menggambar. Ia dimuat sebagai `preload` lalu berubah
+     jadi stylesheet setelah tiba. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" onload="this.rel='stylesheet'" />
+
+<style>
+  /* Dua aturan yang HARUS ada sebelum baris HTML pertama digambar.
+
+     `x-dc` disembunyikan di sini, bukan dibiarkan disembunyikan support.js saat
+     ia berjalan. Itulah yang membuat support.js boleh `defer`: selama aturan
+     ini datang dari peramban sendiri, markup mentah template tidak pernah
+     sempat terlihat, dan skrip 36 KB itu berhenti menahan penguraian halaman. */
+  x-dc { display: none !important; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #121116; }
+</style>
 
 <!-- Data terstruktur yang tidak pernah berubah. Yang berubah (daftar acara)
      ditulis belakangan oleh src/app/seo.js dari data yang sama dengan yang
@@ -77,7 +126,11 @@
       "url": "https://www.spatialindonesia.org/",
       "logo": "https://www.spatialindonesia.org/assets/si-mark-3x.png",
       "description": "An open community for spatial technology in Indonesia — XR, VR, AR and WebXR.",
-      "areaServed": { "@type": "Country", "name": "Indonesia" }
+      "areaServed": { "@type": "Country", "name": "Indonesia" },
+      "sameAs": [
+        "https://www.instagram.com/spatialindonesia/",
+        "https://www.linkedin.com/company/spatial-indonesia/"
+      ]
     },
     {
       "@type": "WebSite",
@@ -91,15 +144,49 @@
 }
 </script>
 
-<script src="./support.js"></script>
+<!-- `defer`: penguraian halaman jalan terus, layar boot statis di bawah sempat
+     digambar, dan React (yang sudah di-preload di atas) tetap boot sebelum
+     DOMContentLoaded. Aman karena support.js memang memeriksa `readyState`
+     sendiri sebelum memanggil boot-nya. -->
+<script defer src="./support.js"></script>
   <!-- Alamat REST API. Ubah ke domain backend saat rilis; kosongkan
        (hapus meta ini) kalau API dilayani dari origin yang sama. -->
   <meta name="spatial-api" content="https://api.spatialindonesia.org/api/v1" />
 </head>
 <body>
+
+<!-- ══ LAYAR BOOT STATIS ════════════════════════════════════════════════════
+     Layar "Powering up the ship" yang sebenarnya dirender React, di dalam
+     x-dc. Artinya sampai React selesai diunduh dan boot, yang dilihat
+     pengunjung adalah halaman kosong — dan itulah yang diukur Lighthouse
+     sebagai First Contentful Paint 4,4 detik di ponsel.
+
+     Kembaran statis ini ada di HTML biasa, tanpa satu baris JavaScript pun,
+     jadi ia tampil pada gambar pertama. Rupanya sengaja dibuat sama dengan
+     versi React-nya (latar, lambang, tulisan) supaya saat yang asli menutupi
+     ini — z-index 60 di atas 59 — pergantiannya tidak terlihat.
+
+     Yang membuatnya hilang cuma satu tempat: `hideLoader()` di bawah, yang
+     memang sudah bertugas menyingkirkan layar boot. Kalau React tidak pernah
+     boot, layar ini bertahan — dan itu memang yang diinginkan: seluruh isi
+     halaman ada di dalam x-dc, jadi yang tersingkap kalau ia dibuang hanya
+     layar hitam kosong.
+
+     (Nama elemen template ditulis tanpa kurung sudut di komentar ini dengan
+     sengaja: support.js mencari awal template sebagai TEKS di dalam innerHTML,
+     dan komentar ikut terbaca. Satu tulisan lengkap di sini membuat sisa
+     komentarnya dirender sebagai isi halaman.) -->
+<div data-boot style="position: fixed; inset: 0; z-index: 59; background: #121116; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity .6s ease; contain: strict;">
+  <img src="/assets/si-mark-216.webp" alt="Spatial Indonesia" width="72" height="73" fetchpriority="high" decoding="async" style="display: block; width: 72px; height: auto; filter: drop-shadow(0 8px 30px rgba(106,90,224,.7));" />
+  <div style="font-family: 'Poppins', system-ui, sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8f8aa3;">Powering up the ship</div>
+</div>
+
 <x-dc>
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Font dan preconnect-nya pindah ke <head> asli. Di sini keduanya baru
+     dipasang setelah React boot, jadi permintaannya ikut mengantre di belakang
+     seluruh rantai unduhan; di atas sana ia berangkat bersama halamannya. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -196,7 +283,7 @@
 
   <header data-ui="header" style="position: absolute; top: 32px; left: 34px; right: 34px; z-index: 30; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; pointer-events: none; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .3s both;">
     <div data-ui="brandgroup" style="display: flex; align-items: center; gap: 9px; min-width: 0;">
-      <img src="assets/si-mark.png" srcset="assets/si-mark.png 1x, assets/si-mark-3x.png 3x" alt="Spatial Indonesia" width="24" height="24" style="display: block; flex: 0 0 auto; width: 24px; height: auto;" />
+      <img src="assets/si-mark-72.webp" alt="Spatial Indonesia" width="24" height="24" decoding="async" style="display: block; flex: 0 0 auto; width: 24px; height: auto;" />
       <span data-ui="brand" style="font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap;">Spatial Indonesia</span>
     </div>
     <div data-ui="actiongroup" style="display: flex; align-items: center; gap: 12px; pointer-events: auto; flex: 0 0 auto;">
@@ -574,7 +661,7 @@
 
       <span style="position: absolute; inset: 24px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0%, rgba(158,148,249,.55) 20%, rgba(243,242,248,.18) 34%, transparent 52%); mask-image: radial-gradient(closest-side, transparent 79%, #000 81%); -webkit-mask-image: radial-gradient(closest-side, transparent 79%, #000 81%); animation: spin 2.3s linear infinite;"></span>
 
-      <img src="assets/si-mark.png" srcset="assets/si-mark.png 1x, assets/si-mark-3x.png 3x" alt="Spatial Indonesia" width="72" height="72" style="position: relative; display: block; width: 72px; height: auto; filter: drop-shadow(0 8px 30px rgba(106,90,224,.7)); animation: markBoot 1.15s cubic-bezier(.2,.7,.2,1) both, markFloat 3.8s ease-in-out 1.15s infinite;" />
+      <img src="/assets/si-mark-216.webp" alt="Spatial Indonesia" width="72" height="72" decoding="async" style="position: relative; display: block; width: 72px; height: auto; filter: drop-shadow(0 8px 30px rgba(106,90,224,.7)); animation: markBoot 1.15s cubic-bezier(.2,.7,.2,1) both, markFloat 3.8s ease-in-out 1.15s infinite;" />
     </div>
     <div style="font-family: 'Poppins', sans-serif; font-size: 12.5px; letter-spacing: .34em; text-transform: uppercase; color: #8f8aa3; animation: bootLabel 2.4s ease-in-out infinite;">Powering up the ship</div>
   </div>
@@ -755,6 +842,11 @@ class Component extends DCLogic {
   }
 
   hideLoader() {
+    // kembaran statis di luar <x-dc> pergi lebih dulu: ia ada di BAWAH layar
+    // boot ini, jadi kalau ditinggal ia justru tersingkap saat yang di atasnya
+    // memudar
+    const boot = document.querySelector('[data-boot]');
+    if (boot) { boot.style.opacity = '0'; setTimeout(() => boot.remove(), 700); }
     const el = this.loaderRef.current;
     if (!el) return;
     el.style.opacity = '0';

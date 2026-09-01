@@ -38,6 +38,22 @@ export const css = `:root {
        panduan di kiri bawah dulu mengambang di atasnya. */
     [data-panel] { z-index: 40 !important; }
   /* 3. Kepala halaman menyusut selebar mereknya saja, jadi tombol mode tidak
-       lagi terlihat mengambang di dalam kotak yang kebesaran. */
-    [data-ui="header"] { right: auto !important; width: max-content !important; max-width: calc(100vw - 244px) !important; }
+       lagi terlihat mengambang di dalam kotak yang kebesaran.
+
+       Angka cadangannya diukur, bukan ditebak: gugus instrumen di kanan atas
+       berhenti di 78px lebar (meteor + portal VR) atau 126px kalau tombol AR
+       ikut tampil, ditambah 12px jarak ke tepi. 152px memberi ruang untuk
+       keduanya beserta jeda yang wajar.
+
+       Nilai lamanya 244px — ukuran gugus SEBELUM alat pandang dilipat, saat
+       barisnya masih memuat orb status dan label MODE VR. Sisanya tinggal
+       134px di layar 378px, sementara "Spatial Indonesia" butuh 174px: itulah
+       kenapa mereknya terpotong jadi "Spatial In…". */
+    [data-ui="header"] { right: auto !important; width: max-content !important; max-width: calc(100vw - 152px) !important; }
+  /* Di 320px cadangan itu menyisakan 168px, sementara pil mereknya butuh 174px
+     — kurang enam. Yang mengalah bantalan pilnya, bukan cadangan untuk gugus
+     instrumen: "clamp" membuatnya menyusut sendiri di layar tersempit dan
+     kembali penuh mulai ~480px, jadi tidak ada breakpoint kedua yang lahir
+     hanya demi satu ukuran ponsel. */
+    [data-ui="header"] { padding-left: clamp(7px, 2.5vw, 12px) !important; padding-right: clamp(7px, 2.5vw, 12px) !important; }
 }`;

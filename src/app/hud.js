@@ -14,9 +14,11 @@ import { injectStyles } from '../ui/styles.js';
 import { instrument } from '../ui/molecules/instrument.js';
 import * as statusOrb from '../ui/molecules/status-orb.js';
 import { createCluster } from '../ui/organisms/cluster.js';
+import { createToolbelt } from '../ui/organisms/toolbelt.js';
 import { signal, node as signalsNode } from '../ui/organisms/signals.js';
 import * as navRail from '../ui/organisms/nav-rail.js';
 import * as info from '../ui/organisms/info-panel.js';
+import * as social from '../ui/organisms/social.js';
 import * as orrery from '../ui/organisms/orrery.js';
 import * as hero from '../ui/organisms/hero-board.js';
 import * as eventCard from '../ui/organisms/event-card.js';
@@ -64,16 +66,25 @@ hero.mountButton(boardBtn);
 focusMode.mountButtons(focusBtn, fullBtn);
 mountAudioButton(audioBtn);
 
+// Satu daftar alat, dipakai dua kali: sebagai lingkaran berjajar di layar
+// lebar, dan sebagai isi laci di layar sempit. Menambah alat baru cukup di
+// sini — gugus dan laci sama-sama menerimanya tanpa berubah.
+const tools = [boardBtn, skyBtn, starBtn, galaxyBtn, auroraBtn, trailsBtn, audioBtn, cardBtn, focusBtn, fullBtn];
+const belt = createToolbelt(tools);
+
 const cluster = createCluster({
   status: statusOrb.node,
   modes: [meteorBtn, arBtn, portal],
-  tools: [boardBtn, skyBtn, starBtn, galaxyBtn, auroraBtn, trailsBtn, audioBtn, cardBtn, focusBtn, fullBtn]
+  tools: tools.concat(belt.button)
 });
 
 /* ---------- pasang ---------- */
 
 document.body.appendChild(el('div', { class: 'hud-layer' }, [
-  cluster, navRail.node, info.node, hero.node, orrery.node, signalsNode, focusMode.node, postcard.node,
+  cluster, belt.node, navRail.node,
+  // panduan dan tautan sosial berbagi satu sudut kiri bawah
+  el('div', { class: 'hud-corner' }, [info.node, social.node]),
+  hero.node, orrery.node, signalsNode, focusMode.node, postcard.node,
   starPlaceNode,
   starHint,
   starCardNode
@@ -110,10 +121,14 @@ hero.paintPresence();
 
 document.addEventListener('planet-focus', e => {
   hero.node.classList.add('away');
+  // di ponsel panel planet adalah lembar bawah yang menutupi hampir seluruh
+  // layar; laci yang tertinggal terbuka di belakangnya hanya akan tersingkap
+  // lagi saat panelnya ditutup, dalam keadaan yang tidak diminta siapa pun
+  belt.close();
   if (e.detail && e.detail.id === 'event') { eventCard.reset(); eventCard.paint(agendaState()); }
 });
 document.addEventListener('planet-free', () => hero.node.classList.remove('away'));
-document.addEventListener('meteor-start', () => { hero.node.classList.add('away'); meteorBtn.classList.add('on'); });
+document.addEventListener('meteor-start', () => { hero.node.classList.add('away'); meteorBtn.classList.add('on'); belt.close(); });
 document.addEventListener('meteor-end', () => { hero.node.classList.remove('away'); meteorBtn.classList.remove('on'); });
 
 document.addEventListener('trails', e => {

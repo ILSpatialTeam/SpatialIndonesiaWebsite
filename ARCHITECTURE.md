@@ -40,9 +40,9 @@ src/
   ui/                 atomic design
     atoms/              el.js (pembuat elemen), icon.js
     molecules/          instrument.js, status-orb.js
-    organisms/          cluster, signals, nav-rail, info-panel, orrery,
-                        hero-board, event-card, postcard, focus-mode,
-                        meteor-hud, insight-reader
+    organisms/          cluster, toolbelt, signals, nav-rail, info-panel,
+                        social, orrery, hero-board, event-card, postcard,
+                        focus-mode, meteor-hud, insight-reader
     styles.js           menjahit CSS milik tiap komponen jadi satu
     styles/base.js      token warna & penyesuaian tata letak
 

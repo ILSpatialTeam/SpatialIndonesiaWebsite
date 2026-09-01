@@ -90,7 +90,7 @@ HUD baru mencerminkan isinya lewat `MutationObserver`.
 
 ### Permukaan planet datang dari gambar, bukan dari model
 
-Tiap planet memakai peta permukaan asli di `assets/planets/*.jpg`, dipetakan ke
+Tiap planet memakai peta permukaan asli di `assets/planets/*.webp`, dipetakan ke
 `SphereGeometry` biasa — peta planet selalu ekuirektangular, dan itu persis tata
 UV yang sudah dihasilkan SphereGeometry. Berkas model 3D (`assets/3d/Planets.fbx`)
 **tidak dimuat**: isinya cuma bola ber-UV yang bisa dibuat satu baris, sementara
@@ -103,6 +103,116 @@ gambarnya gagal dimuat, yang tersisa tetap tata surya yang utuh.
 Cahaya matahari memakai `decay` 0,9, bukan 2. Dengan hukum kuadrat terbalik yang
 jujur, planet terluar menerima sepersepuluh cahaya planet terdalam — benar secara
 fisika, celaka sebagai menu. Jangan "memperbaiki"-nya kembali ke 2.
+
+### Layar sempit: yang tampil di ketukan pertama
+
+Aturan yang dipegang di bawah 780px: pengunjung baru tidak disodori seluruh
+kemampuan situs sekaligus. Yang berdiri sendiri di layar pertama hanya yang
+membawanya ke suatu tempat — merek, strip rencana penerbangan di bawah, tombol
+panduan, dan mode (meteor/AR/VR). Sembilan alat pandang melipat ke balik satu
+tombol di `ui/organisms/toolbelt.js` dan muncul sebagai daftar bernama saat
+diminta.
+
+Strip rencana penerbangan (`[data-ui="flightplan"]`) juga tidak ikut ke ponsel.
+Di layar lebar ia daftar tegak di kiri yang tidak mengambil apa pun dari
+pemandangan; di ponsel ia jadi baris kapsul menggulung yang memakan 44px kaki
+layar seumur kunjungan dan menuntut gulir mendatar untuk melihat tujuh isinya.
+
+**Kapsul nama planet justru yang menggantikannya sebagai navigasi di ponsel** —
+ia melayang di planetnya sendiri dan bisa disentuh (`data-goto`). Jangan
+menyembunyikan keduanya sekaligus: tanpa strip DAN tanpa kapsul, satu-satunya
+jalan berpindah tinggal menebak planet mana yang disentuh. Jalan pulangnya aman
+dari sisi lain — tombol `×` di tiap panel memanggil handler yang sama dengan
+"RETURN TO FREE ORBIT", jadi tidak ada jalan buntu setelah sebuah planet dibuka.
+
+Elemennya disembunyikan, bukan dihapus: `press('[data-nav="…"]')` dari rel dan
+modul lain tetap bekerja, karena `.click()` pada elemen `display:none` tetap
+terkirim.
+
+Pelipatannya **murni CSS** di breakpoint yang sama; tidak ada cabang JavaScript
+yang mengukur lebar layar. Lacinya juga tidak membuat tombol sendiri — ia
+menerima larik `tools` yang sama dengan yang dipakai gugus, membaca nama dari
+`aria-label`, dan meneruskan ketukan lewat `.click()`. Menambah alat baru cukup
+satu baris di `app/hud.js`; laci dan gugus sama-sama ikut tanpa disunting.
+
+Dua hal yang gampang terlewat kalau menyentuhnya:
+
+- Saat tertutup, laci tetap `display:flex` supaya transisinya jalan. Elemen
+  ber-`opacity: 0` **masih menangkap pointer** — tanpa `pointer-events: none`
+  dan `visibility: hidden`, seperempat layar kanan atas berhenti merespons
+  sentuhan pada kanvas, tanpa apa pun yang terlihat di sana.
+- Keadaan sakelar disalin saat laci **dibuka**, bukan diikuti terus-menerus.
+  Sebuah alat bisa menyala dari mana saja; sembilan pengawas demi panel yang
+  99% waktunya tertutup bukan pertukaran yang baik.
+
+### Sudut kiri bawah dipakai berdua
+
+`.hud-corner` (didefinisikan di `ui/organisms/social.js`) adalah satu-satunya
+elemen berposisi di pojok kiri bawah; tombol panduan dan tautan kanal sosial
+duduk di dalamnya sebagai baris flex. Sebelumnya `.hud-info` memegang
+koordinatnya sendiri — dan koordinat itu berpindah di ponsel (naik ke atas strip
+rencana penerbangan), jadi menaruh penghuni kedua dengan `left`/`bottom`-nya
+sendiri berarti dua tempat yang harus ingat untuk bergeser bersamaan.
+
+Konsekuensi yang perlu diingat: `.hud-info` sekarang `position: relative` (panel
+panduan tetap berlabuh padanya), dan **aturan yang menyembunyikan antarmuka di
+mode fokus dan mode baca menyebut `.hud-corner`, bukan `.hud-info`** — keduanya
+ada di `organisms/cluster.js`. Menambah penghuni ketiga di sudut itu cukup
+menaruhnya di dalam `.hud-corner`; ia ikut menghilang tanpa aturan baru.
+
+Bentuknya sengaja berbeda dari tombol panduan di sebelahnya: yang satu
+instrumen (bercincin, berlatar), yang dua tautan (glif polos di balik garis
+pemisah tipis). Tiga lingkaran seragam bermakna berbeda terbaca sebagai
+tumpukan, bukan sebagai kelompok.
+
+Di ponsel sudut itu duduk 46px dari tepi bawah, bukan menempel: bingkai
+dekoratif template punya siku 22px di inset 16px, dan lebih rendah dari itu
+sikunya memotong lingkaran tombol panduan tepat di tengah. Di layar lebar
+angkanya tetap 26px — di sana pemilih kursor hanya 10px di atas baris ini, jadi
+menaikkannya berarti menabrak sesuatu yang nyata demi menghindari yang
+dekoratif.
+
+Aturan `.hud-corner > .hud-info { position: relative }` dinyatakan ulang di
+`social.js` walau `info-panel.js` sudah menyatakannya. Itu disengaja: dalam mode
+berkas-lepas keduanya diambil sebagai permintaan terpisah, dan satu salinan lama
+`info-panel.js` di cache peramban sudah cukup untuk menarik tombol panduan
+keluar dari baris — hasilnya tiga lingkaran berserakan diagonal dan saling
+tindih. Aturan yang lebih spesifik ini menang atas versi mana pun yang termuat.
+
+Alamat Instagram dan LinkedIn ditulis di dua tempat: `KANAL` di `social.js`
+(tautan yang bisa diklik) dan `sameAs` di blok JSON-LD `index.html` (data
+terstruktur untuk mesin pencari). Yang kedua harus tetap statis di HTML —
+perayap yang tidak menjalankan JavaScript tidak akan pernah melihat yang
+disuntik dari modul.
+
+### Jalur kritis di `index.html`
+
+Bagian berlabel `══ JALUR KRITIS ══` di `<head>` bukan hiasan. Tanpa itu
+urutannya berantai lurus, tujuh langkah dengan empat perjalanan ke unpkg,
+sebelum satu piksel tata surya digambar:
+
+```
+index.html → support.js → React → React boot → <helmet> dipasang
+           → src/main.js → three.module.min.js → three.core.min.js
+```
+
+Yang membuat rantai itu tidak terlihat adalah letaknya: `<script type="module">`
+dan stylesheet font **dulu tinggal di dalam `<helmet>`**, artinya keduanya baru
+diminta setelah React selesai boot. Sekarang alamatnya diumumkan lebih awal
+lewat `preload`/`modulepreload`, dan urutan eksekusinya sendiri tidak berubah.
+
+Tiga hal yang menjaga blok itu tetap benar:
+
+- **Nomor versi ditulis dua kali** — di sini dan di `support.js` /
+  `core/three.js`. Kalau salah satunya naik sendiri, akibatnya unduhan mubazir,
+  bukan halaman rusak. Tetap saja: ubah berpasangan.
+- **`x-dc { display: none }` harus tetap ada di `<style>` `<head>` asli.**
+  Aturan itulah yang membuat `support.js` boleh `defer`. Kalau dihapus, markup
+  mentah template berkedip sebelum React boot.
+- **Layar boot statis `[data-boot]`** adalah kembaran HTML biasa dari layar boot
+  yang dirender React. Ia yang membuat gambar pertama terjadi tanpa JavaScript
+  sama sekali, dan ia elemen LCP halaman ini. Yang menyingkirkannya cuma
+  `hideLoader()`.
 
 ### Menambah fitur 3D
 
@@ -323,6 +433,24 @@ penyesuaian tata letak global.
   Termasuk yang jatuh di tombol HUD. Kalau koordinatnya diukur terhadap
   `e.target`, klik di tombol kecil menghasilkan koordinat yang ngawur — periksa
   dulu bahwa targetnya memang kanvas (`star-place.js`).
+- **Cadangan lebar untuk kepala halaman di ponsel harus diukur ulang tiap kali
+  gugus instrumen berubah.** `[data-ui="header"]` dibatasi
+  `max-width: calc(100vw - N)` supaya tidak menabrak gugus di kanan atas. Angka
+  N pernah 244px — ukuran gugus sebelum alat pandang dilipat — dan sisa 134px di
+  layar 378px membuat mereknya terpotong jadi "Spatial In…". Sekarang 152px,
+  diukur dari gugus yang berlaku (78px, atau 126px kalau tombol AR tampil).
+  Gejalanya tidak pernah muncul di layar lebar.
+- **Backtick di dalam `export const css` menutup template-nya lebih awal**, dan
+  `node --check` meloloskannya. Paling sering terjadi saat menyebut nama
+  properti CSS dalam komentar berbahasa Indonesia. `build.mjs` sekarang
+  memeriksanya lebih dulu dan menyebut berkas serta barisnya — esbuild memang
+  menangkapnya juga, tapi pesannya menunjuk kata acak di tengah kalimat.
+- **Menulis `<x-dc>` lengkap di dalam komentar HTML merusak halaman.**
+  support.js mencari awal template sebagai TEKS di dalam `innerHTML`, dan
+  komentar ikut terbaca — jadi kecocokan pertamanya bisa jatuh di dalam
+  komentar, dan sisa kalimatnya dirender sebagai isi halaman. Sebut nama
+  elemennya tanpa kurung sudut. Tidak ada galat apa pun; yang terlihat cuma
+  paragraf Bahasa Indonesia nyasar di atas tata suryanya.
 - **Jangan menggantungkan pengambilan data awal pada kejadian sekali-jalan.**
   `scene-ready` terbit satu kali; modul yang mendengarkannya sedetik terlambat
   tidak pernah mendapat jawaban dan diam-diam menampilkan keadaan yang salah.
@@ -331,7 +459,14 @@ penyesuaian tata letak global.
 ## Rilis
 
 `node build.mjs` menghasilkan `dist/` (bundel terkompresi + `index.html` yang
-menunjuk ke sana). **Unggah isi `dist/`, jangan `src/`, dan jangan sampai `.git/`
+menunjuk ke sana). Isi `public/` disalin apa adanya ke akar `dist/` — tempat
+berkas yang harus tersaji dengan namanya sendiri di root domain (bukti
+kepemilikan Search Console, `favicon.ico`). Perakit membuka dengan `rm -rf
+dist`, jadi menaruhnya langsung di sana berarti ia lenyap di rilis berikutnya.
+
+Tidak semua isi `assets/` ikut terkirim: `assets/icons/*png`, `assets/3d`, dan
+`assets/planets/*.jpg` disaring di langkah penyalinan karena tidak dirujuk satu
+baris pun. Berkasnya tetap ada di repo. **Unggah isi `dist/`, jangan `src/`, dan jangan sampai `.git/`
 ikut terunggah.** `DEPLOY.md` memuat alasannya, termasuk penjelasan jujur bahwa
 kode klien tidak bisa dibuat tidak-bisa-disalin — yang bisa dilakukan hanya
 menaikkan ongkosnya dan memindahkan rahasia ke sisi server.

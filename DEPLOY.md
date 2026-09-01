@@ -53,6 +53,27 @@ Berkas berikut tidak boleh ikut ke server produksi:
 Uji setelah rilis: buka `https://situs-kamu/.git/config` dan
 `https://situs-kamu/src/main.js`. Keduanya harus 404.
 
+### 2b. Umur cache di `vercel.json`
+
+`vercel.json` tidak bisa memuat komentar, jadi alasannya ditulis di sini.
+
+Bawaan Vercel untuk berkas statis adalah `max-age=0, must-revalidate`: tiap
+kunjungan berikutnya tetap bertanya ke server, dan Lighthouse menandainya
+sebagai kebijakan cache yang tidak efisien. Blok `headers` menaikkannya, tapi
+**tidak untuk semuanya** — dan pembagiannya disengaja:
+
+- `assets/planets/`, `assets/icons/`, `sounds/` → satu tahun, `immutable`.
+  Isinya tidak pernah berubah tanpa berganti nama. Konsekuensinya harus
+  diterima: mengganti tekstur berarti mengganti nama berkasnya, bukan menimpa
+  yang lama.
+- Lambang dan `og-cover` → tujuh hari dengan `stale-while-revalidate`. Keduanya
+  sesekali diperbarui, dan menunggu sepekan untuk itu masih wajar.
+- `index.html`, `app.js`, `support.js` → **sengaja dibiarkan pada bawaan
+  Vercel.** Ketiganya berubah tiap rilis dan namanya tidak mengandung hash.
+  Menyimpannya lama berarti pengunjung bisa menjalankan bundel lama di atas
+  halaman baru — jenis kerusakan yang hanya muncul di sebagian orang dan tidak
+  bisa direproduksi di mesin sendiri.
+
 ### 3. Simpan yang berharga di sisi server
 
 Ini satu-satunya perlindungan yang sungguh-sungguh. Saat data pindah ke API

@@ -11,13 +11,13 @@ html.hud-focus [data-ui="header"], html.hud-focus [data-ui="flightplan"],
 html.hud-focus [data-ui="cursorpick"], html.hud-focus [data-planet-label],
 html.hud-focus [data-intro], html.hud-focus [data-panel], html.hud-focus .pn-root,
 html.hud-focus .hud-cluster, html.hud-focus .hud-orrery, html.hud-focus .hud-rail,
-html.hud-focus .hud-info, html.hud-focus [data-ui="reticle"], html.hud-focus [data-ui="frame"],
+html.hud-focus .hud-corner, html.hud-focus [data-ui="reticle"], html.hud-focus [data-ui="frame"],
 html.hud-focus .hud-hero {
   opacity: 0 !important; pointer-events: none !important; transition: opacity .6s ease;
 }
 
 html.mt-on .hud-layer, html.pn-read .hud-orrery, html.pn-read .hud-rail,
-html.pn-read .hud-info, html.pn-read .hud-cluster, html.pn-read .hud-hero { opacity: 0; pointer-events: none; transition: opacity .4s; }
+html.pn-read .hud-corner, html.pn-read .hud-cluster, html.pn-read .hud-hero { opacity: 0; pointer-events: none; transition: opacity .4s; }
 
 /* -- instrumen bundar -- */
 .hud-cluster { position: absolute; top: 26px; right: 30px; display: flex; flex-direction: column; align-items: flex-end; gap: 9px; pointer-events: auto; animation: hudIn .8s cubic-bezier(.2,.7,.2,1) .35s both; }

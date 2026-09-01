@@ -45,7 +45,11 @@ export function skinTexture(name, onReady) {
   if (!name) return;
   const cached = skinCache.get(name);
   if (cached) { onReady(cached); return; }
-  skinLoader.load(`assets/planets/${name}.jpg`, tex => {
+  // WebP, bukan JPEG: gambar yang sama pada ukuran yang sama, 167 KB lebih
+  // ringan untuk ketujuhnya. Tidak ada jalur mundur ke .jpg — peramban yang
+  // tidak mengenal WebP juga tidak menjalankan WebGL2, jadi cabang itu hanya
+  // akan menambah berkas yang tidak pernah diminta siapa pun.
+  skinLoader.load(`assets/planets/${name}.webp`, tex => {
     // peta warna harus dibaca sebagai sRGB, kalau tidak hasilnya pucat
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
