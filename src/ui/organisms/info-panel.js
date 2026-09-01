@@ -6,7 +6,10 @@
 import { el, NS } from '../atoms/el.js';
 
 export const css = `/* -- petunjuk: dibungkus jadi satu tombol, terbuka seperti rasi bintang -- */
-.hud-info { position: absolute; left: 30px; bottom: 26px; pointer-events: auto; }
+/* Posisinya sekarang dipegang .hud-corner (lihat organisms/social.js) — panduan
+   berbagi sudut kiri bawah dengan tautan sosial. Yang tersisa di sini cuma
+   "relative", dan itu memang perlu: panel di bawah berlabuh padanya. */
+.hud-info { position: relative; pointer-events: auto; }
 
 .hud-info .panel {
   position: absolute; left: 0; bottom: 56px; width: 268px; padding: 18px 18px 16px;
@@ -49,7 +52,6 @@ export const css = `/* -- petunjuk: dibungkus jadi satu tombol, terbuka seperti 
 @keyframes hudRow { to { opacity: 1; transform: none; } }
 
 @media (max-width: 779px) {
-  .hud-info { left: 12px; bottom: calc(126px + env(safe-area-inset-bottom)); }
   .hud-info .panel { width: min(300px, calc(100vw - 34px)); bottom: 50px; }
 }`;
 

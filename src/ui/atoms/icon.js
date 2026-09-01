@@ -26,6 +26,15 @@ export const ICON = {
   // dari ikon `sky` yang menggambar rasi. Yang satu mode pandang, yang ini
   // satu bintang milik satu orang.
   star: ['M11 5.4 12.3 10 16.9 11.3 12.3 12.6 11 17.2 9.7 12.6 5.1 11.3 9.7 10Z', 'M18.4 4.2l.6 1.9 1.9.6-1.9.6-.6 1.9-.6-1.9-1.9-.6 1.9-.6Z'],
+  // Tuas geser, bukan tiga titik: yang disembunyikan di baliknya adalah
+  // sekumpulan sakelar pandang, dan bentuk ini menjanjikan hal itu. Tiga titik
+  // berarti "menu lain-lain" — dan isinya bukan itu.
+  belt: ['M4 7h9', 'M17.5 7H20', 'M4 12h3.5', 'M12 12h8', 'M4 17h9', 'M17.5 17H20', { t: 'circle', cx: 15, cy: 7, r: 2 }, { t: 'circle', cx: 9.5, cy: 12, r: 2 }, { t: 'circle', cx: 15, cy: 17, r: 2 }],
+  // Dua lambang sosial digambar ulang sebagai garis, bukan disalin dari berkas
+  // merek resminya: kosakata ikon di sini semuanya stroke ber-currentColor, dan
+  // logo padat yang ditempel di antaranya akan terbaca sebagai tempelan.
+  instagram: [{ t: 'rect', x: 3.2, y: 3.2, width: 17.6, height: 17.6, rx: 5.2 }, { t: 'circle', cx: 12, cy: 12, r: 4.1 }, { t: 'circle', cx: 17.1, cy: 6.9, r: 1.05 }],
+  linkedin: [{ t: 'rect', x: 3.2, y: 3.2, width: 17.6, height: 17.6, rx: 5.2 }, 'M7.7 11.1v5.9', { t: 'circle', cx: 7.7, cy: 8.2, r: 1.05 }, 'M12 17v-5.9', 'M12 14.1a2.5 2.5 0 0 1 5 0V17'],
   chevL: ['M14.5 6 9 12l5.5 6'],
   chevR: ['M9.5 6 15 12l-5.5 6']
 };

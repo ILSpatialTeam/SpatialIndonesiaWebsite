@@ -44,17 +44,23 @@ html.fp-open .hud-rail .stops { opacity: 0; pointer-events: none; }
 html.fp-hidden [data-ui="flightplan"] { opacity: 0 !important; pointer-events: none !important; transition: opacity .35s; }
 
 @media (max-width: 779px) {
-  /* 1. Tombol ORBIT BEBAS ikut menggulung bersama daftar planet, bukan
-       menempel di ujung. Yang menggulung sekarang seluruh stripnya, dan
-       batang penunjuk gulirnya disembunyikan. */
-    [data-ui="flightplan"] {
-      overflow-x: auto !important; overflow-y: hidden !important;
-      flex-wrap: nowrap !important; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-    }
-  [data-ui="flightplan"]::-webkit-scrollbar { display: none; }
-  [data-ui="fpList"] { overflow-x: visible !important; flex: 0 0 auto !important; padding-bottom: 0 !important; scrollbar-width: none; }
-  [data-ui="fpList"]::-webkit-scrollbar { display: none; }
-  [data-ui="freeflight"] { flex: 0 0 auto !important; }
+  /* Strip rencana penerbangan tidak ikut ke ponsel.
+
+     Di layar lebar ia daftar tegak di kiri yang tidak mengambil apa pun dari
+     pemandangan. Di ponsel ia berubah jadi baris kapsul yang menggulung
+     mendatar di kaki layar — memakan 44px paling bawah seumur kunjungan,
+     memaksa gulir mendatar untuk melihat tujuh isinya, dan menutupi bagian
+     tata surya yang justru paling sering dilihat.
+
+     Navigasinya tidak hilang: kapsul nama planet melayang di planetnya sendiri
+     dan bisa disentuh (data-goto), dan tombol × di tiap panel memanggil
+     handler yang sama dengan "RETURN TO FREE ORBIT" — jadi tidak ada jalan
+     buntu setelah sebuah planet dibuka.
+
+     Elemennya disembunyikan, bukan dihapus. press('[data-nav="…"]') dari rel
+     dan modul lain tetap bekerja: .click() pada elemen display:none tetap
+     terkirim. */
+    [data-ui="flightplan"] { display: none !important; }
   /* Safari iOS memang tidak melayaninya */
     .hud-rail { display: none; }
 }`;

@@ -40,8 +40,19 @@ export const node = el('div', { class: 'hud-card', 'data-hud-el': 'card' }, [
 ]);
 node.addEventListener('click', e => { if (e.target === cardModal) node.classList.remove('on'); });
 
-const mark = new Image();
-mark.src = 'assets/si-mark-3x.png';
+// Lambang untuk sudut kartu pos. Dimuat saat kartu PERTAMA dibuat, bukan saat
+// modul dievaluasi: dulu 92 KB ini ikut berebut jalur dengan gambar pertama
+// halaman, padahal sebagian besar pengunjung tidak pernah menekan tombolnya.
+// Gambarnya dipakai pada 1600x1000, jadi di sini varian besar memang tepat.
+let mark = null;
+// Ditunggu sebelum menggambar, bukan diharap sudah tiba: begitu pemuatannya
+// pindah ke saat kartu dibuat, "sempat termuat duluan" berhenti jadi anggapan
+// yang aman — dan kartu pertama akan kehilangan lambangnya tanpa galat apa pun.
+const siapLambang = () => new Promise(sudah => {
+  if (!mark) { mark = new Image(); mark.src = 'assets/si-mark-3x.png'; }
+  if (mark.complete) return sudah();
+  mark.onload = mark.onerror = () => sudah();
+});
 let cardCanvas = null;
 
 const composeCard = shot => new Promise(done => {
@@ -91,7 +102,7 @@ const composeCard = shot => new Promise(done => {
     g.fillText('Spatial Indonesia', 142, H - 128);
     g.fillStyle = 'rgba(185,180,204,.9)';
     g.font = "400 20px 'IBM Plex Mono', ui-monospace, monospace";
-    g.fillText('SPATIAL SOLAR SYSTEM · SPATIALINDONESIA.ID', 142, H - 96);
+    g.fillText('SPATIAL SOLAR SYSTEM · SPATIALINDONESIA.ORG', 142, H - 96);
 
     g.textAlign = 'right';
     g.fillStyle = '#f6f3ff';
@@ -115,6 +126,7 @@ export const makeCard = async () => {
   const s = scene();
   const shot = s && s.snapshot ? s.snapshot() : null;
   if (!shot) { signal('Postcard could not be captured from this session.', 'warn'); return; }
+  await siapLambang();
   const c = await composeCard(shot);
   if (!c) { signal('Failed to compose the postcard.', 'warn'); return; }
   cardCanvas = c;

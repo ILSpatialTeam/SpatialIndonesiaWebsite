@@ -32,6 +32,39 @@ try {
   console.log('.env terbaca:', Object.keys(envVars).join(', ') || '(kosong)');
 } catch { /* .env tidak ada — pakai nilai bawaan di index.html */ }
 
+// ── penjaga: backtick nyasar di dalam CSS milik komponen ────────────────────
+//
+// Modul UI menyimpan CSS-nya sebagai template literal. Satu backtick di dalam
+// komentar CSS — biasanya karena menyebut nama properti dalam prosa Bahasa
+// Indonesia — menutup template itu lebih awal, dan sisa berkasnya jadi omong
+// kosong. `node --check` meloloskannya karena ia membaca berkas sebagai skrip.
+//
+// esbuild memang menangkapnya, tapi pesannya menunjuk kata di tengah kalimat
+// ("Expected ; but found clamp") dan tidak menyebut sebabnya sama sekali.
+// Pemeriksaan ini berjalan lebih dulu supaya yang terbaca adalah masalahnya.
+{
+  const { readdir } = await import('node:fs/promises');
+  const sisir = async (dir) => {
+    for (const e of await readdir(dir, { withFileTypes: true })) {
+      const jalur = `${dir}/${e.name}`;
+      if (e.isDirectory()) { await sisir(jalur); continue; }
+      if (!e.name.endsWith('.js')) continue;
+      const isi = await readFile(jalur, 'utf8');
+      const mulai = isi.indexOf('export const css = `');
+      if (mulai < 0) continue;
+      const a = mulai + 'export const css = `'.length;
+      const b = isi.indexOf('`;', a);
+      if (b < 0) continue;
+      const baris = isi.slice(a, b).split('\n').findIndex(l => l.includes('`'));
+      if (baris >= 0) {
+        const noBaris = isi.slice(0, a).split('\n').length + baris;
+        throw new Error(`${jalur}:${noBaris} — ada backtick di dalam "export const css". Ia menutup template literalnya lebih awal; pakai tanda kutip biasa di komentar CSS.`);
+      }
+    }
+  };
+  await sisir('src');
+}
+
 const OUT = 'dist';
 const YEAR = new Date().getFullYear();
 const BANNER = `/*! Spatial Indonesia — © ${YEAR}. Seluruh hak cipta dilindungi. */`;
@@ -55,6 +88,10 @@ esbuild('support.js', '--minify', '--legal-comments=none', `--outfile=${OUT}/sup
 // 3. halaman menunjuk ke bundel, bukan ke pohon src/
 let html = await readFile('index.html', 'utf8');
 html = html.replace('<script type="module" src="./src/main.js"></script>', '<script type="module" src="./app.js"></script>');
+// Petunjuk modulepreload menunjuk berkas yang sama dengan tag skriptnya. Kalau
+// yang satu ikut dibundel dan yang lain tidak, peramban mengunduh dua pohon
+// modul yang berbeda: bundelnya dipakai, seluruh src/ terunduh percuma.
+html = html.replace('<link rel="modulepreload" href="./src/main.js" />', '<link rel="modulepreload" href="./app.js" />');
 
 // Suntikkan nilai dari .env ke meta tag
 if (envVars.SPATIAL_API !== undefined) {
@@ -121,8 +158,25 @@ Sitemap: ${situs}/sitemap.xml
 console.log(`  situs        → ${situs}  (robots.txt + sitemap.xml)`);
 
 // 5. berkas pendukung
+//
+// Tidak semua isi assets/ ikut. Yang disaring bukan sampah acak, melainkan tiga
+// hal yang tidak dirujuk satu baris pun tapi selama ini terunggah tiap rilis:
+//
+//   assets/icons/*png   folder yang namanya memang berisi tanda bintang, 892 KB
+//                       ikon PNG sisa kit desain — tidak satu pun dipakai
+//   assets/3d           Planets.fbx, 280 KB; ARCHITECTURE.md sudah menjelaskan
+//                       kenapa ia tidak pernah dimuat (bola ber-UV yang bisa
+//                       dibuat satu baris, dengan ongkos FBXLoader)
+//   assets/planets/*jpg pendahulu berkas .webp yang sekarang dipakai
+//
+// Berkasnya tetap ada di repo — yang berubah hanya apa yang dikirim ke server.
+// Pola .jpg-nya diikat ke folder planet, bukan ke seluruh pohon: assets/
+// juga memuat og-cover.jpg, gambar pratinjau tautan yang justru harus ikut.
+const BUANG = [/assets\/icons\/\*png/, /assets\/3d(\/|$)/, /assets\/planets\/.*\.jpg$/i, /\.DS_Store$/];
+const ikut = (src) => !BUANG.some(re => re.test(src));
+
 for (const dir of ['assets', 'sounds', 'uploads']) {
-  await cp(dir, `${OUT}/${dir}`, { recursive: true }).catch(() => {});
+  await cp(dir, `${OUT}/${dir}`, { recursive: true, filter: ikut }).catch(() => {});
 }
 
 // 6. isi public/ disalin apa adanya ke AKAR dist/
