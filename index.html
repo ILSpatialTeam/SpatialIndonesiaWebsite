@@ -27,8 +27,18 @@
      yang menyajikan halaman sama bisa dihitung sebagai dua halaman berbeda. -->
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 <meta name="theme-color" content="#121116" />
-<link rel="icon" type="image/png" href="/assets/si-mark.png" />
-<link rel="apple-touch-icon" href="/assets/si-mark-3x.png" />
+<!-- Ikon situs. Gambarnya WAJIB persegi: si-mark.png yang asli 108x110, dan
+     perayap ikon Google membuang berkas yang bukan 1:1 — hasilnya hasil
+     pencarian memakai bola dunia bawaan, tanpa galat di mana pun. si-mark-192
+     adalah mark yang sama dengan bantalan transparan sampai 192x192 (kelipatan
+     48, ukuran yang diminta Google).
+
+     favicon.ico di akar ada karena sebagian perayap dan pembaca RSS tidak
+     membaca <link> sama sekali dan langsung menebak /favicon.ico. Berkasnya
+     dirakit dari public/ (lihat build.mjs). -->
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/si-mark-192.png" />
+<link rel="apple-touch-icon" href="/assets/si-mark-192.png" />
 
 <!-- Pratinjau tautan saat dibagikan -->
 <meta property="og:type" content="website" />
@@ -90,7 +100,6 @@
 <x-dc>
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" type="image/x-icon" href="/assets/si-mark.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
